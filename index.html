@@ -11,9 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <!-- jsPDF and html2canvas Libraries -->
-    <!-- SIN integrity para html2canvas (para consistencia de prueba) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
-    <!-- SIN integrity para jsPDF (Prueba de diagnóstico) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" referrerpolicy="no-referrer"></script>
     <style>
         /* Estilos generales */
@@ -27,19 +25,31 @@
         .date-overdue { color: #dc2626; font-weight: bold; }
         .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; } .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; } .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
 
+        /* Estilos para el contenedor temporal de renderizado PDF */
         #pdf-render-area {
-            position: absolute; left: -9999px; top: auto; width: 80mm; background-color: white;
-            padding: 3mm; font-family: 'Courier New', Courier, monospace; font-size: 9pt;
-            line-height: 1.3; color: #000; border: 1px solid #ccc; visibility: hidden; z-index: -1;
+            /* Estilos iniciales/finales (oculto) */
+            position: absolute;
+            left: -9999px;
+            visibility: hidden;
+            z-index: -1;
+            /* Estilos comunes para renderizado */
+            width: 80mm; /* Ancho fijo del ticket */
+            background-color: white;
+            padding: 3mm;
+            font-family: 'Courier New', Courier, monospace !important; /* Forzar fuente */
+            font-size: 9pt !important; /* Forzar tamaño */
+            line-height: 1.3 !important; /* Forzar interlineado */
+            color: #000 !important; /* Forzar color */
+            border: 1px solid #ccc; /* Opcional para debug */
         }
-         #pdf-render-area h2 { font-size: 11pt; margin-bottom: 6px; text-align: center; font-weight: bold; }
-         #pdf-render-area p { margin: 2px 0; font-size: 9pt; word-wrap: break-word; }
-         #pdf-render-area hr { border: none; border-top: 1px dashed #555; margin: 4px 0; }
-         #pdf-render-area strong { font-weight: bold; }
-         #pdf-render-area .item-line { display: flex; justify-content: space-between; }
-         #pdf-render-area .item-line span:last-child { text-align: right; }
-         #pdf-render-area .totals { margin-top: 8px; border-top: 1px solid #555; padding-top: 4px; }
-         #pdf-render-area .detail-label { font-weight: bold; display: inline-block; min-width: 75px;}
+         #pdf-render-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; }
+         #pdf-render-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word !important; }
+         #pdf-render-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; }
+         #pdf-render-area strong { font-weight: bold !important; }
+         #pdf-render-area .item-line { display: flex !important; justify-content: space-between !important; }
+         #pdf-render-area .item-line span:last-child { text-align: right !important; }
+         #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; }
+         #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;}
          #pdf-render-area .detail-value { }
 
          .generating-pdf-overlay {
@@ -53,7 +63,7 @@
     <div class="container mx-auto p-4">
 
         <header class="bg-white shadow-md rounded-lg p-4 mb-6 no-print">
-            <div class="flex flex-col md:flex-row justify-between items-center">
+             <div class="flex flex-col md:flex-row justify-between items-center">
                  <div>
                     <h1 class="text-3xl font-bold text-blue-600 mb-2">Presupuestos Corte Laser</h1>
                     <div class="text-sm text-gray-600">
@@ -420,13 +430,11 @@
 
         async function printTicket(jobId) {
              console.log(`Generating PDF ticket for Job ID: ${jobId}`);
-             // Verificar si las librerías están cargadas AHORA
              if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
-                 alert("Error: Librerías PDF no cargadas. Espere un momento y reintente, o recargue la página.");
-                 console.error("jsPDF or html2canvas not loaded");
-                 return;
+                 alert("Error: Librerías PDF no cargadas. Espere y reintente, o recargue.");
+                 console.error("jsPDF or html2canvas not loaded"); return;
              }
-             const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
+             const { jsPDF } = window.jspdf;
 
              const job = jobsData.find(j => j.id === jobId);
              if (!job) { alert(`Error: Job ${jobId} not found.`); return; }
@@ -472,10 +480,26 @@
              renderArea.innerHTML = ticketHtml;
              console.log("Ticket HTML inserted for PDF rendering.");
 
-             await new Promise(resolve => setTimeout(resolve, 100));
+             // Guardar estilos originales del renderArea
+             const originalStyle = {
+                 position: renderArea.style.position,
+                 left: renderArea.style.left,
+                 top: renderArea.style.top,
+                 visibility: renderArea.style.visibility,
+                 zIndex: renderArea.style.zIndex
+             };
+
+             // Hacer visible temporalmente para html2canvas
+             renderArea.style.position = 'fixed';
+             renderArea.style.left = '0px';
+             renderArea.style.top = '0px'; // Ponerlo en la esquina superior izquierda
+             renderArea.style.visibility = 'visible'; // Hacerlo visible
+             renderArea.style.zIndex = '-1'; // Detrás de todo
+
+             // Esperar un frame para que los estilos se apliquen
+             await new Promise(resolve => requestAnimationFrame(resolve));
 
              try {
-                 // Asegurarse que html2canvas esté disponible
                  if (typeof window.html2canvas === 'undefined') throw new Error("html2canvas no está definido.");
 
                  const canvas = await html2canvas(renderArea, { scale: 2, useCORS: true, logging: false });
@@ -492,7 +516,13 @@
                  console.error("Error generating PDF ticket:", error);
                  alert("Error al generar el PDF del ticket: " + error.message);
              } finally {
-                 renderArea.innerHTML = '';
+                 // Restaurar estilos originales para ocultarlo de nuevo
+                 renderArea.style.position = originalStyle.position;
+                 renderArea.style.left = originalStyle.left;
+                 renderArea.style.top = originalStyle.top;
+                 renderArea.style.visibility = originalStyle.visibility;
+                 renderArea.style.zIndex = originalStyle.zIndex;
+                 renderArea.innerHTML = ''; // Limpiar contenido
                  showPdfLoading(false);
                  console.log("PDF ticket generation process finished.");
              }
@@ -500,11 +530,9 @@
 
         async function printCurrentSection() {
              console.log(`Generating PDF for section: ${activeSectionId}`);
-             // Verificar si las librerías están cargadas AHORA
              if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
-                 alert("Error: Librerías PDF no cargadas. Espere un momento y reintente, o recargue la página.");
-                 console.error("jsPDF or html2canvas not loaded");
-                 return;
+                 alert("Error: Librerías PDF no cargadas. Espere y reintente, o recargue.");
+                 console.error("jsPDF or html2canvas not loaded"); return;
              }
              const { jsPDF } = window.jspdf;
 
@@ -517,21 +545,15 @@
              if (!elementToPrint) { alert("No se encontró contenido principal para generar PDF."); return; }
 
              let hiddenElements = [];
-              if (elementToPrint.tagName === 'TABLE') {
-                    elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => {
-                        if (el.style.display !== 'none') {
-                             hiddenElements.push({element: el, originalDisplay: el.style.display});
-                             el.style.display = 'none';
-                        }
-                    });
-              } else {
-                   elementToPrint.querySelectorAll('button, .no-print').forEach(el => {
-                       if (el.style.display !== 'none') {
-                           hiddenElements.push({element: el, originalDisplay: el.style.display});
-                           el.style.display = 'none';
-                       }
-                   });
-              }
+             if (elementToPrint.tagName === 'TABLE') {
+                 elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => {
+                     if (el.style.display !== 'none') { hiddenElements.push({element: el, originalDisplay: el.style.display}); el.style.display = 'none'; }
+                 });
+             } else {
+                 elementToPrint.querySelectorAll('button, .no-print').forEach(el => {
+                     if (el.style.display !== 'none') { hiddenElements.push({element: el, originalDisplay: el.style.display}); el.style.display = 'none'; }
+                 });
+             }
 
              console.log("Element to print:", elementToPrint.id || elementToPrint.tagName);
              showPdfLoading(true);
@@ -539,12 +561,10 @@
              await new Promise(resolve => setTimeout(resolve, 100));
 
              try {
-                  // Asegurarse que html2canvas esté disponible
                  if (typeof window.html2canvas === 'undefined') throw new Error("html2canvas no está definido.");
 
                  const canvas = await html2canvas(elementToPrint, { scale: 1.2, useCORS: true, logging: false });
                  console.log("html2canvas rendering complete for section.");
-
                  const imgData = canvas.toDataURL('image/png');
                  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
@@ -567,7 +587,6 @@
 
                  pdf.save(`seccion_${activeSectionId}.pdf`);
                  console.log("PDF save initiated for section.");
-
              } catch (error) {
                  console.error("Error generating PDF for section:", error);
                  alert("Error al generar el PDF de la sección: " + error.message);
