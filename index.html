@@ -11,8 +11,10 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <!-- jsPDF and html2canvas Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSFczMutaWMHKE0GnJ91instagPfEbAiZr8EkJ5VVJUKSPZmrYKLzKvGTRfGGUzY3nPdgXVVhg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- SIN integrity para html2canvas (para consistencia de prueba) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
+    <!-- SIN integrity para jsPDF (Prueba de diagnóstico) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" referrerpolicy="no-referrer"></script>
     <style>
         /* Estilos generales */
         body { font-family: 'Inter', sans-serif; }
@@ -25,7 +27,6 @@
         .date-overdue { color: #dc2626; font-weight: bold; }
         .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; } .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; } .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
 
-        /* Estilos para el contenedor temporal de renderizado PDF (oculto visualmente) */
         #pdf-render-area {
             position: absolute; left: -9999px; top: auto; width: 80mm; background-color: white;
             padding: 3mm; font-family: 'Courier New', Courier, monospace; font-size: 9pt;
@@ -41,12 +42,10 @@
          #pdf-render-area .detail-label { font-weight: bold; display: inline-block; min-width: 75px;}
          #pdf-render-area .detail-value { }
 
-         /* Estilo para indicar carga de PDF */
          .generating-pdf-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);
             color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000;
          }
-         /* Ya no se necesitan reglas @media print */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -355,14 +354,12 @@
             </section>
         </main>
 
-        <!-- Contenedor oculto para renderizar PDF del ticket -->
         <div id="pdf-render-area"></div>
 
         <footer class="text-center text-gray-500 text-sm mt-8 no-print">
             © <span id="current-year"></span> Presupuestos Corte Laser. Todos los derechos reservados.
         </footer>
 
-        <!-- Overlay de Carga para PDF -->
         <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">
             Generando PDF...
         </div>
@@ -370,16 +367,12 @@
     </div>
 
     <script>
-        // --- Configuración Firebase e Inicialización ---
         const firebaseConfig = { apiKey: "AIzaSyAVBHUX8Ey9lLUCiz6mNDOemrNfrR-3Szs", authDomain: "presupuestadorcortelaser.firebaseapp.com", projectId: "presupuestadorcortelaser", storageBucket: "presupuestadorcortelaser.firebasestorage.app", messagingSenderId: "159566854109", appId: "1:159566854109:web:8d7351cef717697f3ea834" };
         let db; let auth;
         try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); auth = firebase.auth(); console.log("Firebase inicializado."); } catch (error) { console.error("Error Firebase Init:", error); alert("Error crítico: No se pudo inicializar Firebase."); }
         const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1';
-
-        // --- Variables Globales ---
         let materialsData = {}; let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; let clientsData = {}; let jobsData = []; let currentUser = null; let currentUserRole = null; let currentJobQuoteBaseCost = 0; let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; let activeSectionId = 'home';
 
-        // --- Funciones de UI y Datos ---
         function setActiveTab(buttonElement) { if (!buttonElement) return; const targetId = buttonElement.getAttribute('data-target'); if (!targetId) return; console.log("Activando tab:", targetId); activeSectionId = targetId; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const sectionToShow = document.getElementById(targetId); if (sectionToShow) { sectionToShow.classList.add('active-tab-content'); buttonElement.classList.add('active-tab'); loadDataForSection(targetId); } else { console.error(`Content '${targetId}' not found.`); const defBtn = document.querySelector('#tab-buttons .tab-button[data-target="jobs"]'); if (defBtn) setActiveTab(defBtn); } }
         function showLoginSection() { console.log("Mostrando login"); activeSectionId = 'login'; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const lSec = document.getElementById('login'); if(lSec) lSec.classList.add('active-tab-content'); const lForm = document.getElementById('login-form'); if(lForm) lForm.reset(); const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; }
         auth?.onAuthStateChanged(user => { if (!auth) { showLoginSection(); return; } console.log("Auth state:", user ? user.uid : 'null'); currentUser = user; const uSpan = document.getElementById('user-email'); document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only'); if (user) { currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator'; console.log("Role:", currentUserRole); document.body.classList.add('logged-in', `role-${currentUserRole}`); if (uSpan) uSpan.textContent = user.email; loadInitialDataForLoggedInUser().then(() => { console.log("Initial data loaded post-login."); const defTab = 'jobs'; const tBtn = document.querySelector(`#tab-buttons .tab-button[data-target="${defTab}"]`); if (tBtn) setActiveTab(tBtn); else { console.error("Default tab btn 'jobs' not found."); const fBtn = document.querySelector('#tab-buttons .tab-button:not(.superadmin-only)') || document.querySelector('#tab-buttons .tab-button.superadmin-only'); if (fBtn) setActiveTab(fBtn); } }).catch(error => { console.error("Error initial data load:", error); alert("Error crítico cargando datos."); }); } else { console.log("Logged out."); currentUserRole = null; document.body.classList.add('public-only'); if (uSpan) uSpan.textContent = ''; materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; dataLoaded = { clients: false, jobs: false, materials: false, config: false }; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const hSec = document.getElementById('home'); if (hSec) { hSec.classList.add('active-tab-content'); activeSectionId = 'home'; } } });
@@ -433,7 +426,7 @@
                  console.error("jsPDF or html2canvas not loaded");
                  return;
              }
-             const { jsPDF } = window.jspdf;
+             const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
 
              const job = jobsData.find(j => j.id === jobId);
              if (!job) { alert(`Error: Job ${jobId} not found.`); return; }
@@ -482,10 +475,13 @@
              await new Promise(resolve => setTimeout(resolve, 100));
 
              try {
+                 // Asegurarse que html2canvas esté disponible
+                 if (typeof window.html2canvas === 'undefined') throw new Error("html2canvas no está definido.");
+
                  const canvas = await html2canvas(renderArea, { scale: 2, useCORS: true, logging: false });
                  console.log("html2canvas rendering complete for ticket.");
                  const imgData = canvas.toDataURL('image/png');
-                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, canvas.height * (80 / canvas.width) + 6] }); // Add padding to height
+                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, canvas.height * (80 / canvas.width) + 6] });
                  const pdfWidth = pdf.internal.pageSize.getWidth() - 6;
                  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
                  pdf.addImage(imgData, 'PNG', 3, 3, pdfWidth, pdfHeight);
@@ -510,7 +506,7 @@
                  console.error("jsPDF or html2canvas not loaded");
                  return;
              }
-             const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
+             const { jsPDF } = window.jspdf;
 
              const sectionToPrint = document.getElementById(activeSectionId);
              if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) { alert("Sección activa no válida."); return; }
@@ -518,18 +514,17 @@
              else if (activeSectionId === 'login' || activeSectionId === 'home') { alert("Esta sección no se puede exportar a PDF."); return; }
 
              const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint;
-             if (!elementToPrint) { alert("No se encontró contenido para generar PDF."); return; }
+             if (!elementToPrint) { alert("No se encontró contenido principal para generar PDF."); return; }
 
-             // Ocultar elementos no deseados ANTES de renderizar
              let hiddenElements = [];
               if (elementToPrint.tagName === 'TABLE') {
                     elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => {
-                        if (el.style.display !== 'none') { // Solo ocultar si no está ya oculto
+                        if (el.style.display !== 'none') {
                              hiddenElements.push({element: el, originalDisplay: el.style.display});
                              el.style.display = 'none';
                         }
                     });
-              } else { // Si es la sección entera, buscar botones dentro
+              } else {
                    elementToPrint.querySelectorAll('button, .no-print').forEach(el => {
                        if (el.style.display !== 'none') {
                            hiddenElements.push({element: el, originalDisplay: el.style.display});
@@ -541,24 +536,24 @@
              console.log("Element to print:", elementToPrint.id || elementToPrint.tagName);
              showPdfLoading(true);
 
-             await new Promise(resolve => setTimeout(resolve, 100)); // Pequeña espera extra
+             await new Promise(resolve => setTimeout(resolve, 100));
 
              try {
-                 const canvas = await html2canvas(elementToPrint, {
-                     scale: 1.2, useCORS: true, logging: false,
-                     // windowWidth: elementToPrint.scrollWidth // Puede ayudar con tablas anchas
-                 });
+                  // Asegurarse que html2canvas esté disponible
+                 if (typeof window.html2canvas === 'undefined') throw new Error("html2canvas no está definido.");
+
+                 const canvas = await html2canvas(elementToPrint, { scale: 1.2, useCORS: true, logging: false });
                  console.log("html2canvas rendering complete for section.");
 
                  const imgData = canvas.toDataURL('image/png');
                  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
                  const imgProps = pdf.getImageProperties(imgData);
-                 const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // Márgenes A4 landscape
+                 const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
                  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                 const pageHeight = pdf.internal.pageSize.getHeight() - 20; // Altura usable A4
+                 const pageHeight = pdf.internal.pageSize.getHeight() - 20;
                  let heightLeft = pdfHeight;
-                 let position = 10; // Margen superior
+                 let position = 10;
 
                  pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight);
                  heightLeft -= pageHeight;
@@ -577,10 +572,7 @@
                  console.error("Error generating PDF for section:", error);
                  alert("Error al generar el PDF de la sección: " + error.message);
              } finally {
-                 // Restaurar visibilidad de elementos ocultados
-                 hiddenElements.forEach(item => {
-                     item.element.style.display = item.originalDisplay || ''; // Restaurar display original o dejar que CSS decida
-                 });
+                 hiddenElements.forEach(item => { item.element.style.display = item.originalDisplay || ''; });
                  showPdfLoading(false);
                  console.log("PDF section generation process finished.");
              }
