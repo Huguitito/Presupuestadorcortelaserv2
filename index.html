@@ -14,48 +14,99 @@
         body { font-family: 'Inter', sans-serif; }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-        /* Ocultar secciones por defecto */
-        .page-section { display: none; }
-        .active-section { display: block; }
+        /* Ocultar contenido de pestañas por defecto */
+        .tab-content { display: none; }
+        .active-tab-content { display: block; }
 
-        /* Estilos y visibilidad basados en roles */
-        .admin-only { display: none; } /* Oculto si no está logueado */
-        .superadmin-only { display: none; } /* Oculto si no es superadmin */
-        .public-only { display: block; } /* Visible si no está logueado */
+        /* Estilos Pestañas */
+        .tab-button {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: border-color 0.3s, color 0.3s;
+            color: #6b7280; /* gray-500 */
+            font-weight: 500;
+        }
+        .tab-button.active-tab {
+            border-color: #3b82f6; /* blue-500 */
+            color: #2563eb; /* blue-600 */
+        }
+        .tab-button:hover {
+            border-color: #9ca3af; /* gray-400 */
+            color: #4b5563; /* gray-600 */
+        }
+        /* Colores especiales para pestañas admin */
+         .tab-button.superadmin-tab { color: #8b5cf6; /* purple-500 */ }
+         .tab-button.superadmin-tab.active-tab { border-color: #7c3aed; /* purple-600 */ color: #6d28d9; /* purple-700 */ }
+         .tab-button.superadmin-tab:hover { border-color: #a78bfa; /* purple-400 */ color: #7c3aed; /* purple-600 */ }
 
-        body.logged-in .admin-only { display: block; } /* Visible si está logueado (cualquier rol) */
-        body.logged-in .public-only { display: none; } /* Ocultar login si está logueado */
-        body.role-superadmin .superadmin-only { display: block; } /* Visible solo para superadmin */
+        /* Visibilidad basada en roles */
+        .admin-only { display: none; }
+        .superadmin-only { display: none; }
+        .public-only { display: block; }
+        body.logged-in .admin-only { display: block; } /* O inline-block, flex según necesidad */
+        body.logged-in .public-only { display: none; }
+        body.role-superadmin .superadmin-only { display: block; } /* O inline-block, flex */
 
-        /* Estilos tablas y formularios admin */
+        /* Estilos tablas y formularios */
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
         .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: middle;}
         .admin-table th { background-color: #f2f2f2; }
         .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; }
-        .edit-button { background-color: #facc15; color: #422006; } /* yellow-400 */
-        .edit-button:hover { background-color: #eab308; } /* yellow-500 */
-        .delete-button { background-color: #f87171; color: #450a0a; } /* red-400 */
-        .delete-button:hover { background-color: #ef4444; } /* red-500 */
-        .print-button { background-color: #60a5fa; color: #1e3a8a; } /* blue-400 */
-        .print-button:hover { background-color: #3b82f6; } /* blue-500 */
+        .edit-button { background-color: #facc15; color: #422006; }
+        .edit-button:hover { background-color: #eab308; }
+        .delete-button { background-color: #f87171; color: #450a0a; }
+        .delete-button:hover { background-color: #ef4444; }
+        .print-button { background-color: #60a5fa; color: #1e3a8a; }
+        .print-button:hover { background-color: #3b82f6; }
+        .generic-print-button { background-color: #a78bfa; color: #f5f3ff; } /* purple-400 */
+        .generic-print-button:hover { background-color: #8b5cf6; } /* purple-500 */
 
         /* Colores de estado */
-        .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500;} /* amber-400 */
-        .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500;} /* red-400 */
-        .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500;} /* green-400 */
+        .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500;}
+        .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500;}
+        .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500;}
 
         /* Resaltado fecha vencida */
-        .date-overdue { color: #dc2626; font-weight: bold; } /* red-600 */
+        .date-overdue { color: #dc2626; font-weight: bold; }
 
-        /* Estilos para impresión de ticket */
+        /* Estilos para impresión */
         @media print {
             body * { visibility: hidden; } /* Ocultar todo por defecto */
-            #print-area, #print-area * { visibility: visible; } /* Mostrar solo el área de impresión */
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; font-size: 12px; }
-            button, input, select, textarea, nav, header, footer { display: none !important; } /* Ocultar controles */
-            .no-print { display: none !important; } /* Ocultar elementos marcados */
-            h1, h2, h3 { font-size: 14px; margin-bottom: 5px;}
-            p { margin: 2px 0; }
+
+            /* Estilos para Ticket (cuando #print-area está presente) */
+            #print-area, #print-area * { visibility: visible !important; }
+            #print-area {
+                position: absolute; left: 0; top: 0; width: 98%; margin: 1%; /* Ajustar márgenes */
+                font-size: 11pt; /* Ajustar tamaño fuente */
+                line-height: 1.4;
+                color: #000; /* Asegurar texto negro */
+                background-color: #fff !important; /* Fondo blanco */
+            }
+             #print-area h2 { font-size: 14pt; margin-bottom: 10px; text-align: center; }
+             #print-area p { margin: 4px 0; }
+             #print-area hr { border: none; border-top: 1px solid #ccc; margin: 8px 0; }
+             #print-area strong { font-weight: bold; }
+
+            /* Estilos para Impresión General (cuando una sección tiene clase 'printing-now') */
+            .printing-now, .printing-now * { visibility: visible !important; }
+            .printing-now {
+                position: absolute; left: 0; top: 0; width: 100%;
+                background-color: #fff !important; /* Fondo blanco */
+                color: #000; /* Texto negro */
+                padding: 10px; /* Añadir algo de padding */
+            }
+            /* Ocultar elementos no deseados en impresión general */
+            .printing-now button, .printing-now input, .printing-now select, .printing-now textarea,
+            .printing-now .no-print, .printing-now header, .printing-now footer, .printing-now nav,
+            .printing-now #tab-buttons /* Ocultar botones de pestañas */
+            {
+                display: none !important;
+            }
+             /* Estilos específicos para tablas en impresión general */
+             .printing-now .admin-table { font-size: 9pt; }
+             .printing-now .admin-table th, .printing-now .admin-table td { padding: 4px; }
+             .printing-now h1, .printing-now h2, .printing-now h3 { color: #000; margin-bottom: 10px; }
         }
     </style>
 </head>
@@ -72,8 +123,11 @@
                         <p>Redes Sociales: [Iconos o Enlaces]</p>
                     </div>
                  </div>
-                 <div class="mt-4 md:mt-0">
-                     <span id="user-email" class="admin-only text-sm text-gray-500 mr-4"></span>
+                 <div class="mt-4 md:mt-0 flex items-center space-x-3">
+                     <span id="user-email" class="admin-only text-sm text-gray-500"></span>
+                      <button onclick="printCurrentSection()" title="Imprimir vista actual" class="admin-only generic-print-button action-button">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-printer"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                     </button>
                      <button id="admin-login-button" onclick="showSection('login')" class="public-only bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold py-1 px-3 rounded transition duration-300">
                          Iniciar Sesión
                      </button>
@@ -82,312 +136,163 @@
                      </button>
                  </div>
             </div>
-            <nav class="mt-4 flex flex-wrap justify-center md:justify-start space-x-4 border-t pt-4">
-                <button onclick="showSection('home')" class="text-blue-600 hover:text-blue-800 font-semibold">Inicio</button>
-                <button onclick="showSection('clients')" class="admin-only text-blue-600 hover:text-blue-800 font-semibold">Clientes</button>
-                <button onclick="showSection('jobs')" class="admin-only text-blue-600 hover:text-blue-800 font-semibold">Trabajos</button>
-                <button onclick="showSection('deadlines')" class="admin-only text-blue-600 hover:text-blue-800 font-semibold">Plazos</button>
-                <button onclick="showSection('status')" class="admin-only text-blue-600 hover:text-blue-800 font-semibold">Estados</button>
-                <button onclick="showSection('reports')" class="admin-only text-blue-600 hover:text-blue-800 font-semibold">Informes</button>
-                <button onclick="showSection('admin-materials')" class="superadmin-only text-purple-600 hover:text-purple-800 font-semibold">Materiales</button>
-                <button onclick="showSection('admin-config')" class="superadmin-only text-purple-600 hover:text-purple-800 font-semibold">Configuración</button>
-            </nav>
         </header>
 
-        <section id="home" class="page-section active-section bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-10 rounded-lg shadow-lg text-center flex flex-col items-center justify-center min-h-[40vh]">
-           <div class="p-6 rounded-lg">
-                <h2 class="text-4xl font-bold mb-4">Corte y Grabado Láser a tu Medida</h2>
-                <p class="text-lg mb-6">Servicios de precisión. Gestiona tus clientes y trabajos fácilmente.</p>
-                <button onclick="showSection('clients')" class="admin-only bg-white hover:bg-gray-100 text-blue-600 font-bold py-3 px-6 rounded-lg text-xl shadow-md transition duration-300">
-                    Gestionar Clientes/Trabajos
-                </button>
-                 <button onclick="showSection('login')" class="public-only bg-white hover:bg-gray-100 text-blue-600 font-bold py-3 px-6 rounded-lg text-xl shadow-md transition duration-300">
-                    Iniciar Sesión para Gestionar
-                </button>
-            </div>
-        </section>
+        <nav id="tab-buttons" class="admin-only flex flex-wrap border-b border-gray-300 mb-6 no-print">
+            <button onclick="showSection('home')" data-target="home" class="tab-button">Inicio</button>
+            <button onclick="showSection('clients')" data-target="clients" class="tab-button">Clientes</button>
+            <button onclick="showSection('jobs')" data-target="jobs" class="tab-button">Trabajos</button>
+            <button onclick="showSection('deadlines')" data-target="deadlines" class="tab-button">Plazos</button>
+            <button onclick="showSection('status')" data-target="status" class="tab-button">Estados</button>
+            <button onclick="showSection('reports')" data-target="reports" class="tab-button">Informes</button>
+            <button onclick="showSection('admin-materials')" data-target="admin-materials" class="tab-button superadmin-only superadmin-tab">Materiales</button>
+            <button onclick="showSection('admin-config')" data-target="admin-config" class="tab-button superadmin-only superadmin-tab">Configuración</button>
+        </nav>
 
-        <section id="login" class="page-section bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto">
-             <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Iniciar Sesión</h2>
-             <form id="login-form" class="space-y-4">
-                <div>
-                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email:</label>
-                    <input type="email" id="login-email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <div>
-                    <label for="login-password" class="block text-sm font-medium text-gray-700">Contraseña:</label>
-                    <input type="password" id="login-password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                    Entrar
-                </button>
-                <div id="login-error" class="mt-2 text-red-600 text-sm text-center"></div>
-             </form>
-        </section>
+        <main id="tab-content-container">
 
-        <section id="clients" class="page-section admin-only bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
-            <form id="client-form" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6">
-                <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3>
-                <input type="hidden" id="client-id">
-                <div>
-                    <label for="client-name" class="block text-sm font-medium text-gray-700">Nombre:</label>
-                    <input type="text" id="client-name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+            <section id="home" class="tab-content bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-10 rounded-lg shadow-lg text-center flex flex-col items-center justify-center min-h-[40vh]">
+               <div class="p-6 rounded-lg">
+                    <h2 class="text-4xl font-bold mb-4">Corte y Grabado Láser a tu Medida</h2>
+                    <p class="text-lg mb-6">Servicios de precisión. Gestiona tus clientes y trabajos fácilmente.</p>
+                    <button onclick="showSection('clients')" class="admin-only bg-white hover:bg-gray-100 text-blue-600 font-bold py-3 px-6 rounded-lg text-xl shadow-md transition duration-300">
+                        Gestionar Clientes/Trabajos
+                    </button>
+                     <button onclick="showSection('login')" class="public-only bg-white hover:bg-gray-100 text-blue-600 font-bold py-3 px-6 rounded-lg text-xl shadow-md transition duration-300">
+                        Iniciar Sesión para Gestionar
+                    </button>
                 </div>
-                 <div>
-                    <label for="client-phone" class="block text-sm font-medium text-gray-700">Celular:</label>
-                    <input type="tel" id="client-phone" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                </div>
-                 <div>
-                    <label for="client-email" class="block text-sm font-medium text-gray-700">Email:</label>
-                    <input type="email" id="client-email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                </div>
-                <div class="flex space-x-2">
-                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Guardar Cliente</button>
-                    <button type="button" onclick="resetClientForm()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancelar</button>
-                </div>
-                <div id="client-form-feedback" class="mt-2 text-sm"></div>
-            </form>
-            <div class="overflow-x-auto">
-                 <table id="clients-table" class="admin-table">
-                     <thead><tr><th>Nombre</th><th>Celular</th><th>Email</th><th>Acciones</th></tr></thead>
-                     <tbody><tr><td colspan="4" class="text-center p-4">Cargando clientes...</td></tr></tbody>
-                 </table>
-             </div>
-        </section>
+            </section>
 
-        <section id="jobs" class="page-section admin-only bg-white p-6 rounded-lg shadow-lg">
-             <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Trabajos</h2>
-             <div class="mb-4 text-center">
-                  <button onclick="showSection('new-job-form')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                      + Nuevo Trabajo
-                  </button>
-              </div>
-             <div class="overflow-x-auto">
-                 <table id="jobs-table" class="admin-table">
-                     <thead>
-                         <tr>
-                             <th>Cliente</th>
-                             <th>Detalles</th>
-                             <th>Fecha Pedido</th>
-                             <th>Fecha Entrega</th>
-                             <th>Estado</th>
-                             <th>Total ($)</th>
-                             <th>Seña ($)</th>
-                             <th>Pendiente ($)</th>
-                             <th>Acciones</th>
-                         </tr>
-                     </thead>
-                     <tbody><tr><td colspan="9" class="text-center p-4">Cargando trabajos...</td></tr></tbody>
-                 </table>
-             </div>
-        </section>
+            <section id="login" class="tab-content bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Iniciar Sesión</h2>
+                 <form id="login-form" class="space-y-4">
+                    <div><label for="login-email">Email:</label><input type="email" id="login-email" required class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label for="login-password">Contraseña:</label><input type="password" id="login-password" required class="mt-1 w-full p-2 border rounded"></div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Entrar</button>
+                    <div id="login-error" class="mt-2 text-red-600 text-sm text-center"></div>
+                 </form>
+            </section>
 
-         <section id="new-job-form" class="page-section admin-only bg-white p-6 rounded-lg shadow-lg">
-            <h2 id="job-form-title" class="text-2xl font-bold mb-6 text-center text-blue-600">Nuevo Trabajo</h2>
-            <form id="job-form" class="space-y-4">
-                <input type="hidden" id="job-id"> <div>
-                    <label for="job-client" class="block text-sm font-medium text-gray-700">Cliente:</label>
-                    <select id="job-client" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                        <option value="">Selecciona un cliente...</option>
-                        </select>
-                     <p class="text-xs text-gray-500 mt-1">Si el cliente no existe, añádelo primero en la pestaña "Clientes".</p>
-                </div>
-
-                <div>
-                    <label for="job-details" class="block text-sm font-medium text-gray-700">Detalles del Trabajo:</label>
-                    <textarea id="job-details" rows="3" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
-                </div>
-
-                 <div class="border p-4 rounded bg-gray-50 space-y-3">
-                     <h3 class="text-md font-semibold text-gray-800">Detalles de Cotización</h3>
-                     <div>
-                        <label for="job-material" class="block text-sm font-medium text-gray-700">Material:</label>
-                        <select id="job-material" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                            <option value="">Selecciona material...</option>
-                            </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="job-length" class="block text-sm font-medium text-gray-700">Largo (mm):</label>
-                            <input type="number" id="job-length" required min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                        </div>
-                        <div>
-                            <label for="job-width" class="block text-sm font-medium text-gray-700">Ancho (mm):</label>
-                            <input type="number" id="job-width" required min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="job-job-type" class="block text-sm font-medium text-gray-700">Tipo Trabajo:</label>
-                        <select id="job-job-type" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                            <option value="corte">Solo Corte</option>
-                            <option value="grabado">Solo Grabado</option>
-                            <option value="ambos">Corte y Grabado</option>
-                        </select>
-                    </div>
-                     <div id="job-time-estimation" class="space-y-2">
-                         <p class="text-xs text-gray-600">Estimar minutos de máquina:</p>
-                        <div id="job-cut-time-field" class="grid grid-cols-2 gap-2 items-center">
-                            <label for="job-cut-minutes" class="text-sm font-medium text-gray-700">Min. Corte:</label>
-                            <input type="number" id="job-cut-minutes" min="0" value="0" class="block w-full p-1 border border-gray-300 rounded-md text-sm">
-                        </div>
-                         <div id="job-engrave-time-field" class="grid grid-cols-2 gap-2 items-center">
-                            <label for="job-engrave-minutes" class="text-sm font-medium text-gray-700">Min. Grabado:</label>
-                            <input type="number" id="job-engrave-minutes" min="0" value="0" class="block w-full p-1 border border-gray-300 rounded-md text-sm">
-                        </div>
-                     </div>
-                      <button type="button" onclick="calculateJobQuote()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-bold py-1 px-3 rounded">Calcular Costo Base</button>
-                      <div id="job-quote-base-result" class="mt-1 text-sm text-gray-600"></div>
+            <section id="clients" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
+                <form id="client-form" class="bg-gray-50 p-4 rounded border space-y-3 mb-6">
+                    <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3>
+                    <input type="hidden" id="client-id">
+                    <div><label for="client-name">Nombre:</label><input type="text" id="client-name" required class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label for="client-phone">Celular:</label><input type="tel" id="client-phone" class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label for="client-email">Email:</label><input type="email" id="client-email" class="mt-1 w-full p-2 border rounded"></div>
+                    <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 text-white">Guardar</button><button type="button" onclick="resetClientForm()" class="action-button bg-gray-500 text-white">Cancelar</button></div>
+                    <div id="client-form-feedback" class="mt-2 text-sm"></div>
+                </form>
+                 <div class="overflow-x-auto">
+                     <table id="clients-table" class="admin-table">
+                         <thead><tr><th>Nombre</th><th>Celular</th><th>Email</th><th>Acciones</th></tr></thead>
+                         <tbody><tr><td colspan="4">Cargando...</td></tr></tbody>
+                     </table>
                  </div>
+            </section>
 
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                     <div>
-                        <label for="job-order-date" class="block text-sm font-medium text-gray-700">Fecha Pedido:</label>
-                        <input type="date" id="job-order-date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-                    <div>
-                        <label for="job-delivery-date" class="block text-sm font-medium text-gray-700">Fecha Entrega:</label>
-                        <input type="date" id="job-delivery-date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-                     <div>
-                        <label for="job-status" class="block text-sm font-medium text-gray-700">Estado:</label>
-                        <select id="job-status" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                            <option value="Encargado">Encargado</option>
-                            <option value="Procesando">Procesando</option>
-                            <option value="Terminado">Terminado</option>
-                        </select>
-                    </div>
+            <section id="jobs" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Trabajos</h2>
+                  <div class="mb-4 text-center">
+                      <button onclick="showSection('new-job-form')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                          + Nuevo Trabajo
+                      </button>
+                  </div>
+                 <div class="overflow-x-auto">
+                     <table id="jobs-table" class="admin-table">
+                         <thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th>Total</th><th>Seña</th><th>Pendiente</th><th>Acciones</th></tr></thead>
+                         <tbody><tr><td colspan="9">Cargando...</td></tr></tbody>
+                     </table>
                  </div>
+            </section>
 
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div>
-                        <label for="job-final-cost" class="block text-sm font-medium text-gray-700">Total Trabajo ($) (con ganancia):</label>
-                        <input type="number" id="job-final-cost" required min="0" step="0.01" readonly class="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-100">
-                         <p class="text-xs text-gray-500 mt-1">Se calcula automáticamente (Costo Base x 2).</p>
-                    </div>
-                    <div>
-                        <label for="job-deposit" class="block text-sm font-medium text-gray-700">Seña ($):</label>
-                        <input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                    </div>
+             <section id="new-job-form" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+                <h2 id="job-form-title" class="text-2xl font-bold mb-6 text-center text-blue-600">Nuevo Trabajo</h2>
+                <form id="job-form" class="space-y-4">
+                    <input type="hidden" id="job-id">
+                    <div><label for="job-client">Cliente:</label><select id="job-client" required class="mt-1 w-full p-2 border rounded"><option value="">Selecciona...</option></select><p class="text-xs text-gray-500 mt-1">Añade clientes en la pestaña "Clientes".</p></div>
+                    <div><label for="job-details">Detalles Trabajo:</label><textarea id="job-details" rows="3" required class="mt-1 w-full p-2 border rounded"></textarea></div>
+                     <div class="border p-4 rounded bg-gray-50 space-y-3"><h3 class="text-md font-semibold">Cotización</h3><div><label for="job-material">Material:</label><select id="job-material" required class="mt-1 w-full p-2 border rounded"><option value="">Selecciona...</option></select></div><div class="grid grid-cols-2 gap-4"><div><label for="job-length">Largo(mm):</label><input type="number" id="job-length" required min="1" class="mt-1 w-full p-2 border rounded"></div><div><label for="job-width">Ancho(mm):</label><input type="number" id="job-width" required min="1" class="mt-1 w-full p-2 border rounded"></div></div><div><label for="job-job-type">Tipo Trabajo:</label><select id="job-job-type" required class="mt-1 w-full p-2 border rounded"><option value="corte">Corte</option><option value="grabado">Grabado</option><option value="ambos">Ambos</option></select></div><div id="job-time-estimation" class="space-y-2"><p class="text-xs">Estimar minutos:</p><div id="job-cut-time-field" class="grid grid-cols-2 gap-2 items-center"><label for="job-cut-minutes" class="text-sm">Min. Corte:</label><input type="number" id="job-cut-minutes" min="0" value="0" class="w-full p-1 border rounded text-sm"></div><div id="job-engrave-time-field" class="grid grid-cols-2 gap-2 items-center"><label for="job-engrave-minutes" class="text-sm">Min. Grabado:</label><input type="number" id="job-engrave-minutes" min="0" value="0" class="w-full p-1 border rounded text-sm"></div></div><button type="button" onclick="calculateJobQuote()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-sm py-1 px-3 rounded">Calcular Costo Base</button><div id="job-quote-base-result" class="mt-1 text-sm"></div></div>
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="job-order-date">F. Pedido:</label><input type="date" id="job-order-date" required class="mt-1 w-full p-2 border rounded"></div><div><label for="job-delivery-date">F. Entrega:</label><input type="date" id="job-delivery-date" required class="mt-1 w-full p-2 border rounded"></div><div><label for="job-status">Estado:</label><select id="job-status" required class="mt-1 w-full p-2 border rounded"><option value="Encargado">Encargado</option><option value="Procesando">Procesando</option><option value="Terminado">Terminado</option></select></div></div>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="job-final-cost">Total Trabajo ($):</label><input type="number" id="job-final-cost" required min="0" step="0.01" readonly class="mt-1 w-full p-2 border rounded bg-gray-100"><p class="text-xs text-gray-500 mt-1">(Costo Base x 2)</p></div><div><label for="job-deposit">Seña ($):</label><input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="mt-1 w-full p-2 border rounded"></div></div>
+                     <div><label for="job-observations">Observaciones:</label><textarea id="job-observations" rows="3" class="mt-1 w-full p-2 border rounded"></textarea></div>
+                     <div class="flex space-x-2 pt-4"><button type="submit" class="action-button bg-green-500 text-white">Guardar Trabajo</button><button type="button" onclick="showSection('jobs'); resetJobForm();" class="action-button bg-gray-500 text-white">Cancelar</button></div>
+                    <div id="job-form-feedback" class="mt-2 text-sm"></div>
+                </form>
+            </section>
+
+            <section id="deadlines" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Plazos de Entrega</h2>
+                 <div class="overflow-x-auto">
+                     <table id="deadlines-table" class="admin-table">
+                         <thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th></tr></thead>
+                         <tbody><tr><td colspan="5">Cargando...</td></tr></tbody>
+                     </table>
                  </div>
-                 <div>
-                    <label for="job-observations" class="block text-sm font-medium text-gray-700">Observaciones:</label>
-                    <textarea id="job-observations" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
-                </div>
+            </section>
 
-                <div class="flex space-x-2 pt-4">
-                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Guardar Trabajo</button>
-                    <button type="button" onclick="showSection('jobs'); resetJobForm();" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Cancelar</button>
-                </div>
-                <div id="job-form-feedback" class="mt-2 text-sm"></div>
-            </form>
-        </section>
-
-        <section id="deadlines" class="page-section admin-only bg-white p-6 rounded-lg shadow-lg">
-             <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Plazos de Entrega</h2>
-             <div class="overflow-x-auto">
-                 <table id="deadlines-table" class="admin-table">
-                     <thead>
-                         <tr>
-                             <th>Cliente</th>
-                             <th>Detalles</th>
-                             <th>Fecha Pedido</th>
-                             <th>Fecha Entrega</th>
-                             <th>Estado</th>
-                         </tr>
-                     </thead>
-                     <tbody><tr><td colspan="5" class="text-center p-4">Cargando plazos...</td></tr></tbody>
-                 </table>
-             </div>
-        </section>
-
-        <section id="status" class="page-section admin-only bg-white p-6 rounded-lg shadow-lg">
-             <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Estado de Trabajos</h2>
-              <div class="overflow-x-auto">
-                 <table id="status-table" class="admin-table">
-                     <thead>
-                         <tr>
-                             <th>Cliente</th>
-                             <th>Detalles</th>
-                             <th>Estado</th>
-                             <th>Fecha Entrega</th>
-                         </tr>
-                     </thead>
-                     <tbody><tr><td colspan="4" class="text-center p-4">Cargando estados...</td></tr></tbody>
-                 </table>
-             </div>
-        </section>
-
-        <section id="reports" class="page-section admin-only bg-white p-6 rounded-lg shadow-lg">
-             <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Informes Generales</h2>
-             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
-                 <div class="bg-blue-100 p-4 rounded shadow">
-                     <h3 class="text-lg font-semibold text-blue-800">Total Facturado</h3>
-                     <p id="report-total-value" class="text-2xl font-bold">$0.00</p>
+            <section id="status" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Estado de Trabajos</h2>
+                  <div class="overflow-x-auto">
+                     <table id="status-table" class="admin-table">
+                         <thead><tr><th>Cliente</th><th>Detalles</th><th>Estado</th><th>F. Entrega</th></tr></thead>
+                         <tbody><tr><td colspan="4">Cargando...</td></tr></tbody>
+                     </table>
                  </div>
-                 <div class="bg-green-100 p-4 rounded shadow">
-                     <h3 class="text-lg font-semibold text-green-800">Total Señado</h3>
-                     <p id="report-total-deposit" class="text-2xl font-bold">$0.00</p>
+            </section>
+
+            <section id="reports" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Informes Generales</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+                     <div class="bg-blue-100 p-4 rounded shadow"><h3 class="font-semibold text-blue-800">Total Facturado</h3><p id="report-total-value" class="text-2xl font-bold">$0.00</p></div>
+                     <div class="bg-green-100 p-4 rounded shadow"><h3 class="font-semibold text-green-800">Total Señado</h3><p id="report-total-deposit" class="text-2xl font-bold">$0.00</p></div>
+                     <div class="bg-red-100 p-4 rounded shadow"><h3 class="font-semibold text-red-800">Total Pendiente</h3><p id="report-total-outstanding" class="text-2xl font-bold">$0.00</p></div>
                  </div>
-                 <div class="bg-red-100 p-4 rounded shadow">
-                     <h3 class="text-lg font-semibold text-red-800">Total Pendiente</h3>
-                     <p id="report-total-outstanding" class="text-2xl font-bold">$0.00</p>
+                 <h3 class="text-xl font-semibold mb-4">Detalle Pendiente por Cliente</h3>
+                  <div class="overflow-x-auto">
+                     <table id="outstanding-table" class="admin-table">
+                         <thead><tr><th>Cliente</th><th>Total Trabajos ($)</th><th>Total Señado ($)</th><th>Pendiente ($)</th></tr></thead>
+                         <tbody><tr><td colspan="4">Calculando...</td></tr></tbody>
+                     </table>
                  </div>
-             </div>
-             <h3 class="text-xl font-semibold mb-4 text-gray-700">Detalle Pendiente por Cliente</h3>
-              <div class="overflow-x-auto">
-                 <table id="outstanding-table" class="admin-table">
-                     <thead>
-                         <tr>
-                             <th>Cliente</th>
-                             <th>Total Trabajos ($)</th>
-                             <th>Total Señado ($)</th>
-                             <th>Pendiente ($)</th>
-                         </tr>
-                     </thead>
-                     <tbody><tr><td colspan="4" class="text-center p-4">Calculando...</td></tr></tbody>
-                 </table>
-             </div>
-        </section>
+            </section>
 
-        <section id="admin-materials" class="page-section superadmin-only bg-white p-6 rounded-lg shadow-lg">
-             <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Gestionar Materiales</h2>
-             <form id="material-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6">
-                <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir Nuevo Material</h4>
-                <input type="hidden" id="material-id-admin">
-                <div><label for="material-name-admin">Nombre:</label><input type="text" id="material-name-admin" required class="mt-1 w-full p-2 border rounded"></div>
-                <div><label for="material-thickness-admin">Grosor (mm):</label><input type="number" id="material-thickness-admin" required min="0.1" step="0.1" class="mt-1 w-full p-2 border rounded"></div>
-                <div><label for="material-cost-admin">Costo/Plancha ($):</label><input type="number" id="material-cost-admin" required min="0" step="0.01" class="mt-1 w-full p-2 border rounded"></div>
-                <div><label for="material-width-admin">Ancho (mm):</label><input type="number" id="material-width-admin" placeholder="1300" class="mt-1 w-full p-2 border rounded"></div>
-                <div><label for="material-height-admin">Alto (mm):</label><input type="number" id="material-height-admin" placeholder="900" class="mt-1 w-full p-2 border rounded"></div>
-                <div><label class="flex items-center"><input type="checkbox" id="material-availability-admin" checked class="rounded"> <span class="ml-2">Disponible</span></label></div>
-                <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 text-white">Guardar</button><button type="button" onclick="resetMaterialFormAdmin()" class="action-button bg-gray-500 text-white">Cancelar</button></div>
-                <div id="material-form-feedback-admin" class="mt-2 text-sm"></div>
-            </form>
-             <div class="overflow-x-auto">
-                 <table id="materials-admin-table" class="admin-table">
-                     <thead><tr><th>Nombre</th><th>Grosor</th><th>Costo/Plancha</th><th>Dimensiones</th><th>Disp.</th><th>Acciones</th></tr></thead>
-                     <tbody><tr><td colspan="6">Cargando...</td></tr></tbody>
-                 </table>
-             </div>
-        </section>
+            <section id="admin-materials" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Gestionar Materiales</h2>
+                 <form id="material-form-admin" class="bg-gray-50 p-4 rounded border space-y-3 mb-6">
+                    <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir Material</h4>
+                    <input type="hidden" id="material-id-admin">
+                    <div><label for="material-name-admin">Nombre:</label><input type="text" id="material-name-admin" required class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label for="material-thickness-admin">Grosor(mm):</label><input type="number" id="material-thickness-admin" required min="0.1" step="0.1" class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label for="material-cost-admin">Costo/Plancha($):</label><input type="number" id="material-cost-admin" required min="0" step="0.01" class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label for="material-width-admin">Ancho(mm):</label><input type="number" id="material-width-admin" placeholder="1300" class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label for="material-height-admin">Alto(mm):</label><input type="number" id="material-height-admin" placeholder="900" class="mt-1 w-full p-2 border rounded"></div>
+                    <div><label class="flex items-center"><input type="checkbox" id="material-availability-admin" checked class="rounded"> <span class="ml-2">Disponible</span></label></div>
+                    <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 text-white">Guardar</button><button type="button" onclick="resetMaterialFormAdmin()" class="action-button bg-gray-500 text-white">Cancelar</button></div>
+                    <div id="material-form-feedback-admin" class="mt-2 text-sm"></div>
+                </form>
+                 <div class="overflow-x-auto">
+                     <table id="materials-admin-table" class="admin-table">
+                         <thead><tr><th>Nombre</th><th>Grosor</th><th>Costo/Plancha</th><th>Dimensiones</th><th>Disp.</th><th>Acciones</th></tr></thead>
+                         <tbody><tr><td colspan="6">Cargando...</td></tr></tbody>
+                     </table>
+                 </div>
+            </section>
 
-        <section id="admin-config" class="page-section superadmin-only bg-white p-6 rounded-lg shadow-lg">
-             <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Configuración de Costos</h2>
-             <form id="config-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3">
-                <h4 class="text-lg font-medium">Costos Mensuales y Parámetros</h4>
-                 <div><label for="config-minutes-admin">Minutos Base/Mes:</label><input type="number" id="config-minutes-admin" required min="1" value="2400" class="mt-1 w-full p-2 border rounded"></div>
-                <fieldset id="monthly-costs-fieldset-admin" class="border p-3 rounded"><legend>Costos Mensuales ($)</legend><div class="grid grid-cols-1 md:grid-cols-2 gap-3"></div></fieldset>
-                <button type="submit" class="action-button bg-green-500 text-white">Guardar Configuración</button>
-                 <div id="config-form-feedback-admin" class="mt-2 text-sm"></div>
-            </form>
-        </section>
+            <section id="admin-config" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
+                 <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Configuración de Costos</h2>
+                 <form id="config-form-admin" class="bg-gray-50 p-4 rounded border space-y-3">
+                    <h4 class="text-lg font-medium">Costos Mensuales y Parámetros</h4>
+                     <div><label for="config-minutes-admin">Minutos Base/Mes:</label><input type="number" id="config-minutes-admin" required min="1" value="2400" class="mt-1 w-full p-2 border rounded"></div>
+                    <fieldset id="monthly-costs-fieldset-admin" class="border p-3 rounded"><legend>Costos Mensuales ($)</legend><div class="grid grid-cols-1 md:grid-cols-2 gap-3"></div></fieldset>
+                    <button type="submit" class="action-button bg-green-500 text-white">Guardar Configuración</button>
+                     <div id="config-form-feedback-admin" class="mt-2 text-sm"></div>
+                </form>
+            </section>
 
-        <footer class="text-center text-gray-500 text-sm mt-8 no-print">
-            © <span id="current-year"></span> Presupuestos Corte Laser. Todos los derechos reservados.
-        </footer>
-
-        <div id="print-area" class="hidden">
+        </main> <div id="print-area" aria-hidden="true" style="position:absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;">
             </div>
 
     </div> <script>
@@ -407,34 +312,60 @@
         const auth = firebase.auth();
 
         // --- ID del Super Administrador ---
-        // IMPORTANTE: Reemplaza 'WirMlSEvm5UdlAkns4KNr7ND0wr1' con el UID real
-        // del usuario que creaste en Firebase Authentication para ser Super Admin.
-        // Puedes encontrar el UID en la consola de Firebase > Authentication > Users.
+        // UID Proporcionado por el usuario
         const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1';
+        // UID Operador (informativo, no usado en lógica actual): Jok0wmoK4nejkXNHPRaylsyxZ1z2
 
         // --- Variables Globales ---
-        let materialsData = {}; // Cache local de materiales
-        let configData = {};    // Cache local de configuración
-        let clientsData = {};   // Cache local de clientes
-        let jobsData = [];      // Cache local de trabajos (array)
-        let currentUser = null; // Usuario logueado
-        let currentUserRole = null; // 'superadmin' u 'operator'
-        let currentJobQuoteBaseCost = 0; // Para almacenar costo base antes de guardar trabajo
-        let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; // Flags para carga inicial
+        let materialsData = {};
+        let configData = {};
+        let clientsData = {};
+        let jobsData = [];
+        let currentUser = null;
+        let currentUserRole = null;
+        let currentJobQuoteBaseCost = 0;
+        let dataLoaded = { clients: false, jobs: false, materials: false, config: false };
+        let activeSectionId = 'home'; // Track active section/tab
 
-        // --- Navegación ---
+        // --- Navegación por Pestañas ---
         function showSection(sectionId) {
-            document.querySelectorAll('.page-section').forEach(section => {
-                section.classList.remove('active-section');
+            // Ocultar todos los contenidos de pestañas
+            document.querySelectorAll('#tab-content-container .tab-content').forEach(content => {
+                content.classList.remove('active-tab-content');
             });
+            // Quitar clase activa de todos los botones de pestaña
+            document.querySelectorAll('#tab-buttons .tab-button').forEach(button => {
+                button.classList.remove('active-tab');
+            });
+
+            // Mostrar el contenido de la pestaña seleccionada
             const sectionToShow = document.getElementById(sectionId);
             if(sectionToShow) {
-                sectionToShow.classList.add('active-section');
+                sectionToShow.classList.add('active-tab-content');
+                activeSectionId = sectionId; // Actualizar sección activa
+
+                // Marcar el botón de pestaña correspondiente como activo
+                const activeButton = document.querySelector(`#tab-buttons .tab-button[data-target="${sectionId}"]`);
+                if (activeButton) {
+                    activeButton.classList.add('active-tab');
+                } else if (sectionId === 'home') {
+                    // Marcar 'Inicio' si es home
+                     const homeButton = document.querySelector(`#tab-buttons .tab-button[data-target="home"]`);
+                     if (homeButton) homeButton.classList.add('active-tab');
+                } else if (sectionId === 'login') {
+                    // El login no tiene botón de tab, se maneja aparte
+                } else if (sectionId === 'new-job-form') {
+                     // Marcar la pestaña 'Trabajos' como activa cuando se edita/crea uno
+                     const jobsButton = document.querySelector(`#tab-buttons .tab-button[data-target="jobs"]`);
+                     if (jobsButton) jobsButton.classList.add('active-tab');
+                }
+
+
                 // Cargar datos necesarios para la sección si es necesario
                 loadDataForSection(sectionId);
             } else {
                 console.error(`Sección '${sectionId}' no encontrada.`);
-                document.getElementById('home').classList.add('active-section'); // Fallback
+                showSection('home'); // Fallback a inicio
             }
         }
 
@@ -442,902 +373,95 @@
         auth.onAuthStateChanged(user => {
             currentUser = user;
             const userEmailSpan = document.getElementById('user-email');
+            // Limpiar clases de rol anteriores
+            document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only');
+
             if (user) {
                 console.log("Usuario logueado:", user.email, user.uid);
                 currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator';
                 console.log("Rol:", currentUserRole);
                 document.body.classList.add('logged-in', `role-${currentUserRole}`);
-                document.body.classList.remove('public-only'); // Asegurar que no esté
                 if (userEmailSpan) userEmailSpan.textContent = user.email;
-                // Cargar datos iniciales necesarios para usuarios logueados
-                loadInitialDataForLoggedInUser();
-                // Si estaba en login, ir a la sección de trabajos por defecto
-                if (document.getElementById('login').classList.contains('active-section')) {
+
+                loadInitialDataForLoggedInUser(); // Cargar datos esenciales
+
+                // Si estaba en login o es la carga inicial, ir a 'jobs' por defecto
+                if (activeSectionId === 'login' || activeSectionId === 'home') {
                     showSection('jobs');
+                } else {
+                    // Mantener la sección activa si ya estaba en una válida
+                    showSection(activeSectionId);
                 }
+
             } else {
                 console.log("Usuario deslogueado.");
                 currentUserRole = null;
-                document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator');
                 document.body.classList.add('public-only');
                 if (userEmailSpan) userEmailSpan.textContent = '';
-                // Si estaba en una sección protegida, ir a home
-                 const activeProtectedSection = document.querySelector('.page-section.admin-only.active-section');
-                 if(activeProtectedSection) {
-                    showSection('home');
-                 }
-                 // Resetear flags de carga
-                 dataLoaded = { clients: false, jobs: false, materials: false, config: false };
+                // Resetear flags de carga
+                dataLoaded = { clients: false, jobs: false, materials: false, config: false };
+                showSection('home'); // Ir a home al desloguear
             }
         });
 
-        // Login
-        document.getElementById('login-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const errorDiv = document.getElementById('login-error');
-            if(errorDiv) errorDiv.textContent = '';
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                // onAuthStateChanged manejará la redirección y UI
-            } catch (error) {
-                console.error("Error de login:", error);
-                if(errorDiv) errorDiv.textContent = `Error: ${error.message}`;
-            }
-        });
-
-        // Logout
-        function logoutUser() {
-            auth.signOut().catch(error => {
-                console.error("Error al hacer logout:", error);
-                alert("Error al cerrar sesión.");
-            });
-        }
-
-        // --- Carga de Datos ---
-        async function loadInitialDataForLoggedInUser() {
-            // Carga datos esenciales que ambos roles necesitan al loguearse
-            await loadMaterials(); // Necesario para cotizar
-            await loadConfig();    // Necesario para cotizar
-            await loadClients();   // Necesario para seleccionar cliente
-            // Los trabajos se cargarán cuando se acceda a las secciones correspondientes
-        }
-
-        function loadDataForSection(sectionId) {
-            // Carga datos específicos bajo demanda al entrar a una sección
-            switch(sectionId) {
-                case 'clients':
-                    if (!dataLoaded.clients) loadClients();
-                    break;
-                case 'jobs':
-                case 'deadlines':
-                case 'status':
-                case 'reports':
-                    if (!dataLoaded.jobs) loadJobs(); // Cargar trabajos si no están cargados
-                    else { // Si ya están cargados, solo refrescar la vista específica
-                         if (sectionId === 'deadlines') populateDeadlinesTable();
-                         else if (sectionId === 'status') populateStatusTable();
-                         else if (sectionId === 'reports') generateReports();
-                         else if (sectionId === 'jobs') populateJobsTable();
-                    }
-                    break;
-                case 'new-job-form':
-                    if (!dataLoaded.clients) loadClients(); // Asegurar clientes cargados
-                    if (!dataLoaded.materials) loadMaterials(); // Asegurar materiales cargados
-                    populateClientDropdown('job-client'); // Rellenar dropdown cliente
-                    populateMaterialDropdown('job-material'); // Rellenar dropdown material
-                    break;
-                case 'admin-materials':
-                    if (currentUserRole === 'superadmin' && !dataLoaded.materials) loadMaterials();
-                    else if (currentUserRole === 'superadmin') populateMaterialsAdminTable(); // Refrescar tabla
-                    break;
-                case 'admin-config':
-                    if (currentUserRole === 'superadmin' && !dataLoaded.config) loadConfig();
-                    else if (currentUserRole === 'superadmin') populateConfigFormAdmin(); // Refrescar form
-                    break;
-            }
-        }
-
-        async function loadMaterials() {
-            if (dataLoaded.materials) return; // Evitar recargas
-            console.log("Cargando materiales...");
-            try {
-                const snapshot = await db.collection('materials').get();
-                materialsData = {}; // Limpiar cache
-                snapshot.forEach(doc => {
-                    materialsData[doc.id] = { ...doc.data(), id: doc.id };
-                });
-                console.log("Materiales cargados:", Object.keys(materialsData).length);
-                dataLoaded.materials = true;
-                // Poblar elementos que dependen de materiales si están visibles
-                if (document.getElementById('admin-materials')?.classList.contains('active-section')) populateMaterialsAdminTable();
-                if (document.getElementById('new-job-form')?.classList.contains('active-section')) populateMaterialDropdown('job-material');
-
-            } catch (error) {
-                console.error("Error cargando materiales:", error);
-                showFeedback(document.getElementById('material-form-feedback-admin'), 'Error al cargar materiales.', 'error');
-            }
-        }
-
-         async function loadConfig() {
-             if (dataLoaded.config) return;
-             console.log("Cargando configuración...");
-             try {
-                const configDoc = await db.collection('config').doc('main').get();
-                if (configDoc.exists) {
-                    configData = configDoc.data();
-                    // Precalcular costo por minuto
-                    if (configData.monthly_costs && configData.minutes_per_month && configData.minutes_per_month > 0) {
-                        const costs = configData.monthly_costs;
-                        const totalMonthly = Object.values(costs).reduce((sum, val) => sum + (typeof val === 'number' ? val : 0), 0);
-                        configData.cost_per_minute = totalMonthly / configData.minutes_per_month;
-                    } else {
-                        configData.cost_per_minute = 0;
-                    }
-                } else {
-                    configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; // Default
-                    console.warn("Documento 'config/main' no encontrado, usando defaults.");
-                }
-                 console.log("Configuración cargada. Costo/min:", configData.cost_per_minute);
-                 dataLoaded.config = true;
-                 if (document.getElementById('admin-config')?.classList.contains('active-section')) populateConfigFormAdmin();
-             } catch (error) {
-                 console.error("Error cargando configuración:", error);
-                 showFeedback(document.getElementById('config-form-feedback-admin'), 'Error al cargar configuración.', 'error');
-             }
-         }
-
-        async function loadClients() {
-            if (dataLoaded.clients) return;
-            if (!currentUser) return; // Necesita estar logueado
-             console.log("Cargando clientes...");
-             const tableBody = document.getElementById('clients-table')?.querySelector('tbody');
-             if(tableBody) tableBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
-
-            try {
-                const snapshot = await db.collection('clients').orderBy('name').get(); // Ordenar por nombre
-                clientsData = {};
-                let rowsHtml = '';
-                snapshot.forEach(doc => {
-                    const client = { ...doc.data(), id: doc.id };
-                    clientsData[doc.id] = client;
-                    rowsHtml += `
-                        <tr>
-                            <td>${client.name || 'N/A'}</td>
-                            <td>${client.phone || '-'}</td>
-                            <td>${client.email || '-'}</td>
-                            <td>
-                                <button onclick="editClient('${client.id}')" class="edit-button">Editar</button>
-                                <button onclick="deleteClient('${client.id}')" class="delete-button">Borrar</button>
-                                <button onclick="selectClientForNewJob('${client.id}')" class="action-button bg-blue-500 text-white">Nuevo Trabajo</button>
-                            </td>
-                        </tr>`;
-                });
-                 if(tableBody) tableBody.innerHTML = rowsHtml || '<tr><td colspan="4">No hay clientes.</td></tr>';
-                 console.log("Clientes cargados:", Object.keys(clientsData).length);
-                 dataLoaded.clients = true;
-                 // Poblar dropdown si el form de trabajo está activo
-                 if (document.getElementById('new-job-form')?.classList.contains('active-section')) populateClientDropdown('job-client');
-
-            } catch (error) {
-                console.error("Error cargando clientes:", error);
-                if(tableBody) tableBody.innerHTML = '<tr><td colspan="4" class="text-red-500">Error al cargar clientes.</td></tr>';
-            }
-        }
-
-         async function loadJobs() {
-             if (dataLoaded.jobs) return;
-             if (!currentUser) return;
-             console.log("Cargando trabajos...");
-             // Mostrar 'cargando' en todas las tablas relevantes
-             ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(tableId => {
-                 const tableBody = document.getElementById(tableId)?.querySelector('tbody');
-                 if (tableBody) tableBody.innerHTML = `<tr><td colspan="${tableBody.previousElementSibling.rows[0].cells.length}">Cargando...</td></tr>`;
-             });
-             document.getElementById('report-total-value').textContent = 'Calculando...';
-             document.getElementById('report-total-deposit').textContent = 'Calculando...';
-             document.getElementById('report-total-outstanding').textContent = 'Calculando...';
-
-
-             try {
-                 const snapshot = await db.collection('jobs').orderBy('orderDate', 'desc').get(); // Ordenar por fecha pedido descendente
-                 jobsData = []; // Limpiar cache local
-                 snapshot.forEach(doc => {
-                     jobsData.push({ ...doc.data(), id: doc.id });
-                 });
-                 console.log("Trabajos cargados:", jobsData.length);
-                 dataLoaded.jobs = true;
-                 // Poblar todas las vistas que dependen de los trabajos
-                 populateJobsTable();
-                 populateDeadlinesTable();
-                 populateStatusTable();
-                 generateReports();
-
-             } catch (error) {
-                 console.error("Error cargando trabajos:", error);
-                  ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(tableId => {
-                     const tableBody = document.getElementById(tableId)?.querySelector('tbody');
-                     if (tableBody) tableBody.innerHTML = `<tr><td colspan="${tableBody.previousElementSibling.rows[0].cells.length}" class="text-red-500">Error al cargar trabajos.</td></tr>`;
-                 });
-             }
-         }
-
-        // --- Poblado de Tablas y Formularios ---
-        function populateClientDropdown(selectId) {
-            const select = document.getElementById(selectId);
-            if (!select) return;
-            // Guardar valor seleccionado si existe
-            const selectedValue = select.value;
-            select.innerHTML = '<option value="">Selecciona un cliente...</option>'; // Limpiar
-            Object.values(clientsData).sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(client => {
-                const option = document.createElement('option');
-                option.value = client.id;
-                option.textContent = client.name || 'Sin Nombre';
-                select.appendChild(option);
-            });
-            // Restaurar valor seleccionado
-            if (selectedValue) select.value = selectedValue;
-        }
-
-        function populateMaterialDropdown(selectId) {
-             const select = document.getElementById(selectId);
-             if (!select) return;
-             const selectedValue = select.value;
-             select.innerHTML = '<option value="">Selecciona material...</option>';
-             Object.values(materialsData).filter(m => m.availability !== false).sort((a,b) => (a.name || '').localeCompare(b.name || '')).forEach(material => {
-                 const option = document.createElement('option');
-                 option.value = material.id;
-                 const name = material.name || 'N/A';
-                 const thickness = material.thickness_mm || '?';
-                 option.textContent = `${name} (${thickness}mm)`;
-                 select.appendChild(option);
-             });
-             if (selectedValue) select.value = selectedValue;
-        }
-
-        function populateJobsTable() {
-             const tableBody = document.getElementById('jobs-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             let rowsHtml = '';
-             jobsData.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || job.clientName || 'Desconocido';
-                 const finalCost = typeof job.finalJobCost === 'number' ? job.finalJobCost.toFixed(2) : 'N/A';
-                 const deposit = typeof job.deposit === 'number' ? job.deposit.toFixed(2) : '0.00';
-                 const outstanding = (typeof job.finalJobCost === 'number' && typeof job.deposit === 'number') ? (job.finalJobCost - job.deposit).toFixed(2) : 'N/A';
-                 const orderDate = formatDate(job.orderDate);
-                 const deliveryDate = formatDate(job.deliveryDate);
-                 const statusClass = getStatusClass(job.status);
-
-                 rowsHtml += `
-                    <tr>
-                        <td>${clientName}</td>
-                        <td>${job.jobDetails || '-'}</td>
-                        <td>${orderDate}</td>
-                        <td>${deliveryDate}</td>
-                        <td><span class="${statusClass}">${job.status || 'N/A'}</span></td>
-                        <td>$${finalCost}</td>
-                        <td>$${deposit}</td>
-                        <td>$${outstanding}</td>
-                        <td>
-                            <button onclick="editJob('${job.id}')" class="edit-button">Editar</button>
-                            <button onclick="printTicket('${job.id}')" class="print-button">Ticket</button>
-                            <button onclick="deleteJob('${job.id}')" class="delete-button">Borrar</button>
-                        </td>
-                    </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml || '<tr><td colspan="9">No hay trabajos registrados.</td></tr>';
-        }
-
-         function populateDeadlinesTable() {
-             const tableBody = document.getElementById('deadlines-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             let rowsHtml = '';
-             const today = new Date();
-             today.setHours(0, 0, 0, 0); // Comparar solo fechas
-
-             // Ordenar por fecha de entrega más próxima
-             const sortedJobs = [...jobsData].sort((a, b) => {
-                 const dateA = parseDate(a.deliveryDate);
-                 const dateB = parseDate(b.deliveryDate);
-                 if (!dateA) return 1; // Poner fechas inválidas al final
-                 if (!dateB) return -1;
-                 return dateA - dateB;
-             });
-
-             sortedJobs.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || job.clientName || 'Desconocido';
-                 const orderDate = formatDate(job.orderDate);
-                 const deliveryDateStr = formatDate(job.deliveryDate);
-                 const deliveryDate = parseDate(job.deliveryDate);
-                 let dateClass = '';
-
-                 if (deliveryDate && job.status !== 'Terminado') {
-                     // Calcular fecha límite (entrega + 2 días)
-                     const deadline = new Date(deliveryDate);
-                     deadline.setDate(deadline.getDate() + 3); // +3 para que sea > 2 días DESPUÉS
-                     deadline.setHours(0,0,0,0);
-
-                     if (today >= deadline) { // Si hoy es igual o posterior a entrega + 3 días
-                         dateClass = 'date-overdue';
-                     }
-                 }
-
-                 const statusClass = getStatusClass(job.status);
-
-                 rowsHtml += `
-                    <tr>
-                        <td>${clientName}</td>
-                        <td>${job.jobDetails || '-'}</td>
-                        <td>${orderDate}</td>
-                        <td class="${dateClass}">${deliveryDateStr}</td>
-                        <td><span class="${statusClass}">${job.status || 'N/A'}</span></td>
-                    </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml || '<tr><td colspan="5">No hay trabajos registrados.</td></tr>';
-         }
-
-         function populateStatusTable() {
-            const tableBody = document.getElementById('status-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             let rowsHtml = '';
-
-             // Ordenar por estado (ej: Encargado, Procesando, Terminado) y luego por fecha entrega
-             const statusOrder = { 'Encargado': 1, 'Procesando': 2, 'Terminado': 3 };
-             const sortedJobs = [...jobsData].sort((a, b) => {
-                 const orderA = statusOrder[a.status] || 4;
-                 const orderB = statusOrder[b.status] || 4;
-                 if (orderA !== orderB) return orderA - orderB;
-                 // Si mismo estado, ordenar por fecha entrega
-                 const dateA = parseDate(a.deliveryDate);
-                 const dateB = parseDate(b.deliveryDate);
-                 if (!dateA) return 1;
-                 if (!dateB) return -1;
-                 return dateA - dateB;
-             });
-
-             sortedJobs.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || job.clientName || 'Desconocido';
-                 const deliveryDate = formatDate(job.deliveryDate);
-                 const statusClass = getStatusClass(job.status);
-
-                 rowsHtml += `
-                    <tr>
-                        <td>${clientName}</td>
-                        <td>${job.jobDetails || '-'}</td>
-                        <td><span class="${statusClass}">${job.status || 'N/A'}</span></td>
-                        <td>${deliveryDate}</td>
-                    </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml || '<tr><td colspan="4">No hay trabajos registrados.</td></tr>';
-         }
-
-         function generateReports() {
-             let totalValue = 0;
-             let totalDeposit = 0;
-             const clientOutstanding = {}; // { clientId: { name: '', total: 0, deposit: 0 } }
-
-             jobsData.forEach(job => {
-                 const finalCost = typeof job.finalJobCost === 'number' ? job.finalJobCost : 0;
-                 const deposit = typeof job.deposit === 'number' ? job.deposit : 0;
-                 totalValue += finalCost;
-                 totalDeposit += deposit;
-
-                 const clientId = job.clientId;
-                 if (clientId) {
-                     if (!clientOutstanding[clientId]) {
-                         clientOutstanding[clientId] = {
-                             name: clientsData[clientId]?.name || job.clientName || 'Desconocido',
-                             total: 0,
-                             deposit: 0
-                         };
-                     }
-                     clientOutstanding[clientId].total += finalCost;
-                     clientOutstanding[clientId].deposit += deposit;
-                 }
-             });
-
-             const totalOutstanding = totalValue - totalDeposit;
-
-             document.getElementById('report-total-value').textContent = `$${totalValue.toFixed(2)}`;
-             document.getElementById('report-total-deposit').textContent = `$${totalDeposit.toFixed(2)}`;
-             document.getElementById('report-total-outstanding').textContent = `$${totalOutstanding.toFixed(2)}`;
-
-             // Tabla de pendientes por cliente
-             const tableBody = document.getElementById('outstanding-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             let rowsHtml = '';
-             Object.values(clientOutstanding).sort((a,b) => a.name.localeCompare(b.name)).forEach(client => {
-                 const outstanding = client.total - client.deposit;
-                 if (outstanding > 0.005) { // Mostrar solo si hay pendiente (considerando errores de flotantes)
-                     rowsHtml += `
-                        <tr>
-                            <td>${client.name}</td>
-                            <td>$${client.total.toFixed(2)}</td>
-                            <td>$${client.deposit.toFixed(2)}</td>
-                            <td>$${outstanding.toFixed(2)}</td>
-                        </tr>`;
-                 }
-             });
-             tableBody.innerHTML = rowsHtml || '<tr><td colspan="4">No hay saldos pendientes.</td></tr>';
-         }
-
-        // --- CRUD Clientes ---
-        document.getElementById('client-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!currentUser) return showFeedback(document.getElementById('client-form-feedback'), 'Debes iniciar sesión.', 'error');
-
-            const clientId = document.getElementById('client-id').value;
-            const name = document.getElementById('client-name').value;
-            const phone = document.getElementById('client-phone').value;
-            const email = document.getElementById('client-email').value;
-            const feedbackDiv = document.getElementById('client-form-feedback');
-
-            if (!name) return showFeedback(feedbackDiv, 'El nombre es requerido.', 'error');
-
-            const clientData = { name, phone, email };
-            showFeedback(feedbackDiv, 'Guardando...', 'info');
-
-            try {
-                if (clientId) { // Editar
-                    await db.collection('clients').doc(clientId).update(clientData);
-                    showFeedback(feedbackDiv, 'Cliente actualizado.', 'success');
-                } else { // Crear
-                    await db.collection('clients').add(clientData);
-                    showFeedback(feedbackDiv, 'Cliente añadido.', 'success');
-                }
-                resetClientForm();
-                dataLoaded.clients = false; // Forzar recarga
-                await loadClients();
-            } catch (error) {
-                console.error("Error guardando cliente:", error);
-                showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
-            }
-        });
-
-        function editClient(id) {
-            const client = clientsData[id];
-            if (!client) return;
-            document.getElementById('client-form-title').textContent = 'Editar Cliente';
-            document.getElementById('client-id').value = id;
-            document.getElementById('client-name').value = client.name || '';
-            document.getElementById('client-phone').value = client.phone || '';
-            document.getElementById('client-email').value = client.email || '';
-            document.getElementById('client-form')?.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function resetClientForm() {
-            document.getElementById('client-form-title').textContent = 'Añadir Nuevo Cliente';
-            document.getElementById('client-form')?.reset();
-            document.getElementById('client-id').value = '';
-            showFeedback(document.getElementById('client-form-feedback'), '', 'info');
-        }
-
-        async function deleteClient(id) {
-            if (!currentUser) return alert('Debes iniciar sesión.');
-            const clientName = clientsData[id]?.name || id;
-            // ADVERTENCIA: Borrar cliente no borra sus trabajos asociados. Implementar lógica adicional si es necesario.
-            if (!confirm(`¿Borrar cliente "${clientName}"? Sus trabajos asociados NO serán eliminados.`)) return;
-
-            try {
-                await db.collection('clients').doc(id).delete();
-                alert('Cliente borrado.');
-                dataLoaded.clients = false; // Forzar recarga
-                await loadClients();
-                 // También es buena idea recargar trabajos por si se mostraba el nombre del cliente
-                 dataLoaded.jobs = false;
-                 if(document.getElementById('jobs')?.classList.contains('active-section')) loadJobs();
-
-            } catch (error) {
-                console.error("Error borrando cliente:", error);
-                alert(`Error: ${error.message}`);
-            }
-        }
-
-        function selectClientForNewJob(clientId) {
-            resetJobForm(); // Limpiar formulario de trabajo
-            document.getElementById('job-client').value = clientId; // Preseleccionar cliente
-            showSection('new-job-form'); // Ir al formulario
-        }
-
-
-        // --- CRUD Trabajos ---
-        // Calcular Costo Base (dentro del form de trabajo)
-        function calculateJobQuote() {
-             const materialId = document.getElementById('job-material').value;
-             const lengthMm = parseFloat(document.getElementById('job-length').value);
-             const widthMm = parseFloat(document.getElementById('job-width').value);
-             const jobType = document.getElementById('job-job-type').value;
-             const cutMinutes = parseFloat(document.getElementById('job-cut-minutes')?.value) || 0;
-             const engraveMinutes = parseFloat(document.getElementById('job-engrave-minutes')?.value) || 0;
-             const resultDiv = document.getElementById('job-quote-base-result');
-             resultDiv.textContent = ''; // Limpiar
-             currentJobQuoteBaseCost = 0; // Resetear costo base
-             document.getElementById('job-final-cost').value = ''; // Limpiar costo final
-
-             if (!materialId || isNaN(lengthMm) || isNaN(widthMm) || lengthMm <= 0 || widthMm <= 0) {
-                 resultDiv.textContent = 'Faltan datos de cotización.'; return;
-             }
-             if (isNaN(cutMinutes) || cutMinutes < 0 || isNaN(engraveMinutes) || engraveMinutes < 0) {
-                 resultDiv.textContent = 'Minutos inválidos.'; return;
-             }
-             if ((jobType === 'corte' || jobType === 'ambos') && cutMinutes <= 0) {
-                 resultDiv.textContent = 'Estima min. corte.'; return;
-             }
-             if ((jobType === 'grabado' || jobType === 'ambos') && engraveMinutes <= 0) {
-                 resultDiv.textContent = 'Estima min. grabado.'; return;
-             }
-
-             const selectedMaterial = materialsData[materialId];
-             if (!selectedMaterial || typeof selectedMaterial.cost_per_sheet !== 'number') {
-                 resultDiv.textContent = 'Error datos material.'; return;
-             }
-
-             // Cálculos (igual que antes, pero sin ganancia aquí)
-             const sheetWidthMm = selectedMaterial.sheet_width_mm || 1300;
-             const sheetHeightMm = selectedMaterial.sheet_height_mm || 900;
-             const sheetAreaMm2 = sheetWidthMm * sheetHeightMm;
-             if (sheetAreaMm2 <= 0) { resultDiv.textContent = 'Error dims plancha.'; return; }
-             const requestedAreaMm2 = lengthMm * widthMm;
-             const materialCost = (requestedAreaMm2 / sheetAreaMm2) * selectedMaterial.cost_per_sheet;
-
-             let totalMinutes = 0;
-             if (jobType === 'corte') totalMinutes = cutMinutes; else if (jobType === 'grabado') totalMinutes = engraveMinutes; else if (jobType === 'ambos') totalMinutes = cutMinutes + engraveMinutes;
-             const costPerMinute = configData.cost_per_minute;
-             if (typeof costPerMinute !== 'number' || costPerMinute < 0) { if (totalMinutes > 0) { resultDiv.textContent = 'Error costo/min.'; return; } }
-             const machineCost = totalMinutes * (costPerMinute || 0);
-
-             currentJobQuoteBaseCost = materialCost + machineCost; // Guardar costo base
-             const finalCostWithProfit = currentJobQuoteBaseCost * 2; // Aplicar ganancia 100%
-
-             if (isNaN(currentJobQuoteBaseCost)) {
-                 resultDiv.textContent = 'Error cálculo base.'; return;
-             }
-
-             resultDiv.textContent = `Costo Base Calculado: $${currentJobQuoteBaseCost.toFixed(2)}`;
-             document.getElementById('job-final-cost').value = finalCostWithProfit.toFixed(2); // Mostrar costo final
-        }
-
-        // Guardar/Actualizar Trabajo
-        document.getElementById('job-form')?.addEventListener('submit', async (e) => {
-             e.preventDefault();
-             if (!currentUser) return showFeedback(document.getElementById('job-form-feedback'), 'Debes iniciar sesión.', 'error');
-
-             const jobId = document.getElementById('job-id').value;
-             const clientId = document.getElementById('job-client').value;
-             const clientName = document.getElementById('job-client').options[document.getElementById('job-client').selectedIndex]?.text || null; // Guardar nombre por si se borra el cliente
-             const jobDetails = document.getElementById('job-details').value;
-             const orderDate = document.getElementById('job-order-date').value; // YYYY-MM-DD string
-             const deliveryDate = document.getElementById('job-delivery-date').value; // YYYY-MM-DD string
-             const status = document.getElementById('job-status').value;
-             const finalCost = parseFloat(document.getElementById('job-final-cost').value);
-             const deposit = parseFloat(document.getElementById('job-deposit').value) || 0;
-             const observations = document.getElementById('job-observations').value;
-
-             // Datos de la cotización
-             const materialId = document.getElementById('job-material').value;
-             const materialInfo = materialsData[materialId];
-             const lengthMm = parseFloat(document.getElementById('job-length').value);
-             const widthMm = parseFloat(document.getElementById('job-width').value);
-             const jobType = document.getElementById('job-job-type').value;
-             const cutMinutes = parseFloat(document.getElementById('job-cut-minutes')?.value) || 0;
-             const engraveMinutes = parseFloat(document.getElementById('job-engrave-minutes')?.value) || 0;
-
-             const feedbackDiv = document.getElementById('job-form-feedback');
-
-             // Validaciones
-             if (!clientId || !jobDetails || !orderDate || !deliveryDate || !status || !materialId || isNaN(lengthMm) || isNaN(widthMm) || isNaN(finalCost) || finalCost <= 0 || isNaN(deposit) || deposit < 0) {
-                 return showFeedback(feedbackDiv, 'Completa todos los campos requeridos correctamente (Cliente, Detalles, Fechas, Estado, Material, Medidas, Costo Final, Seña). Asegúrate de calcular el costo base.', 'error');
-             }
-             // Recalcular costo base para asegurar consistencia (o usar el guardado)
-             if (currentJobQuoteBaseCost <= 0 && finalCost > 0) { // Si no se calculó o es inválido
-                  return showFeedback(feedbackDiv, 'Calcula el costo base antes de guardar.', 'error');
-             }
-             // Verificar que el costo final sea aprox el doble del base
-             if (Math.abs(finalCost - currentJobQuoteBaseCost * 2) > 0.01) {
-                 return showFeedback(feedbackDiv, 'El Costo Final no coincide con el Costo Base x 2. Vuelve a calcular el costo base.', 'error');
-             }
-
-
-             const jobData = {
-                 clientId,
-                 clientName, // Denormalizado
-                 jobDetails,
-                 orderDate, // Guardar como string YYYY-MM-DD
-                 deliveryDate, // Guardar como string YYYY-MM-DD
-                 status,
-                 observations,
-                 finalJobCost: finalCost,
-                 deposit: deposit,
-                 // Guardar detalles de la cotización
-                 quoteData: {
-                     materialId,
-                     materialName: materialInfo?.name || 'N/A',
-                     materialThickness: materialInfo?.thickness_mm || 'N/A',
-                     lengthMm,
-                     widthMm,
-                     jobType,
-                     cutMinutes,
-                     engraveMinutes,
-                     // Podríamos guardar aquí los costos calculados individuales si quisiéramos
-                     // calculatedMaterialCost: ...,
-                     // calculatedMachineCost: ...,
-                     calculatedTotalCost: currentJobQuoteBaseCost // Guardar costo base
-                 },
-                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp() // Marcar última actualización
-             };
-
-             showFeedback(feedbackDiv, 'Guardando trabajo...', 'info');
-
-             try {
-                 if (jobId) { // Editar
-                     await db.collection('jobs').doc(jobId).update(jobData);
-                     showFeedback(feedbackDiv, 'Trabajo actualizado.', 'success');
-                 } else { // Crear
-                     // Añadir fecha de creación solo al crear
-                     jobData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                     await db.collection('jobs').add(jobData);
-                     showFeedback(feedbackDiv, 'Trabajo creado.', 'success');
-                 }
-                 resetJobForm();
-                 dataLoaded.jobs = false; // Forzar recarga
-                 showSection('jobs'); // Volver a la lista de trabajos
-             } catch (error) {
-                 console.error("Error guardando trabajo:", error);
-                 showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
-             }
-        });
-
-        function editJob(id) {
-             const job = jobsData.find(j => j.id === id);
-             if (!job) return;
-
-             resetJobForm(); // Limpiar primero
-             document.getElementById('job-form-title').textContent = 'Editar Trabajo';
-             document.getElementById('job-id').value = id;
-             document.getElementById('job-client').value = job.clientId || '';
-             document.getElementById('job-details').value = job.jobDetails || '';
-             document.getElementById('job-order-date').value = job.orderDate || '';
-             document.getElementById('job-delivery-date').value = job.deliveryDate || '';
-             document.getElementById('job-status').value = job.status || 'Encargado';
-             document.getElementById('job-deposit').value = job.deposit || 0;
-             document.getElementById('job-observations').value = job.observations || '';
-
-             // Rellenar datos cotización
-             const quote = job.quoteData || {};
-             document.getElementById('job-material').value = quote.materialId || '';
-             document.getElementById('job-length').value = quote.lengthMm || '';
-             document.getElementById('job-width').value = quote.widthMm || '';
-             document.getElementById('job-job-type').value = quote.jobType || 'corte';
-             document.getElementById('job-cut-minutes').value = quote.cutMinutes || 0;
-             document.getElementById('job-engrave-minutes').value = quote.engraveMinutes || 0;
-
-             // Recalcular y mostrar costos al editar
-             currentJobQuoteBaseCost = quote.calculatedTotalCost || 0; // Usar costo base guardado
-             const finalCost = typeof job.finalJobCost === 'number' ? job.finalJobCost.toFixed(2) : '';
-             document.getElementById('job-final-cost').value = finalCost;
-             document.getElementById('job-quote-base-result').textContent = `Costo Base Guardado: $${currentJobQuoteBaseCost.toFixed(2)}`;
-
-             // Disparar evento change para visibilidad de campos de tiempo
-             document.getElementById('job-job-type').dispatchEvent(new Event('change'));
-
-             showSection('new-job-form'); // Mostrar formulario
-        }
-
-        function resetJobForm() {
-             document.getElementById('job-form-title').textContent = 'Nuevo Trabajo';
-             document.getElementById('job-form')?.reset();
-             document.getElementById('job-id').value = '';
-             document.getElementById('job-status').value = 'Encargado'; // Default
-             document.getElementById('job-deposit').value = 0;
-             document.getElementById('job-quote-base-result').textContent = '';
-             currentJobQuoteBaseCost = 0;
-             showFeedback(document.getElementById('job-form-feedback'), '', 'info');
-             // Disparar evento change para visibilidad de campos de tiempo
-             document.getElementById('job-job-type')?.dispatchEvent(new Event('change'));
-        }
-
-         async function deleteJob(id) {
-             if (!currentUser) return alert('Debes iniciar sesión.');
-             const jobDetails = jobsData.find(j => j.id === id)?.jobDetails || id;
-             if (!confirm(`¿Borrar trabajo "${jobDetails}"?`)) return;
-
-             try {
-                 await db.collection('jobs').doc(id).delete();
-                 alert('Trabajo borrado.');
-                 dataLoaded.jobs = false; // Forzar recarga
-                 // Si estamos en una vista de trabajos, recargarla
-                 const activeSection = document.querySelector('.page-section.active-section');
-                 if (activeSection && ['jobs', 'deadlines', 'status', 'reports'].includes(activeSection.id)) {
-                     loadJobs();
-                 }
-             } catch (error) {
-                 console.error("Error borrando trabajo:", error);
-                 alert(`Error: ${error.message}`);
-             }
-         }
-
-        // --- CRUD Materiales (SuperAdmin) ---
-        const materialFormAdmin = document.getElementById('material-form-admin');
-        const materialFormFeedbackAdmin = document.getElementById('material-form-feedback-admin');
-
-        materialFormAdmin?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            // Doble chequeo: usuario logueado Y es superadmin
-            if (currentUserRole !== 'superadmin') {
-                return showFeedback(materialFormFeedbackAdmin, 'Acceso denegado.', 'error');
-            }
-
-            const materialId = document.getElementById('material-id-admin').value;
-            const name = document.getElementById('material-name-admin').value;
-            const thickness = parseFloat(document.getElementById('material-thickness-admin').value);
-            const cost = parseFloat(document.getElementById('material-cost-admin').value);
-            const width = parseInt(document.getElementById('material-width-admin').value) || null;
-            const height = parseInt(document.getElementById('material-height-admin').value) || null;
-            const availability = document.getElementById('material-availability-admin').checked;
-
-            if (!name || isNaN(thickness) || isNaN(cost) || thickness <=0 || cost < 0) {
-                 return showFeedback(materialFormFeedbackAdmin, 'Nombre, Grosor (>0) y Costo (>=0) requeridos.', 'error');
-            }
-
-            const materialData = { name, thickness_mm: thickness, cost_per_sheet: cost, sheet_width_mm: width, sheet_height_mm: height, availability };
-            if (materialData.sheet_width_mm === null) delete materialData.sheet_width_mm;
-            if (materialData.sheet_height_mm === null) delete materialData.sheet_height_mm;
-
-            showFeedback(materialFormFeedbackAdmin, 'Guardando...', 'info');
-
-            try {
-                if (materialId) { // Editar
-                    await db.collection('materials').doc(materialId).update(materialData);
-                    showFeedback(materialFormFeedbackAdmin, 'Material actualizado.', 'success');
-                } else { // Añadir
-                    await db.collection('materials').add(materialData);
-                    showFeedback(materialFormFeedbackAdmin, 'Material añadido.', 'success');
-                }
-                resetMaterialFormAdmin();
-                dataLoaded.materials = false; // Forzar recarga
-                await loadMaterials(); // Recargar
-            } catch (error) {
-                console.error("Error guardando material (admin):", error);
-                showFeedback(materialFormFeedbackAdmin, `Error: ${error.message}.`, 'error');
-            }
-        });
-
-         function editMaterialAdmin(id) { // Renombrada para evitar conflicto si estuviera la otra
-             if (currentUserRole !== 'superadmin') return;
-             const material = materialsData[id];
-             if (!material) return;
-             document.getElementById('material-form-title-admin').textContent = 'Editar Material';
-             document.getElementById('material-id-admin').value = id;
-             document.getElementById('material-name-admin').value = material.name || '';
-             document.getElementById('material-thickness-admin').value = material.thickness_mm || '';
-             document.getElementById('material-cost-admin').value = material.cost_per_sheet || '';
-             document.getElementById('material-width-admin').value = material.sheet_width_mm || '';
-             document.getElementById('material-height-admin').value = material.sheet_height_mm || '';
-             document.getElementById('material-availability-admin').checked = material.availability || false;
-             materialFormAdmin?.scrollIntoView({ behavior: 'smooth' });
-         }
-
-         function resetMaterialFormAdmin() {
-             document.getElementById('material-form-title-admin').textContent = 'Añadir Nuevo Material';
-             materialFormAdmin?.reset();
-             document.getElementById('material-id-admin').value = '';
-             document.getElementById('material-availability-admin').checked = true;
-             showFeedback(materialFormFeedbackAdmin, '', 'info');
-         }
-
-         async function deleteMaterialAdmin(id) { // Renombrada
-             if (currentUserRole !== 'superadmin') return alert('Acceso denegado.');
-             if (!confirm(`¿Borrar material "${materialsData[id]?.name || id}"?`)) return;
-             try {
-                 await db.collection('materials').doc(id).delete();
-                 alert('Material borrado.');
-                 dataLoaded.materials = false; // Forzar recarga
-                 await loadMaterials();
-             } catch (error) {
-                 console.error("Error borrando material (admin):", error);
-                 alert(`Error: ${error.message}.`);
-             }
-         }
-
-         function populateMaterialsAdminTable() {
-             const tableBody = document.getElementById('materials-admin-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             let rowsHtml = '';
-             Object.values(materialsData).sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(material => {
-                 const cost = typeof material.cost_per_sheet === 'number' ? material.cost_per_sheet.toFixed(2) : 'N/A';
-                 const dims = `${material.sheet_width_mm || '-'}x${material.sheet_height_mm || '-'}`;
-                 const available = typeof material.availability === 'boolean' ? (material.availability ? 'Sí' : 'No') : '?';
-                 rowsHtml += `
-                    <tr>
-                        <td>${material.name || 'N/A'}</td>
-                        <td>${material.thickness_mm || '?'}</td>
-                        <td>$${cost}</td>
-                        <td>${dims}</td>
-                        <td>${available}</td>
-                        <td>
-                            <button onclick="editMaterialAdmin('${material.id}')" class="edit-button">Editar</button>
-                            <button onclick="deleteMaterialAdmin('${material.id}')" class="delete-button">Borrar</button>
-                        </td>
-                    </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml || '<tr><td colspan="6">No hay materiales.</td></tr>';
-         }
-
-
-        // --- CRUD Configuración (SuperAdmin) ---
-         const configFormAdmin = document.getElementById('config-form-admin');
-         const configFormFeedbackAdmin = document.getElementById('config-form-feedback-admin');
-
-         configFormAdmin?.addEventListener('submit', async (e) => {
-             e.preventDefault();
-             if (currentUserRole !== 'superadmin') {
-                 return showFeedback(configFormFeedbackAdmin, 'Acceso denegado.', 'error');
-             }
-
-             const minutes = parseInt(document.getElementById('config-minutes-admin').value);
-             const costsInputs = configFormAdmin.querySelectorAll('#monthly-costs-fieldset-admin input[type="number"]');
-             const monthlyCosts = {};
-             let valid = true;
-             costsInputs.forEach(input => {
-                 const value = parseFloat(input.value);
-                 if (isNaN(value) || value < 0) valid = false;
-                 monthlyCosts[input.name] = value;
-             });
-
-             if (isNaN(minutes) || minutes <= 0 || !valid) {
-                 return showFeedback(configFormFeedbackAdmin, 'Valores numéricos inválidos.', 'error');
-             }
-
-             const configUpdateData = { minutes_per_month: minutes, monthly_costs: monthlyCosts };
-             showFeedback(configFormFeedbackAdmin, 'Guardando...', 'info');
-
-             try {
-                 await db.collection('config').doc('main').set(configUpdateData, { merge: true });
-                 showFeedback(configFormFeedbackAdmin, 'Configuración guardada.', 'success');
-                 dataLoaded.config = false; // Forzar recarga
-                 await loadConfig(); // Recargar para recalcular costo/min
-             } catch (error) {
-                 console.error("Error guardando config (admin):", error);
-                 showFeedback(configFormFeedbackAdmin, `Error: ${error.message}.`, 'error');
-             }
-         });
-
-         function populateConfigFormAdmin() {
-             const configMinutesInput = document.getElementById('config-minutes-admin');
-             const costsFieldset = document.getElementById('monthly-costs-fieldset-admin')?.querySelector('.grid');
-
-             if (configMinutesInput) {
-                 configMinutesInput.value = configData.minutes_per_month || 2400;
-             }
-             if (costsFieldset) {
-                 costsFieldset.innerHTML = ''; // Limpiar
-                 const costs = configData.monthly_costs || {};
-                 const expectedCosts = ['alquiler', 'sueldos', 'luz', 'impuestos', 'amortizacion', 'tubo_laser', 'mantenimiento'];
-                 expectedCosts.forEach(key => {
-                     const value = costs[key] || 0;
-                     const label = key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
-                     costsFieldset.innerHTML += `<div><label for="cost-adm-${key}" class="text-xs">${label}:</label><input type="number" id="cost-adm-${key}" name="${key}" value="${value}" min="0" step="0.01" required class="mt-1 w-full p-1 border rounded text-sm"></div>`;
-                 });
-                  Object.keys(costs).forEach(key => { // Otros costos
-                     if (!expectedCosts.includes(key)) {
-                          const value = costs[key] || 0; const label = key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
-                          costsFieldset.innerHTML += `<div><label for="cost-adm-${key}" class="text-xs">${label}:</label><input type="number" id="cost-adm-${key}" name="${key}" value="${value}" min="0" step="0.01" required class="mt-1 w-full p-1 border rounded text-sm"></div>`;
-                     }
-                  });
-             }
-         }
-
-        // --- Imprimir Ticket ---
+        // Login (sin cambios)
+        document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; const errorDiv = document.getElementById('login-error'); if(errorDiv) errorDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, password); } catch (error) { console.error("Error de login:", error); if(errorDiv) errorDiv.textContent = `Error: ${error.message}`; } });
+
+        // Logout (sin cambios)
+        function logoutUser() { auth.signOut().catch(error => { console.error("Error logout:", error); alert("Error al cerrar sesión."); }); }
+
+        // --- Carga de Datos (Lógica sin cambios, solo se llama desde lugares diferentes) ---
+        async function loadInitialDataForLoggedInUser() { /* ... (igual que antes) ... */ await loadMaterials(); await loadConfig(); await loadClients(); }
+        function loadDataForSection(sectionId) { /* ... (igual que antes) ... */ switch(sectionId) { case 'clients': if (!dataLoaded.clients) loadClients(); break; case 'jobs': case 'deadlines': case 'status': case 'reports': if (!dataLoaded.jobs) loadJobs(); else { if (sectionId === 'deadlines') populateDeadlinesTable(); else if (sectionId === 'status') populateStatusTable(); else if (sectionId === 'reports') generateReports(); else if (sectionId === 'jobs') populateJobsTable(); } break; case 'new-job-form': if (!dataLoaded.clients) loadClients(); if (!dataLoaded.materials) loadMaterials(); populateClientDropdown('job-client'); populateMaterialDropdown('job-material'); break; case 'admin-materials': if (currentUserRole === 'superadmin' && !dataLoaded.materials) loadMaterials(); else if (currentUserRole === 'superadmin') populateMaterialsAdminTable(); break; case 'admin-config': if (currentUserRole === 'superadmin' && !dataLoaded.config) loadConfig(); else if (currentUserRole === 'superadmin') populateConfigFormAdmin(); break; } }
+        async function loadMaterials() { /* ... (igual que antes) ... */ if (dataLoaded.materials) return; console.log("Cargando materiales..."); try { const snapshot = await db.collection('materials').get(); materialsData = {}; snapshot.forEach(doc => { materialsData[doc.id] = { ...doc.data(), id: doc.id }; }); console.log("Materiales cargados:", Object.keys(materialsData).length); dataLoaded.materials = true; if (document.getElementById('admin-materials')?.classList.contains('active-tab-content')) populateMaterialsAdminTable(); if (document.getElementById('new-job-form')?.classList.contains('active-tab-content')) populateMaterialDropdown('job-material'); } catch (error) { console.error("Error cargando materiales:", error); showFeedback(document.getElementById('material-form-feedback-admin'), 'Error al cargar materiales.', 'error'); } }
+        async function loadConfig() { /* ... (igual que antes) ... */ if (dataLoaded.config) return; console.log("Cargando config..."); try { const configDoc = await db.collection('config').doc('main').get(); if (configDoc.exists) { configData = configDoc.data(); if (configData.monthly_costs && configData.minutes_per_month > 0) { const costs = configData.monthly_costs; const totalMonthly = Object.values(costs).reduce((sum, val) => sum + (typeof val === 'number' ? val : 0), 0); configData.cost_per_minute = totalMonthly / configData.minutes_per_month; } else { configData.cost_per_minute = 0; } } else { configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; console.warn("Doc 'config/main' no encontrado."); } console.log("Config cargada. Costo/min:", configData.cost_per_minute); dataLoaded.config = true; if (document.getElementById('admin-config')?.classList.contains('active-tab-content')) populateConfigFormAdmin(); } catch (error) { console.error("Error cargando config:", error); showFeedback(document.getElementById('config-form-feedback-admin'), 'Error al cargar config.', 'error'); } }
+        async function loadClients() { /* ... (igual que antes) ... */ if (dataLoaded.clients) return; if (!currentUser) return; console.log("Cargando clientes..."); const tableBody = document.getElementById('clients-table')?.querySelector('tbody'); if(tableBody) tableBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>'; try { const snapshot = await db.collection('clients').orderBy('name').get(); clientsData = {}; let rowsHtml = ''; snapshot.forEach(doc => { const client = { ...doc.data(), id: doc.id }; clientsData[doc.id] = client; rowsHtml += `<tr><td>${client.name || 'N/A'}</td><td>${client.phone || '-'}</td><td>${client.email || '-'}</td><td><button onclick="editClient('${client.id}')" class="edit-button">Editar</button><button onclick="deleteClient('${client.id}')" class="delete-button">Borrar</button><button onclick="selectClientForNewJob('${client.id}')" class="action-button bg-blue-500 text-white">Nuevo Trabajo</button></td></tr>`; }); if(tableBody) tableBody.innerHTML = rowsHtml || '<tr><td colspan="4">No hay clientes.</td></tr>'; console.log("Clientes cargados:", Object.keys(clientsData).length); dataLoaded.clients = true; if (document.getElementById('new-job-form')?.classList.contains('active-tab-content')) populateClientDropdown('job-client'); } catch (error) { console.error("Error cargando clientes:", error); if(tableBody) tableBody.innerHTML = '<tr><td colspan="4" class="text-red-500">Error al cargar clientes.</td></tr>'; } }
+        async function loadJobs() { /* ... (igual que antes, con actualización de UI al final) ... */ if (dataLoaded.jobs) return; if (!currentUser) return; console.log("Cargando trabajos..."); ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => { const b = document.getElementById(id)?.querySelector('tbody'); if(b) b.innerHTML = `<tr><td colspan="${b.previousElementSibling.rows[0].cells.length}">Cargando...</td></tr>`;}); ['report-total-value', 'report-total-deposit', 'report-total-outstanding'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = 'Calculando...'}); try { const snapshot = await db.collection('jobs').orderBy('orderDate', 'desc').get(); jobsData = []; snapshot.forEach(doc => { jobsData.push({ ...doc.data(), id: doc.id }); }); console.log("Trabajos cargados:", jobsData.length); dataLoaded.jobs = true; populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); } catch (error) { console.error("Error cargando trabajos:", error); ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => { const b = document.getElementById(id)?.querySelector('tbody'); if(b) b.innerHTML = `<tr><td colspan="${b.previousElementSibling.rows[0].cells.length}" class="text-red-500">Error.</td></tr>`;});}}
+
+        // --- Poblado de Tablas y Formularios (Lógica sin cambios) ---
+        function populateClientDropdown(selectId) { /* ... (igual que antes) ... */ const select = document.getElementById(selectId); if (!select) return; const selectedValue = select.value; select.innerHTML = '<option value="">Selecciona...</option>'; Object.values(clientsData).sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(client => { const option = document.createElement('option'); option.value = client.id; option.textContent = client.name || 'Sin Nombre'; select.appendChild(option); }); if (selectedValue) select.value = selectedValue; }
+        function populateMaterialDropdown(selectId) { /* ... (igual que antes) ... */ const select = document.getElementById(selectId); if (!select) return; const selectedValue = select.value; select.innerHTML = '<option value="">Selecciona...</option>'; Object.values(materialsData).filter(m => m.availability !== false).sort((a,b) => (a.name || '').localeCompare(b.name || '')).forEach(material => { const option = document.createElement('option'); option.value = material.id; const name = material.name || 'N/A'; const thickness = material.thickness_mm || '?'; option.textContent = `${name} (${thickness}mm)`; select.appendChild(option); }); if (selectedValue) select.value = selectedValue; }
+        function populateJobsTable() { /* ... (igual que antes) ... */ const tableBody = document.getElementById('jobs-table')?.querySelector('tbody'); if (!tableBody) return; let rowsHtml = ''; jobsData.forEach(job => { const clientName = clientsData[job.clientId]?.name || job.clientName || '?'; const finalCost = typeof job.finalJobCost === 'number' ? job.finalJobCost.toFixed(2) : 'N/A'; const deposit = typeof job.deposit === 'number' ? job.deposit.toFixed(2) : '0.00'; const outstanding = (typeof job.finalJobCost === 'number' && typeof job.deposit === 'number') ? (job.finalJobCost - job.deposit).toFixed(2) : 'N/A'; const orderDate = formatDate(job.orderDate); const deliveryDate = formatDate(job.deliveryDate); const statusClass = getStatusClass(job.status); rowsHtml += `<tr><td>${clientName}</td><td>${job.jobDetails || '-'}</td><td>${orderDate}</td><td>${deliveryDate}</td><td><span class="${statusClass}">${job.status || 'N/A'}</span></td><td>$${finalCost}</td><td>$${deposit}</td><td>$${outstanding}</td><td><button onclick="editJob('${job.id}')" class="edit-button">Editar</button><button onclick="printTicket('${job.id}')" class="print-button">Ticket</button><button onclick="deleteJob('${job.id}')" class="delete-button">Borrar</button></td></tr>`; }); tableBody.innerHTML = rowsHtml || '<tr><td colspan="9">No hay trabajos.</td></tr>';}
+        function populateDeadlinesTable() { /* ... (igual que antes) ... */ const tableBody = document.getElementById('deadlines-table')?.querySelector('tbody'); if (!tableBody) return; let rowsHtml = ''; const today = new Date(); today.setHours(0, 0, 0, 0); const sortedJobs = [...jobsData].sort((a, b) => { const dA = parseDate(a.deliveryDate); const dB = parseDate(b.deliveryDate); if (!dA) return 1; if (!dB) return -1; return dA - dB; }); sortedJobs.forEach(job => { const clientName = clientsData[job.clientId]?.name || job.clientName || '?'; const orderDate = formatDate(job.orderDate); const deliveryDateStr = formatDate(job.deliveryDate); const deliveryDate = parseDate(job.deliveryDate); let dateClass = ''; if (deliveryDate && job.status !== 'Terminado') { const deadline = new Date(deliveryDate); deadline.setDate(deadline.getDate() + 3); deadline.setHours(0,0,0,0); if (today >= deadline) dateClass = 'date-overdue'; } const statusClass = getStatusClass(job.status); rowsHtml += `<tr><td>${clientName}</td><td>${job.jobDetails || '-'}</td><td>${orderDate}</td><td class="${dateClass}">${deliveryDateStr}</td><td><span class="${statusClass}">${job.status || 'N/A'}</span></td></tr>`; }); tableBody.innerHTML = rowsHtml || '<tr><td colspan="5">No hay trabajos.</td></tr>'; }
+        function populateStatusTable() { /* ... (igual que antes) ... */ const tableBody = document.getElementById('status-table')?.querySelector('tbody'); if (!tableBody) return; let rowsHtml = ''; const statusOrder = { 'Encargado': 1, 'Procesando': 2, 'Terminado': 3 }; const sortedJobs = [...jobsData].sort((a, b) => { const oA = statusOrder[a.status] || 4; const oB = statusOrder[b.status] || 4; if (oA !== oB) return oA - oB; const dA = parseDate(a.deliveryDate); const dB = parseDate(b.deliveryDate); if (!dA) return 1; if (!dB) return -1; return dA - dB; }); sortedJobs.forEach(job => { const clientName = clientsData[job.clientId]?.name || job.clientName || '?'; const deliveryDate = formatDate(job.deliveryDate); const statusClass = getStatusClass(job.status); rowsHtml += `<tr><td>${clientName}</td><td>${job.jobDetails || '-'}</td><td><span class="${statusClass}">${job.status || 'N/A'}</span></td><td>${deliveryDate}</td></tr>`; }); tableBody.innerHTML = rowsHtml || '<tr><td colspan="4">No hay trabajos.</td></tr>'; }
+        function generateReports() { /* ... (igual que antes) ... */ let totalValue = 0; let totalDeposit = 0; const clientOutstanding = {}; jobsData.forEach(job => { const finalCost = typeof job.finalJobCost === 'number' ? job.finalJobCost : 0; const deposit = typeof job.deposit === 'number' ? job.deposit : 0; totalValue += finalCost; totalDeposit += deposit; const clientId = job.clientId; if (clientId) { if (!clientOutstanding[clientId]) clientOutstanding[clientId] = { name: clientsData[clientId]?.name || job.clientName || '?', total: 0, deposit: 0 }; clientOutstanding[clientId].total += finalCost; clientOutstanding[clientId].deposit += deposit; } }); const totalOutstanding = totalValue - totalDeposit; document.getElementById('report-total-value').textContent = `$${totalValue.toFixed(2)}`; document.getElementById('report-total-deposit').textContent = `$${totalDeposit.toFixed(2)}`; document.getElementById('report-total-outstanding').textContent = `$${totalOutstanding.toFixed(2)}`; const tableBody = document.getElementById('outstanding-table')?.querySelector('tbody'); if (!tableBody) return; let rowsHtml = ''; Object.values(clientOutstanding).sort((a,b) => a.name.localeCompare(b.name)).forEach(client => { const outstanding = client.total - client.deposit; if (outstanding > 0.005) { rowsHtml += `<tr><td>${client.name}</td><td>$${client.total.toFixed(2)}</td><td>$${client.deposit.toFixed(2)}</td><td>$${outstanding.toFixed(2)}</td></tr>`; } }); tableBody.innerHTML = rowsHtml || '<tr><td colspan="4">No hay saldos pendientes.</td></tr>'; }
+
+        // --- CRUD Clientes (Lógica sin cambios) ---
+        document.getElementById('client-form')?.addEventListener('submit', async (e) => { /* ... (igual que antes) ... */ e.preventDefault(); if (!currentUser) return showFeedback(document.getElementById('client-form-feedback'), 'Debes iniciar sesión.', 'error'); const clientId = document.getElementById('client-id').value; const name = document.getElementById('client-name').value; const phone = document.getElementById('client-phone').value; const email = document.getElementById('client-email').value; const feedbackDiv = document.getElementById('client-form-feedback'); if (!name) return showFeedback(feedbackDiv, 'Nombre requerido.', 'error'); const clientData = { name, phone, email }; showFeedback(feedbackDiv, 'Guardando...', 'info'); try { if (clientId) await db.collection('clients').doc(clientId).update(clientData); else await db.collection('clients').add(clientData); showFeedback(feedbackDiv, clientId ? 'Cliente actualizado.' : 'Cliente añadido.', 'success'); resetClientForm(); dataLoaded.clients = false; await loadClients(); } catch (error) { console.error("Error guardando cliente:", error); showFeedback(feedbackDiv, `Error: ${error.message}`, 'error'); } });
+        function editClient(id) { /* ... (igual que antes) ... */ const client = clientsData[id]; if (!client) return; document.getElementById('client-form-title').textContent = 'Editar Cliente'; document.getElementById('client-id').value = id; document.getElementById('client-name').value = client.name || ''; document.getElementById('client-phone').value = client.phone || ''; document.getElementById('client-email').value = client.email || ''; document.getElementById('client-form')?.scrollIntoView({ behavior: 'smooth' }); }
+        function resetClientForm() { /* ... (igual que antes) ... */ document.getElementById('client-form-title').textContent = 'Añadir Nuevo Cliente'; document.getElementById('client-form')?.reset(); document.getElementById('client-id').value = ''; showFeedback(document.getElementById('client-form-feedback'), '', 'info'); }
+        async function deleteClient(id) { /* ... (igual que antes) ... */ if (!currentUser) return alert('Debes iniciar sesión.'); const clientName = clientsData[id]?.name || id; if (!confirm(`¿Borrar cliente "${clientName}"? Sus trabajos NO serán eliminados.`)) return; try { await db.collection('clients').doc(id).delete(); alert('Cliente borrado.'); dataLoaded.clients = false; await loadClients(); dataLoaded.jobs = false; if(document.getElementById('jobs')?.classList.contains('active-tab-content')) loadJobs(); } catch (error) { console.error("Error borrando cliente:", error); alert(`Error: ${error.message}`); } }
+        function selectClientForNewJob(clientId) { /* ... (igual que antes) ... */ resetJobForm(); document.getElementById('job-client').value = clientId; showSection('new-job-form'); }
+
+        // --- CRUD Trabajos (Lógica sin cambios, solo cálculo de ganancia y UI) ---
+        function calculateJobQuote() { /* ... (igual que antes, calcula base y final) ... */ const materialId = document.getElementById('job-material').value; const lengthMm = parseFloat(document.getElementById('job-length').value); const widthMm = parseFloat(document.getElementById('job-width').value); const jobType = document.getElementById('job-job-type').value; const cutMinutes = parseFloat(document.getElementById('job-cut-minutes')?.value) || 0; const engraveMinutes = parseFloat(document.getElementById('job-engrave-minutes')?.value) || 0; const resultDiv = document.getElementById('job-quote-base-result'); resultDiv.textContent = ''; currentJobQuoteBaseCost = 0; document.getElementById('job-final-cost').value = ''; if (!materialId || isNaN(lengthMm) || isNaN(widthMm) || lengthMm <= 0 || widthMm <= 0) { resultDiv.textContent = 'Faltan datos.'; return; } if (isNaN(cutMinutes) || cutMinutes < 0 || isNaN(engraveMinutes) || engraveMinutes < 0) { resultDiv.textContent = 'Minutos inválidos.'; return; } if ((jobType === 'corte' || jobType === 'ambos') && cutMinutes <= 0) { resultDiv.textContent = 'Estima min. corte.'; return; } if ((jobType === 'grabado' || jobType === 'ambos') && engraveMinutes <= 0) { resultDiv.textContent = 'Estima min. grabado.'; return; } const selectedMaterial = materialsData[materialId]; if (!selectedMaterial || typeof selectedMaterial.cost_per_sheet !== 'number') { resultDiv.textContent = 'Error datos material.'; return; } const sheetWidthMm = selectedMaterial.sheet_width_mm || 1300; const sheetHeightMm = selectedMaterial.sheet_height_mm || 900; const sheetAreaMm2 = sheetWidthMm * sheetHeightMm; if (sheetAreaMm2 <= 0) { resultDiv.textContent = 'Error dims plancha.'; return; } const requestedAreaMm2 = lengthMm * widthMm; const materialCost = (requestedAreaMm2 / sheetAreaMm2) * selectedMaterial.cost_per_sheet; let totalMinutes = 0; if (jobType === 'corte') totalMinutes = cutMinutes; else if (jobType === 'grabado') totalMinutes = engraveMinutes; else if (jobType === 'ambos') totalMinutes = cutMinutes + engraveMinutes; const costPerMinute = configData.cost_per_minute; if (typeof costPerMinute !== 'number' || costPerMinute < 0) { if (totalMinutes > 0) { resultDiv.textContent = 'Error costo/min.'; return; } } const machineCost = totalMinutes * (costPerMinute || 0); currentJobQuoteBaseCost = materialCost + machineCost; const finalCostWithProfit = currentJobQuoteBaseCost * 2; if (isNaN(currentJobQuoteBaseCost)) { resultDiv.textContent = 'Error cálculo base.'; return; } resultDiv.textContent = `Costo Base: $${currentJobQuoteBaseCost.toFixed(2)}`; document.getElementById('job-final-cost').value = finalCostWithProfit.toFixed(2); }
+        document.getElementById('job-form')?.addEventListener('submit', async (e) => { /* ... (igual que antes, guarda jobData con quoteData y finalCost) ... */ e.preventDefault(); if (!currentUser) return showFeedback(document.getElementById('job-form-feedback'), 'Debes iniciar sesión.', 'error'); const jobId = document.getElementById('job-id').value; const clientId = document.getElementById('job-client').value; const clientName = document.getElementById('job-client').options[document.getElementById('job-client').selectedIndex]?.text || null; const jobDetails = document.getElementById('job-details').value; const orderDate = document.getElementById('job-order-date').value; const deliveryDate = document.getElementById('job-delivery-date').value; const status = document.getElementById('job-status').value; const finalCost = parseFloat(document.getElementById('job-final-cost').value); const deposit = parseFloat(document.getElementById('job-deposit').value) || 0; const observations = document.getElementById('job-observations').value; const materialId = document.getElementById('job-material').value; const materialInfo = materialsData[materialId]; const lengthMm = parseFloat(document.getElementById('job-length').value); const widthMm = parseFloat(document.getElementById('job-width').value); const jobType = document.getElementById('job-job-type').value; const cutMinutes = parseFloat(document.getElementById('job-cut-minutes')?.value) || 0; const engraveMinutes = parseFloat(document.getElementById('job-engrave-minutes')?.value) || 0; const feedbackDiv = document.getElementById('job-form-feedback'); if (!clientId || !jobDetails || !orderDate || !deliveryDate || !status || !materialId || isNaN(lengthMm) || isNaN(widthMm) || isNaN(finalCost) || finalCost <= 0 || isNaN(deposit) || deposit < 0) return showFeedback(feedbackDiv, 'Completa campos requeridos.', 'error'); if (currentJobQuoteBaseCost <= 0 && finalCost > 0) return showFeedback(feedbackDiv, 'Calcula costo base.', 'error'); if (Math.abs(finalCost - currentJobQuoteBaseCost * 2) > 0.01) return showFeedback(feedbackDiv, 'Costo Final no coincide. Recalcula.', 'error'); const jobData = { clientId, clientName, jobDetails, orderDate, deliveryDate, status, observations, finalJobCost: finalCost, deposit: deposit, quoteData: { materialId, materialName: materialInfo?.name || 'N/A', materialThickness: materialInfo?.thickness_mm || 'N/A', lengthMm, widthMm, jobType, cutMinutes, engraveMinutes, calculatedTotalCost: currentJobQuoteBaseCost }, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }; showFeedback(feedbackDiv, 'Guardando...', 'info'); try { if (jobId) await db.collection('jobs').doc(jobId).update(jobData); else { jobData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await db.collection('jobs').add(jobData); } showFeedback(feedbackDiv, jobId ? 'Trabajo actualizado.' : 'Trabajo creado.', 'success'); resetJobForm(); dataLoaded.jobs = false; showSection('jobs'); } catch (error) { console.error("Error guardando trabajo:", error); showFeedback(feedbackDiv, `Error: ${error.message}`, 'error'); } });
+        function editJob(id) { /* ... (igual que antes) ... */ const job = jobsData.find(j => j.id === id); if (!job) return; resetJobForm(); document.getElementById('job-form-title').textContent = 'Editar Trabajo'; document.getElementById('job-id').value = id; document.getElementById('job-client').value = job.clientId || ''; document.getElementById('job-details').value = job.jobDetails || ''; document.getElementById('job-order-date').value = job.orderDate || ''; document.getElementById('job-delivery-date').value = job.deliveryDate || ''; document.getElementById('job-status').value = job.status || 'Encargado'; document.getElementById('job-deposit').value = job.deposit || 0; document.getElementById('job-observations').value = job.observations || ''; const quote = job.quoteData || {}; document.getElementById('job-material').value = quote.materialId || ''; document.getElementById('job-length').value = quote.lengthMm || ''; document.getElementById('job-width').value = quote.widthMm || ''; document.getElementById('job-job-type').value = quote.jobType || 'corte'; document.getElementById('job-cut-minutes').value = quote.cutMinutes || 0; document.getElementById('job-engrave-minutes').value = quote.engraveMinutes || 0; currentJobQuoteBaseCost = quote.calculatedTotalCost || 0; const finalCost = typeof job.finalJobCost === 'number' ? job.finalJobCost.toFixed(2) : ''; document.getElementById('job-final-cost').value = finalCost; document.getElementById('job-quote-base-result').textContent = `Costo Base Guardado: $${currentJobQuoteBaseCost.toFixed(2)}`; document.getElementById('job-job-type').dispatchEvent(new Event('change')); showSection('new-job-form'); }
+        function resetJobForm() { /* ... (igual que antes) ... */ document.getElementById('job-form-title').textContent = 'Nuevo Trabajo'; document.getElementById('job-form')?.reset(); document.getElementById('job-id').value = ''; document.getElementById('job-status').value = 'Encargado'; document.getElementById('job-deposit').value = 0; document.getElementById('job-quote-base-result').textContent = ''; currentJobQuoteBaseCost = 0; showFeedback(document.getElementById('job-form-feedback'), '', 'info'); document.getElementById('job-job-type')?.dispatchEvent(new Event('change')); }
+        async function deleteJob(id) { /* ... (igual que antes) ... */ if (!currentUser) return alert('Debes iniciar sesión.'); const jobDetails = jobsData.find(j => j.id === id)?.jobDetails || id; if (!confirm(`¿Borrar trabajo "${jobDetails}"?`)) return; try { await db.collection('jobs').doc(id).delete(); alert('Trabajo borrado.'); dataLoaded.jobs = false; const activeSection = document.querySelector('.tab-content.active-tab-content'); if (activeSection && ['jobs', 'deadlines', 'status', 'reports'].includes(activeSection.id)) loadJobs(); } catch (error) { console.error("Error borrando trabajo:", error); alert(`Error: ${error.message}`); } }
+
+        // --- CRUD Materiales (SuperAdmin - Lógica sin cambios, solo verifica rol) ---
+        document.getElementById('material-form-admin')?.addEventListener('submit', async (e) => { /* ... (igual que antes + chequeo rol) ... */ e.preventDefault(); if (currentUserRole !== 'superadmin') return showFeedback(document.getElementById('material-form-feedback-admin'), 'Acceso denegado.', 'error'); const materialId = document.getElementById('material-id-admin').value; const name = document.getElementById('material-name-admin').value; const thickness = parseFloat(document.getElementById('material-thickness-admin').value); const cost = parseFloat(document.getElementById('material-cost-admin').value); const width = parseInt(document.getElementById('material-width-admin').value) || null; const height = parseInt(document.getElementById('material-height-admin').value) || null; const availability = document.getElementById('material-availability-admin').checked; const feedbackDiv = document.getElementById('material-form-feedback-admin'); if (!name || isNaN(thickness) || isNaN(cost) || thickness <=0 || cost < 0) return showFeedback(feedbackDiv, 'Datos requeridos inválidos.', 'error'); const materialData = { name, thickness_mm: thickness, cost_per_sheet: cost, sheet_width_mm: width, sheet_height_mm: height, availability }; if (materialData.sheet_width_mm === null) delete materialData.sheet_width_mm; if (materialData.sheet_height_mm === null) delete materialData.sheet_height_mm; showFeedback(feedbackDiv, 'Guardando...', 'info'); try { if (materialId) await db.collection('materials').doc(materialId).update(materialData); else await db.collection('materials').add(materialData); showFeedback(feedbackDiv, materialId ? 'Material actualizado.' : 'Material añadido.', 'success'); resetMaterialFormAdmin(); dataLoaded.materials = false; await loadMaterials(); } catch (error) { console.error("Error guardando material(A):", error); showFeedback(feedbackDiv, `Error: ${error.message}.`, 'error'); } });
+        function editMaterialAdmin(id) { /* ... (igual que antes + chequeo rol) ... */ if (currentUserRole !== 'superadmin') return; const material = materialsData[id]; if (!material) return; document.getElementById('material-form-title-admin').textContent = 'Editar Material'; document.getElementById('material-id-admin').value = id; document.getElementById('material-name-admin').value = material.name || ''; document.getElementById('material-thickness-admin').value = material.thickness_mm || ''; document.getElementById('material-cost-admin').value = material.cost_per_sheet || ''; document.getElementById('material-width-admin').value = material.sheet_width_mm || ''; document.getElementById('material-height-admin').value = material.sheet_height_mm || ''; document.getElementById('material-availability-admin').checked = material.availability || false; document.getElementById('material-form-admin')?.scrollIntoView({ behavior: 'smooth' }); }
+        function resetMaterialFormAdmin() { /* ... (igual que antes) ... */ document.getElementById('material-form-title-admin').textContent = 'Añadir Material'; document.getElementById('material-form-admin')?.reset(); document.getElementById('material-id-admin').value = ''; document.getElementById('material-availability-admin').checked = true; showFeedback(document.getElementById('material-form-feedback-admin'), '', 'info'); }
+        async function deleteMaterialAdmin(id) { /* ... (igual que antes + chequeo rol) ... */ if (currentUserRole !== 'superadmin') return alert('Acceso denegado.'); if (!confirm(`¿Borrar material "${materialsData[id]?.name || id}"?`)) return; try { await db.collection('materials').doc(id).delete(); alert('Material borrado.'); dataLoaded.materials = false; await loadMaterials(); } catch (error) { console.error("Error borrando material(A):", error); alert(`Error: ${error.message}.`); } }
+        function populateMaterialsAdminTable() { /* ... (igual que antes) ... */ const tableBody = document.getElementById('materials-admin-table')?.querySelector('tbody'); if (!tableBody) return; let rowsHtml = ''; Object.values(materialsData).sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(material => { const cost = typeof material.cost_per_sheet === 'number' ? material.cost_per_sheet.toFixed(2) : 'N/A'; const dims = `${material.sheet_width_mm || '-'}x${material.sheet_height_mm || '-'}`; const available = typeof material.availability === 'boolean' ? (material.availability ? 'Sí' : 'No') : '?'; rowsHtml += `<tr><td>${material.name || 'N/A'}</td><td>${material.thickness_mm || '?'}</td><td>$${cost}</td><td>${dims}</td><td>${available}</td><td><button onclick="editMaterialAdmin('${material.id}')" class="edit-button">Editar</button><button onclick="deleteMaterialAdmin('${material.id}')" class="delete-button">Borrar</button></td></tr>`; }); tableBody.innerHTML = rowsHtml || '<tr><td colspan="6">No hay materiales.</td></tr>'; }
+
+        // --- CRUD Configuración (SuperAdmin - Lógica sin cambios, solo verifica rol) ---
+        document.getElementById('config-form-admin')?.addEventListener('submit', async (e) => { /* ... (igual que antes + chequeo rol) ... */ e.preventDefault(); if (currentUserRole !== 'superadmin') return showFeedback(document.getElementById('config-form-feedback-admin'), 'Acceso denegado.', 'error'); const minutes = parseInt(document.getElementById('config-minutes-admin').value); const costsInputs = document.getElementById('config-form-admin').querySelectorAll('#monthly-costs-fieldset-admin input[type="number"]'); const monthlyCosts = {}; let valid = true; costsInputs.forEach(input => { const value = parseFloat(input.value); if (isNaN(value) || value < 0) valid = false; monthlyCosts[input.name] = value; }); const feedbackDiv = document.getElementById('config-form-feedback-admin'); if (isNaN(minutes) || minutes <= 0 || !valid) return showFeedback(feedbackDiv, 'Valores inválidos.', 'error'); const configUpdateData = { minutes_per_month: minutes, monthly_costs: monthlyCosts }; showFeedback(feedbackDiv, 'Guardando...', 'info'); try { await db.collection('config').doc('main').set(configUpdateData, { merge: true }); showFeedback(feedbackDiv, 'Configuración guardada.', 'success'); dataLoaded.config = false; await loadConfig(); } catch (error) { console.error("Error guardando config(A):", error); showFeedback(feedbackDiv, `Error: ${error.message}.`, 'error'); } });
+        function populateConfigFormAdmin() { /* ... (igual que antes) ... */ const configMinutesInput = document.getElementById('config-minutes-admin'); const costsFieldset = document.getElementById('monthly-costs-fieldset-admin')?.querySelector('.grid'); if (configMinutesInput) configMinutesInput.value = configData.minutes_per_month || 2400; if (costsFieldset) { costsFieldset.innerHTML = ''; const costs = configData.monthly_costs || {}; const expectedCosts = ['alquiler', 'sueldos', 'luz', 'impuestos', 'amortizacion', 'tubo_laser', 'mantenimiento']; expectedCosts.forEach(key => { const value = costs[key] || 0; const label = key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '); costsFieldset.innerHTML += `<div><label for="cost-adm-${key}" class="text-xs">${label}:</label><input type="number" id="cost-adm-${key}" name="${key}" value="${value}" min="0" step="0.01" required class="mt-1 w-full p-1 border rounded text-sm"></div>`; }); Object.keys(costs).forEach(key => { if (!expectedCosts.includes(key)) { const value = costs[key] || 0; const label = key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '); costsFieldset.innerHTML += `<div><label for="cost-adm-${key}" class="text-xs">${label}:</label><input type="number" id="cost-adm-${key}" name="${key}" value="${value}" min="0" step="0.01" required class="mt-1 w-full p-1 border rounded text-sm"></div>`; } }); } }
+
+        // --- Impresión ---
         function printTicket(jobId) {
             const job = jobsData.find(j => j.id === jobId);
             if (!job) return alert("Trabajo no encontrado.");
 
-            const client = clientsData[job.clientId] || { name: job.clientName || 'Desconocido', phone: '-', email: '-' };
+            const client = clientsData[job.clientId] || { name: job.clientName || '?', phone: '-', email: '-' };
             const quote = job.quoteData || {};
-            const materialName = quote.materialName ? `${quote.materialName} (${quote.materialThickness}mm)` : 'N/A';
+            const materialName = quote.materialName ? `${quote.materialName} (${quote.materialThickness}mm)` : '?';
+            const printArea = document.getElementById('print-area');
 
+            // Generar HTML del Ticket
             const printContent = `
                 <div style="border: 1px solid #ccc; padding: 15px; max-width: 400px; margin: auto;">
                     <h2 style="text-align: center; margin-bottom: 10px; font-size: 16px;">Ticket de Trabajo</h2>
@@ -1360,29 +484,49 @@
                      <p><strong>Total:</strong> $${(job.finalJobCost || 0).toFixed(2)}</p>
                      <p><strong>Seña:</strong> $${(job.deposit || 0).toFixed(2)}</p>
                      <p><strong>Pendiente:</strong> $${((job.finalJobCost || 0) - (job.deposit || 0)).toFixed(2)}</p>
-                </div>
-            `;
+                     <p style="margin-top: 15px; font-size: 10px; text-align: center;">ID Trabajo: ${job.id}</p>
+                </div>`;
 
-            const printArea = document.getElementById('print-area');
-            printArea.innerHTML = printContent;
-            window.print(); // Abre el diálogo de impresión del navegador
-            printArea.innerHTML = ''; // Limpiar después de imprimir
+            if (printArea) {
+                printArea.innerHTML = printContent; // Poner contenido en el div oculto
+                console.log("Contenido para imprimir ticket:", printArea.innerHTML); // Debugging
+                window.print(); // Llamar a la impresión del navegador
+                // No limpiar inmediatamente, a veces el navegador necesita tiempo
+                // setTimeout(() => { printArea.innerHTML = ''; }, 1000);
+            } else {
+                console.error("Elemento #print-area no encontrado.");
+                alert("Error al preparar la impresión del ticket.");
+            }
         }
 
+        function printCurrentSection() {
+            // Añadir clase temporal a la sección activa para estilos de impresión
+            const activeSection = document.querySelector('.tab-content.active-tab-content');
+            if (activeSection) {
+                console.log("Intentando imprimir sección:", activeSection.id);
+                activeSection.classList.add('printing-now');
+                window.print();
+                // Quitar la clase después de un tiempo (necesario para que la impresión funcione)
+                setTimeout(() => {
+                    activeSection.classList.remove('printing-now');
+                }, 500);
+            } else {
+                alert("No hay una sección activa para imprimir.");
+            }
+        }
 
-        // --- Funciones Utilitarias ---
-        function showFeedback(element, message, type = 'info') { /* ... (igual que antes) ... */ if (!element) return; element.textContent = message; element.className = 'mt-2 text-sm'; if (type === 'success') element.classList.add('text-green-600'); else if (type === 'error') element.classList.add('text-red-600'); else element.classList.add('text-blue-600'); }
-        function formatDate(dateString) { /* ... (igual que antes) ... */ if (!dateString) return '-'; try { const [year, month, day] = dateString.split('-'); return `${day}/${month}/${year}`; } catch { return dateString; /* Devolver original si falla */} }
-        function parseDate(dateString) { /* ... (igual que antes) ... */ if (!dateString) return null; try { const date = new Date(dateString + 'T00:00:00'); if (isNaN(date)) return null; return date; } catch { return null; } }
-        function getStatusClass(status) { /* ... (igual que antes) ... */ switch (status) { case 'Encargado': return 'status-encargado'; case 'Procesando': return 'status-procesando'; case 'Terminado': return 'status-terminado'; default: return ''; } }
+        // --- Funciones Utilitarias (sin cambios) ---
+        function showFeedback(element, message, type = 'info') { if (!element) return; element.textContent = message; element.className = 'mt-2 text-sm'; if (type === 'success') element.classList.add('text-green-600'); else if (type === 'error') element.classList.add('text-red-600'); else element.classList.add('text-blue-600'); }
+        function formatDate(dateString) { if (!dateString) return '-'; try { const [year, month, day] = dateString.split('-'); if (!year || !month || !day) return dateString; return `${day}/${month}/${year}`; } catch { return dateString; } }
+        function parseDate(dateString) { if (!dateString) return null; try { const date = new Date(dateString + 'T00:00:00'); if (isNaN(date.getTime())) return null; return date; } catch { return null; } } // Mejor validación
+        function getStatusClass(status) { switch (status) { case 'Encargado': return 'status-encargado'; case 'Procesando': return 'status-procesando'; case 'Terminado': return 'status-terminado'; default: return ''; } }
 
         // --- Inicialización ---
         document.addEventListener('DOMContentLoaded', () => {
-            // No cargar datos aquí, esperar al login o a la navegación
             showSection('home'); // Mostrar home por defecto
             const yearSpan = document.getElementById('current-year');
             if (yearSpan) yearSpan.textContent = new Date().getFullYear();
-            // Disparar evento change para visibilidad inicial de campos de tiempo en form trabajo
+            // Disparar evento change para visibilidad inicial de campos de tiempo
              document.getElementById('job-job-type')?.dispatchEvent(new Event('change'));
         });
 
