@@ -495,43 +495,45 @@
     <!-- ****** START OF JAVASCRIPT ****** -->
     <script>
         // --- Configuración de Firebase ---
-        // IMPORTANTE: Reemplaza con tu configuración real y ASEGURA tu API Key
-        // NUNCA expongas API keys sin restricciones en código público.
         const firebaseConfig = {
             apiKey: "AIzaSyAVBHUX8Ey9lLUCiz6mNDOemrNfrR-3Szs",
             authDomain: "presupuestadorcortelaser.firebaseapp.com",
             projectId: "presupuestadorcortelaser",
-            storageBucket: "presupuestadorcortelaser.firebasestorage.app",
+            storageBucket: "presupuestadorcortelaser.firebasestorage.app", // Corregido .app por .com si es necesario, pero usando tu valor
             messagingSenderId: "159566854109",
             appId: "1:159566854109:web:8d7351cef717697f3ea834"
         };
 
         // --- Inicialización de Firebase ---
+        let db; // Declarar FUERA con let
+        let auth; // Declarar FUERA con let
+
         try {
             firebase.initializeApp(firebaseConfig);
-            const db = firebase.firestore();
-            const auth = firebase.auth();
-             console.log("Firebase inicializado correctamente.");
+            // Asignar valores DENTRO del try
+            db = firebase.firestore();
+            auth = firebase.auth();
+            console.log("Firebase inicializado correctamente.");
         } catch (error) {
             console.error("Error inicializando Firebase:", error);
             alert("Error crítico: No se pudo inicializar la conexión con la base de datos. La aplicación no funcionará correctamente.");
-             // Podrías deshabilitar la UI o mostrar un mensaje más prominente aquí
+            // Podrías deshabilitar la UI o mostrar un mensaje más prominente aquí
         }
 
 
         // --- ID del Super Administrador ---
-        const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1'; // <-- REEMPLAZA con el UID real del Super Admin
+        const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1'; // Tu Super Admin UID
 
         // --- Variables Globales ---
-        let materialsData = {}; // Cache for materials { id: data }
-        let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; // Default/Cache config
-        let clientsData = {}; // Cache for clients { id: data }
-        let jobsData = []; // Cache for jobs [ { id: data } ]
+        let materialsData = {};
+        let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} };
+        let clientsData = {};
+        let jobsData = [];
         let currentUser = null;
-        let currentUserRole = null; // null, 'operator', 'superadmin'
-        let currentJobQuoteBaseCost = 0; // Base cost calculated for the current job form
+        let currentUserRole = null;
+        let currentJobQuoteBaseCost = 0;
         let dataLoaded = { clients: false, jobs: false, materials: false, config: false };
-        let activeSectionId = 'home'; // Track active section/tab
+        let activeSectionId = 'home';
 
         // --- Navegación por Pestañas ---
         function setActiveTab(buttonElement) {
@@ -592,10 +594,11 @@
          }
 
         // --- Autenticación y Roles ---
-        auth?.onAuthStateChanged(user => { // Check if auth exists
+        auth?.onAuthStateChanged(user => { // Usar optional chaining por si la inicialización falló antes de asignar auth
             if (!auth) {
                  console.error("Auth service not available.");
-                 showLoginSection(); // Show login as fallback
+                 // Show login as fallback if auth service is missing
+                 showLoginSection();
                  return;
             }
 
@@ -632,7 +635,6 @@
                     }
                 }).catch(error => {
                     console.error("Error cargando datos iniciales post-login:", error);
-                    // Mostrar error en un lugar visible, quizás el feedback del form de trabajos
                     const jobFeedback = document.getElementById('job-form-feedback');
                     if (jobFeedback) showFeedback(jobFeedback, 'Error crítico al cargar datos iniciales. Intente recargar.', 'error');
                     else alert("Error crítico al cargar datos iniciales. Intente recargar la página.");
@@ -643,11 +645,9 @@
                 currentUserRole = null;
                 document.body.classList.add('public-only');
                 if (userEmailSpan) userEmailSpan.textContent = '';
-                // Limpiar datos cacheados al desloguear
                 materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} };
                 dataLoaded = { clients: false, jobs: false, materials: false, config: false };
 
-                // Mostrar la sección 'home'
                 document.querySelectorAll('#tab-content-container .tab-content').forEach(content => content.classList.remove('active-tab-content', 'printing-now'));
                 document.querySelectorAll('#tab-buttons .tab-button').forEach(button => button.classList.remove('active-tab'));
                 const homeSection = document.getElementById('home');
@@ -663,7 +663,12 @@
         // --- Login / Logout ---
         document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-             if (!auth) { console.error("Auth service not available for login."); return; }
+             if (!auth) {
+                 console.error("Auth service not available for login.");
+                 const errorDiv = document.getElementById('login-error');
+                 if(errorDiv) errorDiv.textContent = 'Error de inicialización. No se puede iniciar sesión.';
+                 return;
+             }
 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
@@ -674,7 +679,7 @@
                 console.log("Intentando iniciar sesión con:", email);
                 await auth.signInWithEmailAndPassword(email, password);
                 console.log("Inicio de sesión exitoso.");
-                // onAuthStateChanged se encargará del resto (UI update, data load)
+                // onAuthStateChanged will handle the rest
             } catch (error) {
                 console.error("Error de login:", error.code, error.message);
                 if(errorDiv) {
@@ -683,18 +688,22 @@
                     } else if (error.code === 'auth/invalid-email') {
                         errorDiv.textContent = 'El formato del email es inválido.';
                     } else {
-                        errorDiv.textContent = 'Error al iniciar sesión. Verifique la conexión.'; // Mensaje genérico
+                        errorDiv.textContent = 'Error al iniciar sesión. Verifique la conexión.'; // Generic message
                     }
                 }
             }
         });
 
         function logoutUser() {
-             if (!auth) { console.error("Auth service not available for logout."); return; }
+             if (!auth) {
+                 console.error("Auth service not available for logout.");
+                 alert("Error: No se puede cerrar sesión.");
+                 return;
+             }
             console.log("Cerrando sesión...");
             auth.signOut().then(() => {
                 console.log("Sesión cerrada exitosamente.");
-                // onAuthStateChanged manejará el cambio de UI a estado público/home
+                // onAuthStateChanged will handle UI change
             }).catch(error => {
                 console.error("Error al cerrar sesión:", error);
                 alert("Error al cerrar sesión: " + error.message);
@@ -703,7 +712,6 @@
 
         // --- Carga de Datos ---
         async function loadInitialDataForLoggedInUser() {
-            // Verifica si db está disponible antes de cargar
              if (!db) {
                  console.error("loadInitialDataForLoggedInUser: Firestore service (db) no disponible.");
                  throw new Error("La base de datos no está disponible.");
@@ -711,36 +719,32 @@
 
             console.log("loadInitialDataForLoggedInUser: Cargando datos esenciales (materials, config, clients)...");
             const loadPromises = [
-                loadMaterials(), // Necesario para cotizar
-                loadConfig(),    // Necesario para cotizar
-                loadClients()    // Necesario para seleccionar cliente en nuevo trabajo
+                loadMaterials(),
+                loadConfig(),
+                loadClients()
             ];
             await Promise.all(loadPromises);
             console.log("loadInitialDataForLoggedInUser: Datos esenciales cargados.");
         }
 
         function loadDataForSection(sectionId) {
-            // Verifica si db está disponible
              if (!db) {
                  console.error(`loadDataForSection: Firestore service (db) no disponible al intentar cargar datos para ${sectionId}.`);
-                 // Podría mostrar un error al usuario aquí
                  return;
              }
-            // Carga datos bajo demanda al entrar a una sección, evitando recargas innecesarias
-            // pero permitiendo refrescar datos que cambian (como trabajos)
             console.log(`loadDataForSection: Verificando datos para ${sectionId}`);
             if (!currentUser) {
                 console.warn(`loadDataForSection: Intento de cargar datos para ${sectionId} sin usuario logueado.`);
-                return; // No cargar datos si no está logueado
+                return;
             }
 
             switch(sectionId) {
                 case 'clients':
                     if (!dataLoaded.clients) loadClients();
-                    else populateClientsTable(); // Repopular por si acaso
+                    else populateClientsTable();
                     break;
                 case 'jobs':
-                    loadJobs(); // Siempre recargar trabajos al ver la tabla principal
+                    loadJobs();
                     break;
                  case 'deadlines':
                     if (!dataLoaded.jobs) loadJobs().then(populateDeadlinesTable);
@@ -761,7 +765,7 @@
                          populateClientDropdown('job-client');
                          populateMaterialDropdown('job-material');
                      }).catch(err => console.error("Error cargando datos para New Job Form:", err));
-                     resetJobForm(); // Limpiar el formulario cada vez que se entra
+                     resetJobForm();
                     break;
                 case 'admin-materials':
                     if (currentUserRole === 'superadmin') {
@@ -812,7 +816,7 @@
                     configData = {
                         minutes_per_month: data.minutes_per_month || 2400,
                         monthly_costs: data.monthly_costs || {},
-                        cost_per_minute: 0 // Se recalculará
+                        cost_per_minute: 0 // Recalculate
                     };
                     const totalMonthly = Object.values(configData.monthly_costs)
                                             .reduce((sum, val) => sum + (Number(val) || 0), 0);
@@ -921,10 +925,9 @@
              sortedClients.forEach(client => {
                  const option = document.createElement('option');
                  option.value = client.id;
-                 option.textContent = client.name || `ID: ${client.id}`; // Fallback text
+                 option.textContent = client.name || `ID: ${client.id}`;
                  select.appendChild(option);
              });
-             // Try to restore selection if possible
              if (Array.from(select.options).some(opt => opt.value === currentVal)) {
                  select.value = currentVal;
              }
@@ -1116,7 +1119,6 @@
                 totalDeposit += deposit;
 
                 const clientId = job.clientId;
-                // Skip if client ID is missing (shouldn't happen with validation)
                 if (!clientId) return;
 
                 if (!clientTotals[clientId]) {
@@ -1186,7 +1188,7 @@
                  const dimensions = (mat.width && mat.height) ? `${mat.width}x${mat.height}` : 'N/A';
                  const availableText = mat.available !== false ? 'Sí' : 'No';
                  const availableClass = mat.available !== false ? 'text-green-600' : 'text-red-600';
-                 const cost = (mat.costPerSheet !== undefined ? mat.costPerSheet : mat.cost) || 0; // Handle both cost fields
+                 const cost = (mat.costPerSheet !== undefined ? mat.costPerSheet : mat.cost) || 0;
 
                  rowsHtml += `
                      <tr data-material-id="${mat.id}">
@@ -1218,13 +1220,12 @@
              }
 
              minutesInput.value = configData.minutes_per_month || 2400;
-             costsContainer.innerHTML = ''; // Limpiar costos existentes
+             costsContainer.innerHTML = '';
 
              const costs = configData.monthly_costs || {};
              if (Object.keys(costs).length === 0) {
-                 addMonthlyCostInput('Ej: Alquiler', ''); // Add empty example if none exist
+                 addMonthlyCostInput('Ej: Alquiler', '');
              } else {
-                 // Sort keys alphabetically for consistent order
                  Object.keys(costs).sort().forEach(key => {
                      addMonthlyCostInput(key, costs[key]);
                  });
@@ -1241,35 +1242,27 @@
             const clientId = document.getElementById('client-id').value;
             const name = document.getElementById('client-name').value.trim();
             const phone = document.getElementById('client-phone').value.trim();
-            const email = document.getElementById('client-email').value.trim().toLowerCase(); // Save email in lowercase
+            const email = document.getElementById('client-email').value.trim().toLowerCase();
             const feedbackDiv = document.getElementById('client-form-feedback');
 
             if (!name) {
                 showFeedback(feedbackDiv, 'El nombre del cliente es obligatorio.', 'error');
                 return;
             }
-            // Optional: Simple email format validation
             if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 showFeedback(feedbackDiv, 'El formato del email no es válido.', 'error');
                 return;
             }
 
-            const clientData = {
-                name: name,
-                phone: phone || null,
-                email: email || null,
-                // Consider adding/updating a timestamp
-                // lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            };
+            const clientData = { name: name, phone: phone || null, email: email || null };
 
             try {
                  showFeedback(feedbackDiv, 'Guardando...', 'info');
-                 if (clientId) { // Editando
+                 if (clientId) {
                      await db.collection('clients').doc(clientId).update(clientData);
                      showFeedback(feedbackDiv, 'Cliente actualizado con éxito.', 'success');
                      clientsData[clientId] = { ...clientsData[clientId], ...clientData };
-                 } else { // Creando
-                     // clientData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                 } else {
                      const docRef = await db.collection('clients').add(clientData);
                      showFeedback(feedbackDiv, 'Cliente añadido con éxito.', 'success');
                      clientsData[docRef.id] = { ...clientData, id: docRef.id };
@@ -1290,7 +1283,7 @@
                  showFeedback(document.getElementById('client-form-feedback'), `Error: Cliente ${id} no encontrado.`, 'error');
                  return;
             }
-             resetClientForm(); // Clear form before populating
+             resetClientForm();
              document.getElementById('client-form-title').textContent = 'Editar Cliente';
              document.getElementById('client-id').value = client.id;
              document.getElementById('client-name').value = client.name || '';
@@ -1313,8 +1306,6 @@
         async function deleteClient(id) {
              if (!db) { console.error("deleteClient: db no disponible."); return; }
             const clientName = clientsData[id]?.name || `ID ${id}`;
-
-            // Check for associated jobs BEFORE confirming deletion
             const associatedJobs = jobsData.filter(job => job.clientId === id);
             let confirmationMessage = `¿Está seguro de querer borrar al cliente "${clientName}"?`;
             if (associatedJobs.length > 0) {
@@ -1322,9 +1313,7 @@
             }
              confirmationMessage += "\n\nEsta acción no se puede deshacer.";
 
-            if (!confirm(confirmationMessage)) {
-                return;
-            }
+            if (!confirm(confirmationMessage)) return;
 
              const feedbackDiv = document.getElementById('client-form-feedback');
              try {
@@ -1334,17 +1323,10 @@
                  showFeedback(feedbackDiv, `Cliente "${clientName}" borrado.`, 'success');
                  populateClientsTable();
                  populateClientDropdown('job-client');
-                  // Need to refresh jobs table etc. if client name was displayed there
                  if(jobsData.some(job => job.clientId === id)) {
-                     populateJobsTable();
-                     populateDeadlinesTable();
-                     populateStatusTable();
-                     generateReports();
+                     populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports();
                  }
-                 // Clear form if this client was being edited
-                 if (document.getElementById('client-id').value === id) {
-                     resetClientForm();
-                 }
+                 if (document.getElementById('client-id').value === id) resetClientForm();
              } catch (error) {
                  console.error("Error borrando cliente:", error);
                  showFeedback(feedbackDiv, `Error al borrar: ${error.message}`, 'error');
@@ -1353,40 +1335,30 @@
 
         function selectClientForNewJob(clientId) {
             const clientName = clientsData[clientId]?.name;
-            if (!clientName) {
-                console.error(`selectClientForNewJob: Cliente ${clientId} no encontrado.`);
-                return;
-            }
+            if (!clientName) { console.error(`selectClientForNewJob: Cliente ${clientId} no encontrado.`); return; }
             console.log(`Seleccionado cliente ${clientName} (${clientId}) para nuevo trabajo.`);
              setActiveTab(document.querySelector('[data-target=new-job-form]'));
-             // Wait briefly for tab change and potential dropdown population
              setTimeout(() => {
                  const clientSelect = document.getElementById('job-client');
                  if (clientSelect) {
-                     resetJobForm(clientId); // Reset form but keep client selected
-                     clientSelect.value = clientId; // Ensure it's set after reset
+                     resetJobForm(clientId);
+                     clientSelect.value = clientId;
                      console.log(`Dropdown 'job-client' actualizado a ${clientId}`);
                      document.getElementById('job-details')?.focus();
-                 } else {
-                      console.error("selectClientForNewJob: Dropdown 'job-client' no encontrado tras cambiar de pestaña.");
-                 }
-             }, 150); // Slightly increased delay
+                 } else { console.error("selectClientForNewJob: Dropdown 'job-client' no encontrado."); }
+             }, 150);
         }
 
         // --- CRUD Trabajos ---
-
         document.getElementById('job-job-type')?.addEventListener('change', (e) => {
             const type = e.target.value;
             const cutField = document.getElementById('job-cut-time-field');
             const engraveField = document.getElementById('job-engrave-time-field');
             const cutInput = document.getElementById('job-cut-minutes');
             const engraveInput = document.getElementById('job-engrave-minutes');
-
             if (!cutField || !engraveField || !cutInput || !engraveInput) return;
-
             cutField.style.display = (type === 'corte' || type === 'ambos') ? 'grid' : 'none';
             engraveField.style.display = (type === 'grabado' || type === 'ambos') ? 'grid' : 'none';
-
             if (type === 'grabado') cutInput.value = 0;
             if (type === 'corte') engraveInput.value = 0;
         });
@@ -1396,80 +1368,60 @@
             const feedbackDiv = document.getElementById('job-form-feedback');
             const resultDiv = document.getElementById('job-quote-base-result');
             const finalCostInput = document.getElementById('job-final-cost');
-            currentJobQuoteBaseCost = 0; // Reset global
+            currentJobQuoteBaseCost = 0;
 
             try {
-                // Clear previous feedback/errors
-                 showFeedback(feedbackDiv, '', 'info'); // Clear feedback
+                 showFeedback(feedbackDiv, '', 'info');
+                 const materialId = document.getElementById('job-material').value;
+                 const length = parseFloat(document.getElementById('job-length').value) || 0;
+                 const width = parseFloat(document.getElementById('job-width').value) || 0;
+                 let materialCost = 0;
 
-                // 1. Costo de Material
-                const materialId = document.getElementById('job-material').value;
-                const length = parseFloat(document.getElementById('job-length').value) || 0;
-                const width = parseFloat(document.getElementById('job-width').value) || 0;
-                let materialCost = 0;
-
-                if (materialId && length > 0 && width > 0) {
-                    const material = materialsData[materialId];
-                    if (!material) throw new Error("Material seleccionado inválido o no cargado.");
-
-                    const sheetCost = parseFloat( (material.costPerSheet !== undefined ? material.costPerSheet : material.cost) || 0);
-                    const sheetWidth = parseFloat(material.width || 0);
-                    const sheetHeight = parseFloat(material.height || 0);
-
-                    if (sheetWidth <= 0 || sheetHeight <= 0) {
-                         throw new Error(`Dimensiones de plancha inválidas (${sheetWidth}x${sheetHeight}mm) para el material "${material.name}". Verifique en Materiales.`);
-                    }
-                    const sheetArea = sheetWidth * sheetHeight;
-                    const jobArea = length * width;
-
-                    materialCost = (sheetCost / sheetArea) * jobArea;
-                    console.log(`Material: ${material.name}, Costo Plancha: ${sheetCost.toFixed(2)}, Area Plancha: ${sheetArea} mm², Area Trabajo: ${jobArea} mm², Costo Material: ${materialCost.toFixed(2)}`);
-                } else if (materialId && (length <= 0 || width <= 0)) {
-                     // Don't throw error, just warn and proceed without material cost
-                     console.warn("Dimensiones del trabajo (largo/ancho) inválidas para calcular costo de material.");
-                     showFeedback(feedbackDiv, 'Advertencia: Ingrese largo y ancho válidos para incluir costo de material.', 'info');
-                }
-
-                // 2. Costo de Máquina
-                const jobType = document.getElementById('job-job-type').value;
-                const cutMinutes = (jobType === 'corte' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-cut-minutes').value) || 0) : 0;
-                const engraveMinutes = (jobType === 'grabado' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-engrave-minutes').value) || 0) : 0;
-                const totalMinutes = cutMinutes + engraveMinutes;
-                let machineCost = 0;
-
-                 if (configData.cost_per_minute === undefined || configData.cost_per_minute === null) {
-                      throw new Error("El costo por minuto no está configurado o no se pudo cargar. Vaya a Configuración.");
+                 if (materialId && length > 0 && width > 0) {
+                     const material = materialsData[materialId];
+                     if (!material) throw new Error("Material seleccionado inválido o no cargado.");
+                     const sheetCost = parseFloat( (material.costPerSheet !== undefined ? material.costPerSheet : material.cost) || 0);
+                     const sheetWidth = parseFloat(material.width || 0);
+                     const sheetHeight = parseFloat(material.height || 0);
+                     if (sheetWidth <= 0 || sheetHeight <= 0) throw new Error(`Dimensiones de plancha inválidas (${sheetWidth}x${sheetHeight}mm) para el material "${material.name}". Verifique en Materiales.`);
+                     const sheetArea = sheetWidth * sheetHeight;
+                     const jobArea = length * width;
+                     materialCost = (sheetCost / sheetArea) * jobArea;
+                     console.log(`Costo Material: ${materialCost.toFixed(2)}`);
+                 } else if (materialId && (length <= 0 || width <= 0)) {
+                      showFeedback(feedbackDiv, 'Advertencia: Ingrese largo y ancho válidos para incluir costo de material.', 'info');
                  }
-                 if (configData.cost_per_minute <= 0 && totalMinutes > 0) {
-                      console.warn("El costo por minuto es $0 o negativo. El costo de máquina será $0.");
-                       // Append warning to feedback
+
+                 const jobType = document.getElementById('job-job-type').value;
+                 const cutMinutes = (jobType === 'corte' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-cut-minutes').value) || 0) : 0;
+                 const engraveMinutes = (jobType === 'grabado' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-engrave-minutes').value) || 0) : 0;
+                 const totalMinutes = cutMinutes + engraveMinutes;
+                 let machineCost = 0;
+
+                  if (configData.cost_per_minute === undefined || configData.cost_per_minute === null) throw new Error("El costo por minuto no está configurado o no se pudo cargar. Vaya a Configuración.");
+                  if (configData.cost_per_minute <= 0 && totalMinutes > 0) {
                        let currentFeedback = feedbackDiv.textContent;
                        showFeedback(feedbackDiv, (currentFeedback ? currentFeedback + " " : "") + 'Advertencia: Costo por minuto es $0. Revise Configuración.', 'info');
+                  }
+
+                 if (totalMinutes > 0) {
+                     machineCost = totalMinutes * configData.cost_per_minute;
+                     console.log(`Costo Máquina: ${machineCost.toFixed(2)}`);
                  }
 
-                if (totalMinutes > 0) {
-                    machineCost = totalMinutes * configData.cost_per_minute;
-                    console.log(`Tiempo Máquina: ${totalMinutes} min (Corte: ${cutMinutes}, Grabado: ${engraveMinutes}), Costo/Min: ${configData.cost_per_minute.toFixed(4)}, Costo Máquina: ${machineCost.toFixed(2)}`);
-                } else {
-                    console.log("No se ingresaron minutos de máquina.");
-                }
+                 currentJobQuoteBaseCost = materialCost + machineCost;
+                 console.log(`Costo Base Total Calculado: ${currentJobQuoteBaseCost.toFixed(2)}`);
 
-                // 3. Costo Base Total
-                currentJobQuoteBaseCost = materialCost + machineCost;
-                console.log(`Costo Base Total Calculado: ${currentJobQuoteBaseCost.toFixed(2)}`);
-
-                // 4. Actualizar UI
-                if (resultDiv) resultDiv.textContent = `Costo Base Estimado: $${currentJobQuoteBaseCost.toFixed(2)}`;
-                if (finalCostInput) {
-                     const finalCost = currentJobQuoteBaseCost * 2; // Ganancia 100%
-                     finalCostInput.value = finalCost.toFixed(2);
-                     console.log(`Costo Final (Base x 2): ${finalCost.toFixed(2)}`);
-                      // Append success message to feedback
-                      let currentFeedback = feedbackDiv.textContent.includes('Advertencia') ? feedbackDiv.textContent + " // " : "";
-                      showFeedback(feedbackDiv, currentFeedback + `Costo base $${currentJobQuoteBaseCost.toFixed(2)}. Costo final actualizado a $${finalCost.toFixed(2)}.`, 'success');
-                 } else {
-                     showFeedback(feedbackDiv, `Costo base calculado: $${currentJobQuoteBaseCost.toFixed(2)}.`, 'success');
-                 }
+                 if (resultDiv) resultDiv.textContent = `Costo Base Estimado: $${currentJobQuoteBaseCost.toFixed(2)}`;
+                 if (finalCostInput) {
+                      const finalCost = currentJobQuoteBaseCost * 2;
+                      finalCostInput.value = finalCost.toFixed(2);
+                      console.log(`Costo Final (Base x 2): ${finalCost.toFixed(2)}`);
+                       let currentFeedback = feedbackDiv.textContent.includes('Advertencia') ? feedbackDiv.textContent + " // " : "";
+                       showFeedback(feedbackDiv, currentFeedback + `Costo base $${currentJobQuoteBaseCost.toFixed(2)}. Costo final actualizado a $${finalCost.toFixed(2)}.`, 'success');
+                  } else {
+                      showFeedback(feedbackDiv, `Costo base calculado: $${currentJobQuoteBaseCost.toFixed(2)}.`, 'success');
+                  }
 
             } catch (error) {
                 console.error("Error calculando costo:", error);
@@ -1486,7 +1438,7 @@
 
              const jobId = document.getElementById('job-id').value;
              const feedbackDiv = document.getElementById('job-form-feedback');
-             showFeedback(feedbackDiv, '', 'info'); // Clear feedback
+             showFeedback(feedbackDiv, '', 'info');
 
              const jobData = {
                  clientId: document.getElementById('job-client').value,
@@ -1504,82 +1456,60 @@
                  finalCost: parseFloat(document.getElementById('job-final-cost').value) || 0,
                  deposit: parseFloat(document.getElementById('job-deposit').value) || 0,
                  observations: document.getElementById('job-observations').value.trim() || null,
-                 // timestamp field for sorting/querying might be useful
-                 // lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
              };
 
-              // Validation
               let errors = [];
-              if (!jobData.clientId) { errors.push('Debe seleccionar un cliente.'); }
-              if (!jobData.details) { errors.push('Debe ingresar los detalles del trabajo.'); }
-              if (!jobData.materialId) { errors.push('Debe seleccionar un material.'); }
-              if (jobData.length <= 0 || jobData.width <= 0) { errors.push('Largo y Ancho deben ser números positivos.');}
-              if (!jobData.orderDate) { errors.push('Debe ingresar la fecha de pedido.'); }
-              if (!jobData.deliveryDate) { errors.push('Debe ingresar la fecha de entrega.'); }
-              if (jobData.orderDate && jobData.deliveryDate && jobData.deliveryDate < jobData.orderDate) {
-                   errors.push('La fecha de entrega no puede ser anterior a la fecha de pedido.');
-              }
-              if (jobData.finalCost < 0) { errors.push('El costo final no puede ser negativo.'); }
-              if (jobData.deposit < 0) { errors.push('La seña no puede ser negativa.'); }
-              if (jobData.deposit > jobData.finalCost) { errors.push('La seña no puede ser mayor al costo total.'); }
-              if (jobData.finalCost <= 0 && currentJobQuoteBaseCost > 0) {
-                  // Warn instead of blocking immediately
-                  console.warn("Costo final es $0 o no calculado/actualizado.");
-              }
+              if (!jobData.clientId) errors.push('Debe seleccionar un cliente.');
+              if (!jobData.details) errors.push('Debe ingresar los detalles.');
+              if (!jobData.materialId) errors.push('Debe seleccionar un material.');
+              if (!jobData.length || jobData.length <= 0) errors.push('Largo debe ser positivo.'); // Check length/width
+              if (!jobData.width || jobData.width <= 0) errors.push('Ancho debe ser positivo.');
+              if (!jobData.orderDate) errors.push('Falta fecha de pedido.');
+              if (!jobData.deliveryDate) errors.push('Falta fecha de entrega.');
+              if (jobData.orderDate && jobData.deliveryDate && jobData.deliveryDate < jobData.orderDate) errors.push('Fecha entrega no puede ser anterior a pedido.');
+              if (jobData.finalCost < 0) errors.push('Costo final negativo.');
+              if (jobData.deposit < 0) errors.push('Seña negativa.');
+              if (jobData.deposit > jobData.finalCost) errors.push('Seña mayor al costo total.');
 
              if (errors.length > 0) {
                  showFeedback(feedbackDiv, errors.join(' '), 'error');
                  return;
              }
-
-             // Final confirmation if cost is 0
-             if (jobData.finalCost <= 0 && !confirm("El costo final es $0. ¿Está seguro de querer guardar el trabajo así?")) {
-                 return;
-             }
+             if (jobData.finalCost <= 0 && !confirm("Costo final es $0. ¿Guardar igual?")) return;
 
              try {
                  showFeedback(feedbackDiv, 'Guardando trabajo...', 'info');
-                 if (jobId) { // Editando
+                 if (jobId) {
                      await db.collection('jobs').doc(jobId).update(jobData);
-                     showFeedback(feedbackDiv, 'Trabajo actualizado con éxito.', 'success');
-                 } else { // Creando
-                     // jobData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                     showFeedback(feedbackDiv, 'Trabajo actualizado.', 'success');
+                 } else {
                      const docRef = await db.collection('jobs').add(jobData);
                      jobData.id = docRef.id;
-                     showFeedback(feedbackDiv, 'Trabajo creado con éxito.', 'success');
+                     showFeedback(feedbackDiv, 'Trabajo creado.', 'success');
                  }
-
-                 dataLoaded.jobs = false; // Mark jobs data as stale
-                 setActiveTab(document.querySelector('[data-target=jobs]')); // Go to jobs list (will trigger reload)
-                 // resetJobForm(); // Reset is done when entering the 'new-job-form' tab
-
+                 dataLoaded.jobs = false;
+                 setActiveTab(document.querySelector('[data-target=jobs]'));
              } catch (error) {
                  console.error("Error guardando trabajo:", error);
-                 showFeedback(feedbackDiv, `Error al guardar trabajo: ${error.message}`, 'error');
+                 showFeedback(feedbackDiv, `Error al guardar: ${error.message}`, 'error');
              }
         });
 
         function editJob(id) {
             const job = jobsData.find(j => j.id === id);
-             if (!job) {
-                 console.error(`Trabajo con ID ${id} no encontrado en cache.`);
-                 alert(`Error: No se encontró el trabajo con ID ${id}. Intente recargar la lista.`);
-                 return;
-             }
-
+             if (!job) { alert(`Error: No se encontró el trabajo ID ${id}.`); return; }
              console.log("Editando trabajo:", job);
-             resetJobForm(); // Clear form first
+             resetJobForm();
 
              document.getElementById('job-form-title').textContent = 'Editar Trabajo';
              document.getElementById('job-id').value = job.id;
-
              document.getElementById('job-client').value = job.clientId || '';
              document.getElementById('job-details').value = job.details || '';
              document.getElementById('job-material').value = job.materialId || '';
              document.getElementById('job-length').value = job.length || '';
              document.getElementById('job-width').value = job.width || '';
              document.getElementById('job-job-type').value = job.jobType || 'corte';
-             document.getElementById('job-job-type').dispatchEvent(new Event('change')); // Trigger visibility
+             document.getElementById('job-job-type').dispatchEvent(new Event('change'));
              document.getElementById('job-cut-minutes').value = job.cutMinutes || 0;
              document.getElementById('job-engrave-minutes').value = job.engraveMinutes || 0;
              document.getElementById('job-order-date').value = job.orderDate || '';
@@ -1588,16 +1518,12 @@
              document.getElementById('job-final-cost').value = (job.finalCost || 0).toFixed(2);
              document.getElementById('job-deposit').value = (job.deposit || 0).toFixed(2);
              document.getElementById('job-observations').value = job.observations || '';
-
-             currentJobQuoteBaseCost = job.baseCost || 0; // Restore saved base cost
+             currentJobQuoteBaseCost = job.baseCost || 0;
              const resultDiv = document.getElementById('job-quote-base-result');
              if (resultDiv) resultDiv.textContent = `Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`;
 
-
              setActiveTab(document.querySelector('[data-target=new-job-form]'));
-             setTimeout(() => {
-                  document.getElementById('job-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
-             }, 100);
+             setTimeout(() => { document.getElementById('job-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
         }
 
         function resetJobForm(keepClientId = null) {
@@ -1608,12 +1534,11 @@
              document.getElementById('job-id').value = '';
              currentJobQuoteBaseCost = 0;
              document.getElementById('job-quote-base-result').textContent = 'Costo Base Estimado: $0.00';
-             document.getElementById('job-final-cost').value = '0.00'; // Reset final cost too
-             document.getElementById('job-order-date').value = new Date().toISOString().split('T')[0]; // Default to today
-             document.getElementById('job-job-type').dispatchEvent(new Event('change')); // Reset time fields visibility
+             document.getElementById('job-final-cost').value = '0.00';
+             document.getElementById('job-order-date').value = new Date().toISOString().split('T')[0];
+             document.getElementById('job-job-type').dispatchEvent(new Event('change'));
              const feedbackDiv = document.getElementById('job-form-feedback');
              if (feedbackDiv) feedbackDiv.textContent = ''; feedbackDiv.className = 'mt-2 text-sm feedback';
-
              if(keepClientId) {
                  const clientSelect = document.getElementById('job-client');
                  if (clientSelect) clientSelect.value = keepClientId;
@@ -1625,29 +1550,16 @@
             const job = jobsData.find(j => j.id === id);
              const clientName = job ? (clientsData[job.clientId]?.name || 'Desconocido') : 'Desconocido';
              const jobDetails = job ? (job.details || `ID ${id}`) : `ID ${id}`;
+             if (!confirm(`Borrar trabajo "${jobDetails}" para "${clientName}"? No se puede deshacer.`)) return;
 
-             if (!confirm(`¿Está seguro de querer borrar el trabajo "${jobDetails}" para el cliente "${clientName}"? Esta acción no se puede deshacer.`)) {
-                 return;
-             }
-
-             // Use a general feedback area if possible, or alert as fallback
-             // const feedbackDiv = document.getElementById('some-general-feedback-area');
              try {
                   console.log(`Borrando trabajo ${id}...`)
                  await db.collection('jobs').doc(id).delete();
-                 jobsData = jobsData.filter(j => j.id !== id); // Remove from local cache
+                 jobsData = jobsData.filter(j => j.id !== id);
                  console.log(`Trabajo ${id} borrado.`);
-                  alert(`Trabajo "${jobDetails}" borrado.`); // Simple user feedback
-
-                 // Repopulate tables
-                 populateJobsTable();
-                 populateDeadlinesTable();
-                 populateStatusTable();
-                 generateReports();
-
-                 if (document.getElementById('job-id').value === id) {
-                     resetJobForm(); // Clear form if this was being edited
-                 }
+                  alert(`Trabajo "${jobDetails}" borrado.`);
+                 populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports();
+                 if (document.getElementById('job-id').value === id) resetJobForm();
              } catch (error) {
                  console.error("Error borrando trabajo:", error);
                  alert(`Error al borrar trabajo: ${error.message}`);
@@ -1658,10 +1570,9 @@
         document.getElementById('material-form-admin')?.addEventListener('submit', async (e) => {
              e.preventDefault();
              if (currentUserRole !== 'superadmin' || !db) return;
-
              const materialId = document.getElementById('material-id-admin').value;
              const feedbackDiv = document.getElementById('material-form-feedback-admin');
-             showFeedback(feedbackDiv, '', 'info'); // Clear feedback
+             showFeedback(feedbackDiv, '', 'info');
 
              const materialData = {
                  name: document.getElementById('material-name-admin').value.trim(),
@@ -1670,41 +1581,33 @@
                  width: parseFloat(document.getElementById('material-width-admin').value) || null,
                  height: parseFloat(document.getElementById('material-height-admin').value) || null,
                  available: document.getElementById('material-availability-admin').checked,
-                 // lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
              };
 
-             // Validation
              let errors = [];
-             if (!materialData.name) { errors.push('El nombre es obligatorio.'); }
-             if (!materialData.thickness || materialData.thickness <= 0) { errors.push('El grosor debe ser un número positivo.'); }
-             if (materialData.costPerSheet < 0) { errors.push('El costo no puede ser negativo.'); }
-             if (!materialData.width || materialData.width <= 0) { errors.push('El ancho de plancha debe ser un número positivo.'); }
-             if (!materialData.height || materialData.height <= 0) { errors.push('El alto de plancha debe ser un número positivo.'); }
-
-             if (errors.length > 0) {
-                 showFeedback(feedbackDiv, errors.join(' '), 'error');
-                 return;
-             }
-
+             if (!materialData.name) errors.push('Nombre obligatorio.');
+             if (!materialData.thickness || materialData.thickness <= 0) errors.push('Grosor debe ser positivo.');
+             if (materialData.costPerSheet < 0) errors.push('Costo no negativo.');
+             if (!materialData.width || materialData.width <= 0) errors.push('Ancho plancha positivo.');
+             if (!materialData.height || materialData.height <= 0) errors.push('Alto plancha positivo.');
+             if (errors.length > 0) { showFeedback(feedbackDiv, errors.join(' '), 'error'); return; }
 
              try {
                   showFeedback(feedbackDiv, 'Guardando material...', 'info');
-                 if (materialId) { // Editando
+                 if (materialId) {
                      await db.collection('materials').doc(materialId).update(materialData);
                      materialsData[materialId] = { ...materialsData[materialId], ...materialData };
                      showFeedback(feedbackDiv, 'Material actualizado.', 'success');
-                 } else { // Creando
-                     // materialData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                 } else {
                      const docRef = await db.collection('materials').add(materialData);
                      materialsData[docRef.id] = { ...materialData, id: docRef.id };
                      showFeedback(feedbackDiv, 'Material añadido.', 'success');
                  }
                  resetMaterialFormAdmin();
                  populateMaterialsAdminTable();
-                 populateMaterialDropdown('job-material'); // Update job form dropdown too
+                 populateMaterialDropdown('job-material');
              } catch (error) {
                  console.error("Error guardando material:", error);
-                 showFeedback(feedbackDiv, `Error al guardar: ${error.message}`, 'error');
+                 showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
              }
          });
 
@@ -1712,17 +1615,15 @@
             if (currentUserRole !== 'superadmin') return;
             const mat = materialsData[id];
              if (!mat) { console.error(`Material ${id} no encontrado.`); return; }
-
-             resetMaterialFormAdmin(); // Clear form first
+             resetMaterialFormAdmin();
              document.getElementById('material-form-title-admin').textContent = 'Editar Material';
              document.getElementById('material-id-admin').value = mat.id;
              document.getElementById('material-name-admin').value = mat.name || '';
              document.getElementById('material-thickness-admin').value = mat.thickness || '';
-             document.getElementById('material-cost-admin').value = (mat.costPerSheet !== undefined ? mat.costPerSheet : mat.cost) || 0; // Handle legacy 'cost'
+             document.getElementById('material-cost-admin').value = (mat.costPerSheet !== undefined ? mat.costPerSheet : mat.cost) || 0;
              document.getElementById('material-width-admin').value = mat.width || '';
              document.getElementById('material-height-admin').value = mat.height || '';
              document.getElementById('material-availability-admin').checked = mat.available !== false;
-
              document.getElementById('material-form-admin').scrollIntoView({ behavior: 'smooth', block: 'start' });
              document.getElementById('material-name-admin').focus();
         }
@@ -1733,11 +1634,9 @@
              const form = document.getElementById('material-form-admin');
              if (form) form.reset();
              document.getElementById('material-id-admin').value = '';
-             // Set defaults not handled by reset
              document.getElementById('material-availability-admin').checked = true;
-              document.getElementById('material-width-admin').value = '1300';
-              document.getElementById('material-height-admin').value = '900';
-
+             document.getElementById('material-width-admin').value = '1300';
+             document.getElementById('material-height-admin').value = '900';
              const feedbackDiv = document.getElementById('material-form-feedback-admin');
              if (feedbackDiv) feedbackDiv.textContent = ''; feedbackDiv.className = 'mt-2 text-sm feedback';
         }
@@ -1745,14 +1644,10 @@
         async function deleteMaterialAdmin(id) {
             if (currentUserRole !== 'superadmin' || !db) return;
             const matName = materialsData[id]?.name || `ID ${id}`;
-            // Check if material is used in any job BEFORE confirming
             const isUsed = jobsData.some(job => job.materialId === id);
-            let confirmMsg = `¿Seguro que quiere borrar el material "${matName}"?`;
-            if (isUsed) {
-                confirmMsg += `\n\n¡ADVERTENCIA! Este material está siendo usado en uno o más trabajos existentes. Borrarlo puede causar errores al ver o editar esos trabajos.`
-            }
-             confirmMsg += "\n\nEsta acción no se puede deshacer.";
-
+            let confirmMsg = `Borrar material "${matName}"?`;
+            if (isUsed) confirmMsg += `\n\nADVERTENCIA: Usado en trabajos existentes.`;
+             confirmMsg += "\n\nNo se puede deshacer.";
              if (!confirm(confirmMsg)) return;
 
              const feedbackDiv = document.getElementById('material-form-feedback-admin');
@@ -1763,66 +1658,51 @@
                  showFeedback(feedbackDiv, `Material "${matName}" borrado.`, 'success');
                  populateMaterialsAdminTable();
                  populateMaterialDropdown('job-material');
-                 if (document.getElementById('material-id-admin').value === id) {
-                      resetMaterialFormAdmin(); // Clear form if this was being edited
-                 }
+                 if (document.getElementById('material-id-admin').value === id) resetMaterialFormAdmin();
              } catch (error) {
                  console.error("Error borrando material:", error);
-                 showFeedback(feedbackDiv, `Error al borrar: ${error.message}`, 'error');
+                 showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
              }
         }
 
         // --- CRUD Configuración (SuperAdmin) ---
-
         function addMonthlyCostInput(key = '', value = '') {
             const container = document.getElementById('monthly-costs-container');
             if (!container) return;
-
             const div = document.createElement('div');
-            div.className = 'flex items-center space-x-2 cost-entry'; // Added class for selection
+            div.className = 'flex items-center space-x-2 cost-entry';
             div.innerHTML = `
                 <input type="text" placeholder="Descripción (Ej: Luz)" value="${key}" data-cost-key class="flex-grow p-1 border border-gray-300 rounded-md text-sm">
                 <input type="number" placeholder="0.00" value="${value}" step="0.01" min="0" data-cost-value class="w-24 p-1 border border-gray-300 rounded-md text-sm text-right">
                 <button type="button" onclick="removeMonthlyCostInput(this)" class="text-red-500 hover:text-red-700 text-xl font-bold leading-none px-1" title="Eliminar Costo">&times;</button>
             `;
             container.appendChild(div);
-             // Focus the new key input
             div.querySelector('[data-cost-key]').focus();
         }
 
         function removeMonthlyCostInput(button) {
-            // Find the parent div with class 'cost-entry' and remove it
              const costEntryDiv = button.closest('.cost-entry');
-             if (costEntryDiv) {
-                 costEntryDiv.remove();
-             } else {
-                 console.warn("Couldn't find parent .cost-entry to remove.");
-             }
+             if (costEntryDiv) costEntryDiv.remove();
+             else console.warn("Couldn't find parent .cost-entry to remove.");
         }
-
 
         document.getElementById('config-form-admin')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (currentUserRole !== 'superadmin' || !db) return;
 
             const feedbackDiv = document.getElementById('config-form-feedback-admin');
-             showFeedback(feedbackDiv, '', 'info'); // Clear feedback
-             // Clear previous validation styles
-             document.querySelectorAll('#monthly-costs-container input').forEach(input => input.classList.remove('border-red-500'));
-
+             showFeedback(feedbackDiv, '', 'info');
+             document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(input => input.classList.remove('border-red-500'));
 
             const minutesPerMonth = parseInt(document.getElementById('config-minutes-admin').value, 10);
-            const costEntries = document.querySelectorAll('#monthly-costs-container .cost-entry'); // Select by class
+            const costEntries = document.querySelectorAll('#monthly-costs-container .cost-entry');
             const monthlyCosts = {};
-             let isValid = true;
-             let errors = [];
+             let isValid = true; let errors = [];
 
              if (isNaN(minutesPerMonth) || minutesPerMonth <= 0) {
-                 errors.push('Los minutos productivos deben ser un número positivo.');
+                 errors.push('Minutos productivos deben ser número positivo.');
                  document.getElementById('config-minutes-admin').classList.add('border-red-500');
                  isValid = false;
-             } else {
-                 document.getElementById('config-minutes-admin').classList.remove('border-red-500');
              }
 
              costEntries.forEach((div, index) => {
@@ -1831,98 +1711,46 @@
                  const key = keyInput.value.trim();
                  const valueStr = valueInput.value.trim();
                  const value = parseFloat(valueStr);
-
-                 // Only process if at least one field has content
                  if (key || valueStr) {
                      let entryIsValid = true;
-                     if (!key) {
-                         errors.push(`Fila ${index + 1}: Falta descripción del costo.`);
-                         keyInput.classList.add('border-red-500');
-                         entryIsValid = false;
-                     } else {
-                         keyInput.classList.remove('border-red-500');
-                     }
-
-                     if (valueStr === '' || isNaN(value) || value < 0) {
-                         errors.push(`Fila ${index + 1} ('${key || '?'}'): El valor debe ser un número positivo o cero.`);
-                         valueInput.classList.add('border-red-500');
-                         entryIsValid = false;
-                     } else {
-                          valueInput.classList.remove('border-red-500');
-                     }
-
+                     if (!key) { errors.push(`Fila ${index + 1}: Falta descripción.`); keyInput.classList.add('border-red-500'); entryIsValid = false; }
+                     if (valueStr === '' || isNaN(value) || value < 0) { errors.push(`Fila ${index + 1} ('${key || '?'}'): Valor numérico >= 0.`); valueInput.classList.add('border-red-500'); entryIsValid = false; }
                      if (entryIsValid) {
-                         if (monthlyCosts.hasOwnProperty(key)) {
-                              errors.push(`Fila ${index + 1}: Descripción de costo duplicada "${key}". Use nombres únicos.`);
-                              keyInput.classList.add('border-red-500');
-                              entryIsValid = false;
-                         } else {
-                             monthlyCosts[key] = value;
-                         }
+                         if (monthlyCosts.hasOwnProperty(key)) { errors.push(`Fila ${index + 1}: Descrip. duplicada "${key}".`); keyInput.classList.add('border-red-500'); entryIsValid = false; }
+                         else monthlyCosts[key] = value;
                      }
                      if (!entryIsValid) isValid = false;
                  }
              });
 
-            if (!isValid) {
-                 showFeedback(feedbackDiv, errors.join(' '), 'error');
-                 return;
-             }
+            if (!isValid) { showFeedback(feedbackDiv, errors.join(' '), 'error'); return; }
 
-
-             const configUpdate = {
-                 minutes_per_month: minutesPerMonth,
-                 monthly_costs: monthlyCosts,
-                 // lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-             };
+             const configUpdate = { minutes_per_month: minutesPerMonth, monthly_costs: monthlyCosts };
 
              try {
                  showFeedback(feedbackDiv, 'Guardando configuración...', 'info');
-                 // Use set with merge: true to create doc if it doesn't exist, or update if it does
                  await db.collection('config').doc('main').set(configUpdate, { merge: true });
-
-                 // Recalculate and update configData local immediately
                  const totalMonthly = Object.values(monthlyCosts).reduce((sum, val) => sum + val, 0);
-                 configData = {
-                     ...configData,
-                     minutes_per_month: minutesPerMonth,
-                     monthly_costs: monthlyCosts,
-                     cost_per_minute: minutesPerMonth > 0 ? totalMonthly / minutesPerMonth : 0
-                 };
-                 console.log("Configuración guardada y actualizada localmente. Nuevo costo/min:", configData.cost_per_minute);
-
-                 // Update UI del costo calculado en el form
-                 populateConfigFormAdmin(); // Refreshes form including calculated cost
-
-                 showFeedback(feedbackDiv, 'Configuración guardada con éxito.', 'success');
-
+                 configData = { ...configData, minutes_per_month: minutesPerMonth, monthly_costs: monthlyCosts, cost_per_minute: minutesPerMonth > 0 ? totalMonthly / minutesPerMonth : 0 };
+                 console.log("Config guardada. Nuevo costo/min:", configData.cost_per_minute);
+                 populateConfigFormAdmin();
+                 showFeedback(feedbackDiv, 'Configuración guardada.', 'success');
              } catch (error) {
-                 console.error("Error guardando configuración:", error);
-                 showFeedback(feedbackDiv, `Error al guardar: ${error.message}`, 'error');
+                 console.error("Error guardando config:", error);
+                 showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
              }
         });
 
         // --- Impresión ---
         async function printTicket(jobId) {
-             console.log(`Intentando imprimir ticket para Job ID: ${jobId}`);
+             console.log(`Imprimiendo ticket Job ID: ${jobId}`);
              const job = jobsData.find(j => j.id === jobId);
-             if (!job) {
-                 alert(`Error: No se encontró el trabajo con ID ${jobId}.`);
-                 return;
-             }
-
-             // Fetch potentially updated client/material data just in case cache is stale?
-             // Or rely on existing cache which is usually sufficient for a ticket.
+             if (!job) { alert(`Error: Trabajo ${jobId} no encontrado.`); return; }
              const client = clientsData[job.clientId];
              const material = materialsData[job.materialId];
              const printArea = document.getElementById('print-area');
              const printAreaWrapper = document.getElementById('print-area-wrapper');
-
-             if (!printArea || !printAreaWrapper) {
-                 console.error("Elementos #print-area o #print-area-wrapper no encontrados.");
-                 alert("Error: No se pudo encontrar el área de impresión.");
-                 return;
-             }
+             if (!printArea || !printAreaWrapper) { alert("Error: Área de impresión no encontrada."); return; }
 
              const finalCost = job.finalCost || 0;
              const deposit = job.deposit || 0;
@@ -1953,64 +1781,44 @@
              `;
 
              printArea.innerHTML = ticketHtml;
-
              document.body.classList.add('printing-ticket');
-
              setTimeout(() => {
                  window.print();
                  setTimeout(() => {
                      document.body.classList.remove('printing-ticket');
                      printArea.innerHTML = '';
                       console.log("Clase printing-ticket eliminada.");
-                 }, 500); // Shorter delay after print dialog closes/cancels
-
-             }, 150); // Slightly shorter delay before print dialog
+                 }, 500);
+             }, 150);
          }
 
         function printCurrentSection() {
-             console.log(`Intentando imprimir sección activa: ${activeSectionId}`);
+             console.log(`Imprimiendo sección activa: ${activeSectionId}`);
              const sectionToPrint = document.getElementById(activeSectionId);
-
-             if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) {
-                 alert("No hay una sección válida activa para imprimir.");
-                 return;
+             if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) { alert("Sección no válida para imprimir."); return; }
+             if (activeSectionId === 'login' || activeSectionId === 'home') { alert("Esta sección no se imprime."); return; }
+             if (activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') {
+                  if (!confirm("Imprimir formulario? (Recomendado imprimir tablas o tickets)")) return;
              }
-             // Prevent printing login or home
-             if (activeSectionId === 'login' || activeSectionId === 'home') {
-                  alert("Esta sección no está diseñada para ser impresa.");
-                 return;
-             }
-              // Prevent printing forms directly unless specifically designed for it
-              if (activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') {
-                   if (!confirm("Va a imprimir el formulario. ¿Desea continuar? (Recomendado imprimir las tablas o tickets)")) {
-                       return;
-                   }
-              }
-
 
              document.body.classList.add('printing-section');
              sectionToPrint.classList.add('printing-now');
-
              setTimeout(() => {
                  window.print();
                  setTimeout(() => {
                      document.body.classList.remove('printing-section');
                      sectionToPrint.classList.remove('printing-now');
-                     console.log("Clases printing-section/printing-now eliminadas.");
+                     console.log("Clases printing-section/now eliminadas.");
                  }, 500);
-
              }, 150);
          }
 
         // --- Funciones Utilitarias ---
         function showFeedback(element, message, type = 'info') {
-             if (!element) {
-                 console.warn("showFeedback: Elemento no proporcionado. Mensaje:", message);
-                 return;
-             }
+             if (!element) { console.warn("showFeedback: Elemento no proporcionado.", message); return; }
              element.textContent = message;
-             element.className = 'mt-2 text-sm feedback'; // Reset base classes
-             if (message) { // Only add type class if there is a message
+             element.className = 'mt-2 text-sm feedback';
+             if (message) {
                  switch (type) {
                      case 'success': element.classList.add('feedback-success'); break;
                      case 'error': element.classList.add('feedback-error'); break;
@@ -2018,7 +1826,6 @@
                      default: element.classList.add('feedback-info'); break;
                  }
              }
-             // Auto-hide success/info messages
              if ((type === 'success' || type === 'info') && message) {
                  setTimeout(() => {
                      if (element.textContent === message) {
@@ -2035,23 +1842,16 @@
                  const [year, month, day] = dateString.substring(0, 10).split('-');
                  if (!year || !month || !day || year.length !== 4) return dateString;
                  return `${day}/${month}/${year}`;
-             } catch (e) {
-                 console.warn("formatDate error for:", dateString, e);
-                 return dateString;
-             }
+             } catch (e) { console.warn("formatDate error:", dateString, e); return dateString; }
          }
 
-         function parseDateForComparison(dateString) { // Expects YYYY-MM-DD, returns Date object at start of day UTC
+         function parseDateForComparison(dateString) { // Expects YYYY-MM-DD, returns Date object (start of day UTC)
              if (!dateString || dateString.length < 10) return null;
              try {
-                  // Important: Use T00:00:00Z to force UTC interpretation and avoid timezone issues
                  const date = new Date(dateString.substring(0, 10) + 'T00:00:00Z');
                  if (isNaN(date.getTime())) return null;
                  return date;
-             } catch (e) {
-                  console.warn("parseDateForComparison error for:", dateString, e);
-                 return null;
-             }
+             } catch (e) { console.warn("parseDateForComparison error:", dateString, e); return null; }
          }
 
          function getStatusClass(status) {
@@ -2059,31 +1859,24 @@
                  case 'Encargado': return 'status-encargado';
                  case 'Procesando': return 'status-procesando';
                  case 'Terminado': return 'status-terminado';
-                 default: return 'bg-gray-400 text-gray-800 px-2 py-0.5 rounded text-xs font-medium'; // Default style
+                 default: return 'bg-gray-400 text-gray-800 px-2 py-0.5 rounded text-xs font-medium';
              }
          }
 
         // --- Inicialización al Cargar la Página ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM completamente cargado y parseado.");
+            console.log("DOM cargado.");
             const yearSpan = document.getElementById('current-year');
             if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+            const jobTypeSelect = document.getElementById('job-job-type');
+            if (jobTypeSelect) jobTypeSelect.dispatchEvent(new Event('change'));
+            else console.warn("#job-job-type no encontrado.");
 
-            // Initial setup for job type visibility
-             const jobTypeSelect = document.getElementById('job-job-type');
-             if (jobTypeSelect) {
-                 jobTypeSelect.dispatchEvent(new Event('change'));
-             } else {
-                 console.warn("Elemento #job-job-type no encontrado en DOMContentLoaded.");
-             }
-
-            // onAuthStateChanged (if auth initialized correctly) will handle the rest.
-             if (typeof auth !== 'undefined') {
-                 console.log("Esperando estado de autenticación...");
-             } else {
-                 console.error("El servicio de autenticación de Firebase no parece estar disponible. El login no funcionará.");
-                 // Show login section as a fallback if auth failed to initialize
-                  showLoginSection();
+             if (typeof auth !== 'undefined') console.log("Esperando estado de auth...");
+             else { // Handle case where Firebase init failed earlier
+                 console.error("Auth service no disponible. Mostrando login.");
+                 showLoginSection(); // Fallback to login if Firebase failed
+                 alert("Error: No se pudo conectar al servicio de autenticación.");
              }
         });
 
