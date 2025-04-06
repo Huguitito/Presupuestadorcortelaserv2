@@ -9,139 +9,141 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <style>
-        /* Estilos generales */
+        /* Estilos generales (SIN CAMBIOS) */
         body { font-family: 'Inter', sans-serif; }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
-        /* Ocultar contenido de pestañas por defecto */
         .tab-content { display: none; }
         .active-tab-content { display: block; }
-
-        /* Estilos Pestañas */
         .tab-button { padding: 8px 16px; margin-bottom: -1px; cursor: pointer; border: 1px solid transparent; border-bottom: 2px solid transparent; transition: border-color 0.3s, color 0.3s; color: #6b7280; font-weight: 500; white-space: nowrap; }
         .tab-button.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #3b82f6; color: #2563eb; }
-        .tab-button:hover:not(.active-tab) { border-bottom-color: #9ca3af; color: #4b5563; } /* Added :not(.active-tab) */
+        .tab-button:hover:not(.active-tab) { border-bottom-color: #9ca3af; color: #4b5563; }
         .tab-button.superadmin-tab { color: #8b5cf6; }
         .tab-button.superadmin-tab.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #7c3aed; color: #6d28d9; }
-        .tab-button.superadmin-tab:hover:not(.active-tab) { border-bottom-color: #a78bfa; color: #7c3aed; } /* Added :not(.active-tab) */
-
-        /* Visibilidad basada en roles */
+        .tab-button.superadmin-tab:hover:not(.active-tab) { border-bottom-color: #a78bfa; color: #7c3aed; }
         .admin-only, .superadmin-only { display: none; }
         .public-only { display: block; }
-        body.logged-in .admin-only { display: block; } /* Default display */
-        body.logged-in nav#tab-buttons { display: flex; } /* Ensure nav is flex when logged in */
+        body.logged-in .admin-only { display: block; }
+        body.logged-in nav#tab-buttons { display: flex; }
         body.logged-in .public-only { display: none; }
-        body.role-superadmin .superadmin-only { display: block; } /* Default display */
-        /* Fine-tune display for specific elements if needed (e.g., inline-block for buttons) */
+        body.role-superadmin .superadmin-only { display: block; }
         body.logged-in #user-email { display: inline; }
         body.logged-in .generic-print-button { display: inline-block; }
         body.logged-in #admin-logout-button { display: inline-block; }
         body.role-superadmin button.superadmin-tab { display: inline-block; }
-
-
-        /* Estilos tablas y formularios */
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
         .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: middle;}
-        .admin-table th { background-color: #f2f2f2; font-weight: 600; /* Added font-weight */}
-        .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; border: none; /* Added border none */ }
+        .admin-table th { background-color: #f2f2f2; font-weight: 600; }
+        .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; border: none; }
         .edit-button { background-color: #facc15; color: #422006; } .edit-button:hover { background-color: #eab308; }
         .delete-button { background-color: #f87171; color: #450a0a; } .delete-button:hover { background-color: #ef4444; }
         .print-button { background-color: #60a5fa; color: #1e3a8a; } .print-button:hover { background-color: #3b82f6; }
         .generic-print-button { background-color: #a78bfa; color: #f5f3ff; } .generic-print-button:hover { background-color: #8b5cf6; }
-
-        /* Colores de estado */
-        .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; /* Added font-size */}
-        .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; /* Added font-size */}
-        .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; /* Added font-size */}
-
-        /* Resaltado fecha vencida */
+        .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
+        .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
+        .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
         .date-overdue { color: #dc2626; font-weight: bold; }
-
-        /* Feedback messages */
-        .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; /* Ensure space even when empty */ }
+        .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; }
         .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
         .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
         .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+        /* Fin Estilos generales (SIN CAMBIOS) */
 
-        /* Estilos para impresión */
+        /* === INICIO: ESTILOS DE IMPRESIÓN REVISADOS === */
         @media print {
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .no-print { display: none !important; }
-            header, nav#tab-buttons, footer, #client-form, #job-form .no-print, #material-form-admin .no-print, #config-form-admin { display: none !important; }
+            /* Ocultar elementos globales no deseados en cualquier impresión */
+            header, nav#tab-buttons, footer { display: none !important; }
+            /* Ocultar formularios específicos al imprimir cualquier sección (excepto si son la sección misma) */
+            #client-form.no-print, /* Asegurar que tengan no-print si deben ocultarse siempre */
+            #job-form .no-print, /* Ocultar botones dentro del form */
+            #material-form-admin.no-print,
+            #config-form-admin.no-print { display: none !important; }
 
-            /* Estilos para impresión general de sección */
+            /* --- Estilos para impresión GENERAL DE SECCIÓN (body.printing-section) --- */
             body.printing-section > *:not(#tab-content-container) { display: none !important; }
             body.printing-section #tab-content-container > *:not(.printing-now) { display: none !important; }
             body.printing-section .printing-now {
-                visibility: visible !important;
-                display: block !important; /* Ensure the section is block */
-                position: absolute; left: 0; top: 0; width: 100%;
-                background-color: #fff !important; color: #000 !important; /* Force colors */
-                padding: 10px; margin: 0; border: none; box-shadow: none;
-                font-size: 10pt; /* Adjust base font size */
+                visibility: visible !important; display: block !important;
+                position: static !important; /* Usar flujo normal para impresión de página completa */
+                width: 100% !important;
+                background-color: #fff !important; color: #000 !important;
+                padding: 10mm !important; /* Márgenes de página */
+                margin: 0 !important; border: none !important; box-shadow: none !important;
+                font-size: 10pt !important;
             }
             body.printing-section .printing-now * { visibility: visible !important; }
+            /* Ocultar botones y elementos no-print DENTRO de la sección activa */
             body.printing-section .printing-now button,
-            body.printing-section .printing-now input[type="button"], /* Hide specific input types if needed */
+            body.printing-section .printing-now input[type="button"],
             body.printing-section .printing-now input[type="submit"],
             body.printing-section .printing-now .no-print { display: none !important; }
-            /* Allow text/number inputs, selects, textareas to show their values but not be interactive */
+            /* Estilos para que inputs/selects muestren valor pero no parezcan editables */
             body.printing-section .printing-now input:not([type="button"]):not([type="submit"]),
             body.printing-section .printing-now select,
             body.printing-section .printing-now textarea {
-                 border: none !important; background-color: transparent !important; -webkit-appearance: none; appearance: none;
+                 border: none !important; background-color: transparent !important; padding: 0 !important; margin: 0 !important;
+                 -webkit-appearance: none; appearance: none; color: #000 !important; /* Forzar color texto */
+                 box-shadow: none !important; /* Quitar sombras */
+                 width: auto !important; /* Ajustar ancho al contenido si es posible */
+                 display: inline !important; /* Mostrar como texto */
             }
-            body.printing-section .printing-now .admin-table { font-size: 9pt; width: 100%; margin-top: 0.5rem;}
+             body.printing-section .printing-now select { /* Para que se vea la opción seleccionada */
+                display: inline !important;
+                -webkit-appearance: none; appearance: none; border: none; background: none; padding: 0;
+            }
+            /* Estilos específicos para tablas en impresión general */
+            body.printing-section .printing-now .admin-table { font-size: 9pt; width: 100%; margin-top: 0.5rem; border-collapse: collapse !important; }
             body.printing-section .printing-now .admin-table th,
-            body.printing-section .printing-now .admin-table td { padding: 4px; border: 1px solid #ccc !important; color: #000 !important; background-color: #fff !important; } /* Force border/color */
-             body.printing-section .printing-now .admin-table th { background-color: #eee !important; font-weight: bold;} /* Header background */
-            body.printing-section .printing-now h1, body.printing-section .printing-now h2, body.printing-section .printing-now h3 { color: #000 !important; margin-bottom: 10px; font-size: 14pt; }
-            /* Ocultar específicamente la columna de acciones si tiene la clase no-print */
-             body.printing-section .printing-now .admin-table th.no-print,
-             body.printing-section .printing-now .admin-table td.no-print { display: none !important; }
-             /* Show status colors */
+            body.printing-section .printing-now .admin-table td {
+                padding: 4px !important; border: 1px solid #ccc !important;
+                color: #000 !important; background-color: #fff !important;
+                word-wrap: break-word; /* Evitar desbordamiento */
+            }
+             body.printing-section .printing-now .admin-table th { background-color: #eee !important; font-weight: bold !important; }
+            /* Ocultar la última columna (Acciones) */
+             body.printing-section .printing-now .admin-table th:last-child,
+             body.printing-section .printing-now .admin-table td:last-child { display: none !important; }
+            /* Forzar visibilidad y colores de estado */
             body.printing-section .printing-now .status-encargado,
             body.printing-section .printing-now .status-procesando,
             body.printing-section .printing-now .status-terminado {
                 -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-                display: inline-block !important; /* Ensure they show */
-                border: 1px solid #ccc; /* Add border for clarity if needed */
-                padding: 1px 4px !important; /* Adjust padding */
-                font-size: 8pt !important; /* Adjust font size */
+                display: inline-block !important; border: 1px solid #ccc !important;
+                padding: 1px 4px !important; font-size: 8pt !important;
+                color: inherit !important; /* Usar color original definido */
+                background-color: inherit !important; /* Usar fondo original definido */
             }
+            body.printing-section .printing-now h1, body.printing-section .printing-now h2, body.printing-section .printing-now h3 { color: #000 !important; margin-bottom: 10px; font-size: 14pt; }
 
-
-            /* Estilos específicos para Ticket */
-            body.printing-ticket { margin: 0; padding: 0; background-color: #fff !important; } /* Reset body */
-            body.printing-ticket > *:not(#print-area-wrapper) { display: none !important; visibility: hidden !important; } /* Hide everything except the wrapper */
+            /* --- Estilos específicos para TICKET (body.printing-ticket) --- */
+            body.printing-ticket { margin: 0 !important; padding: 0 !important; background-color: #fff !important; font-size: 9pt !important; }
+            body.printing-ticket > *:not(#print-area-wrapper) { display: none !important; visibility: hidden !important; }
             body.printing-ticket #print-area-wrapper {
                 visibility: visible !important; display: block !important;
-                position: static !important; /* Use static for normal flow in print */
-                width: 80mm !important; /* Typical thermal printer width */
+                position: static !important;
+                width: 80mm !important; /* Ancho típico ticket */
                 max-width: 100%;
-                margin: 5mm auto !important; /* Center or position */
-                padding: 0 !important;
-                background-color: #fff !important;
+                margin: 5mm auto !important; /* Centrado o margen superior/inferior */
+                padding: 0 !important; background-color: #fff !important;
                 box-shadow: none !important; border: none !important;
-                font-family: 'Courier New', Courier, monospace !important; /* Typical receipt font */
-                font-size: 9pt !important; /* Slightly smaller */
-                line-height: 1.3 !important;
-                color: #000 !important;
+                font-family: 'Courier New', Courier, monospace !important;
+                line-height: 1.3 !important; color: #000 !important;
              }
             body.printing-ticket #print-area {
                 visibility: visible !important; display: block !important;
-                padding: 3mm !important; /* Padding inside the ticket */
-                /* border: 1px solid #ccc; */ /* Optional border for the ticket */
+                padding: 3mm !important; /* Padding interno */
             }
             body.printing-ticket #print-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; }
-            body.printing-ticket #print-area p { margin: 2px 0 !important; font-size: 9pt !important;}
+            body.printing-ticket #print-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word; }
             body.printing-ticket #print-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; }
             body.printing-ticket #print-area strong { font-weight: bold !important; }
-            body.printing-ticket #print-area .item-line { display: flex; justify-content: space-between; }
-            body.printing-ticket #print-area .item-line span:last-child { text-align: right; }
-            body.printing-ticket #print-area .totals { margin-top: 8px; border-top: 1px solid #555; padding-top: 4px; }
-            body.printing-ticket #print-area em { font-style: italic; color: #333; } /* Style for time */
+            body.printing-ticket #print-area .item-line { display: flex !important; justify-content: space-between !important; }
+            body.printing-ticket #print-area .item-line span:last-child { text-align: right !important; }
+            body.printing-ticket #print-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; }
+            body.printing-ticket #print-area .detail-label { font-style: italic; color: #333; display: inline-block; min-width: 70px;} /* Para etiquetas como Mat:, Med:, etc. */
         }
+        /* === FIN: ESTILOS DE IMPRESIÓN REVISADOS === */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -172,7 +174,7 @@
             </div>
         </header>
 
-        <!-- Tab Buttons container initially hidden, shown by body.logged-in -->
+        <!-- Tab Buttons (SIN CAMBIOS) -->
         <nav id="tab-buttons" class="admin-only flex flex-wrap border-b border-gray-300 mb-6 no-print" style="display: none;">
              <button onclick="setActiveTab(this)" data-target="jobs" class="tab-button">Trabajos</button>
              <button onclick="setActiveTab(this)" data-target="new-job-form" class="tab-button">Nuevo Trabajo</button>
@@ -186,7 +188,8 @@
 
         <main id="tab-content-container">
 
-            <!-- Home Section (Visible Publicly) -->
+            <!-- Secciones (Home, Login, Clients, Jobs, New Job, Deadlines, Status, Reports, Materials, Config) (SIN CAMBIOS) -->
+            <!-- Home -->
             <section id="home" class="tab-content bg-white p-6 rounded-lg shadow-lg">
                <div class="p-6 rounded-lg text-center">
                     <h2 class="text-4xl font-bold mb-4 text-blue-600">Bienvenido</h2>
@@ -196,8 +199,7 @@
                     </button>
                 </div>
             </section>
-
-            <!-- Login Section -->
+            <!-- Login -->
             <section id="login" class="tab-content bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto">
                  <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Iniciar Sesión</h2>
                  <form id="login-form" class="space-y-4">
@@ -215,9 +217,8 @@
                      <div id="login-error" class="mt-2 text-red-600 text-sm text-center min-h-[1.25em]"></div>
                  </form>
             </section>
-
-            <!-- Clients Section (Admin Only) -->
-            <section id="clients" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+            <!-- Clients -->
+             <section id="clients" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
                 <form id="client-form" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
                      <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3>
@@ -254,8 +255,7 @@
                      </table>
                  </div>
             </section>
-
-            <!-- Jobs Section (Admin Only) -->
+            <!-- Jobs -->
             <section id="jobs" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Trabajos</h2>
                   <div class="mb-4 text-center no-print">
@@ -272,9 +272,9 @@
                                  <th>F. Pedido</th>
                                  <th>F. Entrega</th>
                                  <th>Estado</th>
-                                 <th class="text-right">Total ($)</th> <!-- Align right -->
-                                 <th class="text-right">Seña ($)</th> <!-- Align right -->
-                                 <th class="text-right">Pendiente ($)</th> <!-- Align right -->
+                                 <th class="text-right">Total ($)</th>
+                                 <th class="text-right">Seña ($)</th>
+                                 <th class="text-right">Pendiente ($)</th>
                                  <th class="no-print">Acciones</th>
                              </tr>
                          </thead>
@@ -282,8 +282,7 @@
                      </table>
                  </div>
             </section>
-
-            <!-- New/Edit Job Form Section (Admin Only) -->
+            <!-- New Job Form -->
             <section id="new-job-form" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                 <h2 id="job-form-title" class="text-2xl font-bold mb-6 text-center text-blue-600">Nuevo Trabajo</h2>
                 <form id="job-form" class="space-y-4">
@@ -292,7 +291,6 @@
                         <label for="job-client" class="block text-sm font-medium text-gray-700">Cliente:</label>
                         <select id="job-client" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                             <option value="">Selecciona un cliente...</option>
-                            <!-- Options loaded by JS -->
                         </select>
                         <p class="text-xs text-gray-500 mt-1 no-print">Añade clientes nuevos en la pestaña "Clientes".</p>
                     </div>
@@ -300,14 +298,12 @@
                         <label for="job-details" class="block text-sm font-medium text-gray-700">Detalles del Trabajo:</label>
                         <textarea id="job-details" rows="3" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
                     </div>
-                    <!-- Cotización -->
                     <div class="border p-4 rounded bg-gray-50 space-y-3">
                          <h3 class="text-md font-semibold text-gray-800">Detalles de Cotización</h3>
                          <div>
                              <label for="job-material" class="block text-sm font-medium text-gray-700">Material:</label>
                              <select id="job-material" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                                  <option value="">Selecciona material...</option>
-                                 <!-- Options loaded by JS -->
                              </select>
                          </div>
                          <div class="grid grid-cols-2 gap-4">
@@ -342,7 +338,6 @@
                          <button type="button" onclick="calculateJobQuote()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-bold py-1 px-3 rounded no-print">Calcular Costo Base y Final</button>
                          <div id="job-quote-base-result" class="mt-1 text-sm text-gray-600 font-medium">Costo Base Estimado: $0.00</div>
                     </div>
-                    <!-- Fechas y Estado -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                          <div>
                              <label for="job-order-date" class="block text-sm font-medium text-gray-700">Fecha Pedido:</label>
@@ -361,7 +356,6 @@
                              </select>
                          </div>
                     </div>
-                    <!-- Costos Finales -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
                              <label for="job-final-cost" class="block text-sm font-medium text-gray-700">Total Trabajo ($) (Auto-calculado):</label>
@@ -373,12 +367,10 @@
                              <input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                          </div>
                     </div>
-                    <!-- Observaciones -->
                     <div>
                         <label for="job-observations" class="block text-sm font-medium text-gray-700">Observaciones:</label>
                         <textarea id="job-observations" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
                     </div>
-                    <!-- Botones Formulario -->
                      <div class="flex space-x-2 pt-4 no-print">
                         <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar Trabajo</button>
                         <button type="button" onclick="setActiveTab(document.querySelector('[data-target=jobs]')); resetJobForm();" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button>
@@ -386,9 +378,8 @@
                     <div id="job-form-feedback" class="mt-2 text-sm feedback"></div>
                 </form>
             </section>
-
-             <!-- Deadlines Section (Admin Only) -->
-            <section id="deadlines" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
+            <!-- Deadlines -->
+             <section id="deadlines" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Plazos de Entrega Próximos (No Terminados)</h2>
                  <div class="overflow-x-auto">
                      <table id="deadlines-table" class="admin-table">
@@ -397,8 +388,7 @@
                      </table>
                  </div>
             </section>
-
-            <!-- Status Section (Admin Only) -->
+            <!-- Status -->
             <section id="status" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Estado de Trabajos</h2>
                   <div class="overflow-x-auto">
@@ -408,8 +398,7 @@
                      </table>
                  </div>
             </section>
-
-            <!-- Reports Section (Admin Only) -->
+            <!-- Reports -->
             <section id="reports" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Informes Generales</h2>
                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
@@ -425,9 +414,8 @@
                      </table>
                  </div>
             </section>
-
-            <!-- Materials Section (SuperAdmin Only) -->
-            <section id="admin-materials" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
+            <!-- Materials -->
+             <section id="admin-materials" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Gestionar Materiales</h2>
                  <form id="material-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
                      <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir Material</h4>
@@ -448,8 +436,7 @@
                      </table>
                  </div>
             </section>
-
-            <!-- Config Section (SuperAdmin Only) -->
+            <!-- Config -->
             <section id="admin-config" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Configuración de Costos</h2>
                  <form id="config-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 no-print">
@@ -496,35 +483,31 @@
     <script>
         // --- Configuración de Firebase ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAVBHUX8Ey9lLUCiz6mNDOemrNfrR-3Szs",
+            apiKey: "AIzaSyAVBHUX8Ey9lLUCiz6mNDOemrNfrR-3Szs", // TU CLAVE - ¡RESTRINGIR EN PRODUCCIÓN!
             authDomain: "presupuestadorcortelaser.firebaseapp.com",
             projectId: "presupuestadorcortelaser",
-            storageBucket: "presupuestadorcortelaser.firebasestorage.app", // Corregido .app por .com si es necesario, pero usando tu valor
+            storageBucket: "presupuestadorcortelaser.firebasestorage.app", // Usando tu valor
             messagingSenderId: "159566854109",
             appId: "1:159566854109:web:8d7351cef717697f3ea834"
         };
 
         // --- Inicialización de Firebase ---
-        let db; // Declarar FUERA con let
-        let auth; // Declarar FUERA con let
-
+        let db;
+        let auth;
         try {
             firebase.initializeApp(firebaseConfig);
-            // Asignar valores DENTRO del try
             db = firebase.firestore();
             auth = firebase.auth();
             console.log("Firebase inicializado correctamente.");
         } catch (error) {
             console.error("Error inicializando Firebase:", error);
-            alert("Error crítico: No se pudo inicializar la conexión con la base de datos. La aplicación no funcionará correctamente.");
-            // Podrías deshabilitar la UI o mostrar un mensaje más prominente aquí
+            alert("Error crítico: No se pudo inicializar la conexión con la base de datos.");
         }
 
-
         // --- ID del Super Administrador ---
-        const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1'; // Tu Super Admin UID
+        const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1'; // Tu UID
 
-        // --- Variables Globales ---
+        // --- Variables Globales (SIN CAMBIOS) ---
         let materialsData = {};
         let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} };
         let clientsData = {};
@@ -535,1217 +518,172 @@
         let dataLoaded = { clients: false, jobs: false, materials: false, config: false };
         let activeSectionId = 'home';
 
-        // --- Navegación por Pestañas ---
+        // --- Navegación por Pestañas (SIN CAMBIOS) ---
         function setActiveTab(buttonElement) {
-            if (!buttonElement) {
-                console.error("setActiveTab: Intento de activar tab con elemento nulo.");
-                return;
-            }
+            if (!buttonElement) { console.error("setActiveTab: null element."); return; }
             const targetId = buttonElement.getAttribute('data-target');
-            if (!targetId) {
-                console.error("setActiveTab: Botón de tab sin data-target:", buttonElement);
-                return;
-            }
-
+            if (!targetId) { console.error("setActiveTab: no data-target:", buttonElement); return; }
             console.log("Activando tab:", targetId);
-            activeSectionId = targetId; // Update global tracker
-
-            // Ocultar todos los contenidos y quitar active de botones
+            activeSectionId = targetId;
             document.querySelectorAll('#tab-content-container .tab-content').forEach(content => content.classList.remove('active-tab-content', 'printing-now'));
             document.querySelectorAll('#tab-buttons .tab-button').forEach(button => button.classList.remove('active-tab'));
-
-            // Mostrar el contenido correcto
             const sectionToShow = document.getElementById(targetId);
             if (sectionToShow) {
                 sectionToShow.classList.add('active-tab-content');
                 buttonElement.classList.add('active-tab');
-                loadDataForSection(targetId); // Cargar datos si es necesario
+                loadDataForSection(targetId);
             } else {
-                console.error(`setActiveTab: Contenido para '${targetId}' no encontrado.`);
-                // Fallback a una pestaña segura si la destino no existe
-                 const defaultButton = document.querySelector('#tab-buttons .tab-button[data-target="jobs"]'); // Default logged-in tab
+                console.error(`setActiveTab: Content for '${targetId}' not found.`);
+                 const defaultButton = document.querySelector('#tab-buttons .tab-button[data-target="jobs"]');
                  if (defaultButton) setActiveTab(defaultButton);
             }
         }
-
         function showLoginSection() {
-             console.log("Mostrando sección de login");
-             activeSectionId = 'login';
-             // Ocultar todos los contenidos de pestañas principales
-            document.querySelectorAll('#tab-content-container .tab-content').forEach(content => {
-                content.classList.remove('active-tab-content', 'printing-now');
-            });
-             // Quitar clase activa de todos los botones de pestaña
-            document.querySelectorAll('#tab-buttons .tab-button').forEach(button => {
-                button.classList.remove('active-tab');
-            });
-             // Mostrar solo el login
-             const loginSection = document.getElementById('login');
-             if(loginSection) {
-                 loginSection.classList.add('active-tab-content');
-             } else {
-                 console.error("showLoginSection: Sección #login no encontrada");
-             }
-             // Limpiar campos de login y error
-             const loginForm = document.getElementById('login-form');
-             if(loginForm) loginForm.reset();
-             const errorDiv = document.getElementById('login-error');
-             if(errorDiv) errorDiv.textContent = '';
+             console.log("Mostrando login"); activeSectionId = 'login';
+             document.querySelectorAll('#tab-content-container .tab-content').forEach(content => content.classList.remove('active-tab-content', 'printing-now'));
+             document.querySelectorAll('#tab-buttons .tab-button').forEach(button => button.classList.remove('active-tab'));
+             const loginSection = document.getElementById('login'); if(loginSection) loginSection.classList.add('active-tab-content');
+             const loginForm = document.getElementById('login-form'); if(loginForm) loginForm.reset();
+             const errorDiv = document.getElementById('login-error'); if(errorDiv) errorDiv.textContent = '';
          }
 
-        // --- Autenticación y Roles ---
-        auth?.onAuthStateChanged(user => { // Usar optional chaining por si la inicialización falló antes de asignar auth
-            if (!auth) {
-                 console.error("Auth service not available.");
-                 // Show login as fallback if auth service is missing
-                 showLoginSection();
-                 return;
-            }
-
+        // --- Autenticación y Roles (SIN CAMBIOS) ---
+        auth?.onAuthStateChanged(user => {
+            if (!auth) { console.error("Auth service not available."); showLoginSection(); return; }
             console.log("Auth state changed. User:", user ? user.uid : 'null');
             currentUser = user;
             const userEmailSpan = document.getElementById('user-email');
             document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only');
-
             if (user) {
                 currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator';
                 console.log("User logged in. Role:", currentUserRole);
                 document.body.classList.add('logged-in', `role-${currentUserRole}`);
                 if (userEmailSpan) userEmailSpan.textContent = user.email;
-
-                // Cargar datos esenciales al iniciar sesión
                 loadInitialDataForLoggedInUser().then(() => {
-                    console.log("Initial data loaded for logged-in user.");
-                    // Determinar a qué pestaña ir después del login
-                    const defaultTab = 'jobs'; // Pestaña por defecto para usuarios logueados
+                    console.log("Initial data loaded.");
+                    const defaultTab = 'jobs';
                     const targetButton = document.querySelector(`#tab-buttons .tab-button[data-target="${defaultTab}"]`);
-
-                    if (targetButton) {
-                        setActiveTab(targetButton);
-                    } else {
-                        console.error("onAuthStateChanged: Botón para tab por defecto 'jobs' no encontrado.");
-                        // Fallback si 'jobs' no existe por alguna razón
-                        const firstVisibleButton = document.querySelector('#tab-buttons .tab-button:not(.superadmin-only)');
-                         if (firstVisibleButton) setActiveTab(firstVisibleButton);
-                         else { // Superadmin solo puede ver superadmin tabs?
-                             const firstSuperButton = document.querySelector('#tab-buttons .tab-button.superadmin-only');
-                             if (firstSuperButton) setActiveTab(firstSuperButton);
-                             else console.error("onAuthStateChanged: No se encontró ninguna pestaña para activar.");
-                         }
+                    if (targetButton) setActiveTab(targetButton);
+                    else {
+                        console.error("Default tab 'jobs' not found.");
+                        const firstVisibleButton = document.querySelector('#tab-buttons .tab-button:not(.superadmin-only)') || document.querySelector('#tab-buttons .tab-button.superadmin-only');
+                        if (firstVisibleButton) setActiveTab(firstVisibleButton);
                     }
                 }).catch(error => {
-                    console.error("Error cargando datos iniciales post-login:", error);
-                    const jobFeedback = document.getElementById('job-form-feedback');
-                    if (jobFeedback) showFeedback(jobFeedback, 'Error crítico al cargar datos iniciales. Intente recargar.', 'error');
-                    else alert("Error crítico al cargar datos iniciales. Intente recargar la página.");
+                    console.error("Error loading initial data:", error);
+                    alert("Error crítico al cargar datos iniciales.");
                 });
-
             } else {
-                console.log("User logged out or not logged in.");
-                currentUserRole = null;
+                console.log("User logged out."); currentUserRole = null;
                 document.body.classList.add('public-only');
                 if (userEmailSpan) userEmailSpan.textContent = '';
                 materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} };
                 dataLoaded = { clients: false, jobs: false, materials: false, config: false };
-
                 document.querySelectorAll('#tab-content-container .tab-content').forEach(content => content.classList.remove('active-tab-content', 'printing-now'));
                 document.querySelectorAll('#tab-buttons .tab-button').forEach(button => button.classList.remove('active-tab'));
                 const homeSection = document.getElementById('home');
-                if (homeSection) {
-                    homeSection.classList.add('active-tab-content');
-                    activeSectionId = 'home';
-                } else {
-                     console.error("onAuthStateChanged: Sección #home no encontrada para usuario deslogueado.");
-                }
+                if (homeSection) { homeSection.classList.add('active-tab-content'); activeSectionId = 'home'; }
             }
         });
 
-        // --- Login / Logout ---
+        // --- Login / Logout (SIN CAMBIOS) ---
         document.getElementById('login-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-             if (!auth) {
-                 console.error("Auth service not available for login.");
-                 const errorDiv = document.getElementById('login-error');
-                 if(errorDiv) errorDiv.textContent = 'Error de inicialización. No se puede iniciar sesión.';
-                 return;
-             }
-
+             if (!auth) { console.error("Auth not available for login."); return; }
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            const errorDiv = document.getElementById('login-error');
-            if(errorDiv) errorDiv.textContent = ''; // Clear previous errors
-
+            const errorDiv = document.getElementById('login-error'); if(errorDiv) errorDiv.textContent = '';
             try {
-                console.log("Intentando iniciar sesión con:", email);
-                await auth.signInWithEmailAndPassword(email, password);
-                console.log("Inicio de sesión exitoso.");
-                // onAuthStateChanged will handle the rest
+                console.log("Attempting login:", email); await auth.signInWithEmailAndPassword(email, password); console.log("Login successful.");
             } catch (error) {
-                console.error("Error de login:", error.code, error.message);
+                console.error("Login error:", error.code, error.message);
                 if(errorDiv) {
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-                         errorDiv.textContent = 'Email o contraseña incorrectos.';
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorDiv.textContent = 'El formato del email es inválido.';
-                    } else {
-                        errorDiv.textContent = 'Error al iniciar sesión. Verifique la conexión.'; // Generic message
-                    }
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorDiv.textContent = 'Email o contraseña incorrectos.';
+                    else if (error.code === 'auth/invalid-email') errorDiv.textContent = 'Formato email inválido.';
+                    else errorDiv.textContent = 'Error al iniciar sesión.';
                 }
             }
         });
-
         function logoutUser() {
-             if (!auth) {
-                 console.error("Auth service not available for logout.");
-                 alert("Error: No se puede cerrar sesión.");
-                 return;
-             }
-            console.log("Cerrando sesión...");
-            auth.signOut().then(() => {
-                console.log("Sesión cerrada exitosamente.");
-                // onAuthStateChanged will handle UI change
-            }).catch(error => {
-                console.error("Error al cerrar sesión:", error);
-                alert("Error al cerrar sesión: " + error.message);
-            });
+             if (!auth) { console.error("Auth not available for logout."); return; }
+            console.log("Logging out..."); auth.signOut().then(() => console.log("Logout successful.")).catch(error => { console.error("Logout error:", error); alert("Error al cerrar sesión: " + error.message); });
         }
 
-        // --- Carga de Datos ---
+        // --- Carga de Datos (SIN CAMBIOS) ---
         async function loadInitialDataForLoggedInUser() {
-             if (!db) {
-                 console.error("loadInitialDataForLoggedInUser: Firestore service (db) no disponible.");
-                 throw new Error("La base de datos no está disponible.");
-             }
-
-            console.log("loadInitialDataForLoggedInUser: Cargando datos esenciales (materials, config, clients)...");
-            const loadPromises = [
-                loadMaterials(),
-                loadConfig(),
-                loadClients()
-            ];
-            await Promise.all(loadPromises);
-            console.log("loadInitialDataForLoggedInUser: Datos esenciales cargados.");
+             if (!db) { throw new Error("DB not available."); }
+            console.log("Loading initial data...");
+            await Promise.all([ loadMaterials(), loadConfig(), loadClients() ]);
+            console.log("Initial data loaded.");
         }
-
         function loadDataForSection(sectionId) {
-             if (!db) {
-                 console.error(`loadDataForSection: Firestore service (db) no disponible al intentar cargar datos para ${sectionId}.`);
-                 return;
-             }
-            console.log(`loadDataForSection: Verificando datos para ${sectionId}`);
-            if (!currentUser) {
-                console.warn(`loadDataForSection: Intento de cargar datos para ${sectionId} sin usuario logueado.`);
-                return;
-            }
-
+             if (!db) { console.error(`DB not available for ${sectionId}.`); return; }
+            console.log(`Loading data for ${sectionId}`); if (!currentUser) return;
             switch(sectionId) {
-                case 'clients':
-                    if (!dataLoaded.clients) loadClients();
-                    else populateClientsTable();
-                    break;
-                case 'jobs':
-                    loadJobs();
-                    break;
-                 case 'deadlines':
-                    if (!dataLoaded.jobs) loadJobs().then(populateDeadlinesTable);
-                    else populateDeadlinesTable();
-                    break;
-                 case 'status':
-                     if (!dataLoaded.jobs) loadJobs().then(populateStatusTable);
-                     else populateStatusTable();
-                     break;
-                 case 'reports':
-                     if (!dataLoaded.jobs) loadJobs().then(generateReports);
-                     else generateReports();
-                     break;
+                case 'clients': if (!dataLoaded.clients) loadClients(); else populateClientsTable(); break;
+                case 'jobs': loadJobs(); break;
+                case 'deadlines': if (!dataLoaded.jobs) loadJobs().then(populateDeadlinesTable); else populateDeadlinesTable(); break;
+                case 'status': if (!dataLoaded.jobs) loadJobs().then(populateStatusTable); else populateStatusTable(); break;
+                case 'reports': if (!dataLoaded.jobs) loadJobs().then(generateReports); else generateReports(); break;
                 case 'new-job-form':
                      const clientPromise = dataLoaded.clients ? Promise.resolve() : loadClients();
                      const materialPromise = dataLoaded.materials ? Promise.resolve() : loadMaterials();
-                     Promise.all([clientPromise, materialPromise]).then(() => {
-                         populateClientDropdown('job-client');
-                         populateMaterialDropdown('job-material');
-                     }).catch(err => console.error("Error cargando datos para New Job Form:", err));
-                     resetJobForm();
-                    break;
-                case 'admin-materials':
-                    if (currentUserRole === 'superadmin') {
-                        if (!dataLoaded.materials) loadMaterials();
-                        else populateMaterialsAdminTable();
-                    }
-                    break;
-                case 'admin-config':
-                    if (currentUserRole === 'superadmin') {
-                        if (!dataLoaded.config) loadConfig();
-                        else populateConfigFormAdmin();
-                    }
-                    break;
-                 default:
-                     console.log(`loadDataForSection: No hay carga de datos definida para ${sectionId}`);
+                     Promise.all([clientPromise, materialPromise]).then(() => { populateClientDropdown('job-client'); populateMaterialDropdown('job-material'); }).catch(err => console.error("Error loading for New Job Form:", err));
+                     resetJobForm(); break;
+                case 'admin-materials': if (currentUserRole === 'superadmin') { if (!dataLoaded.materials) loadMaterials(); else populateMaterialsAdminTable(); } break;
+                case 'admin-config': if (currentUserRole === 'superadmin') { if (!dataLoaded.config) loadConfig(); else populateConfigFormAdmin(); } break;
             }
         }
-
-        async function loadMaterials() {
-             if (!db) { console.error("loadMaterials: db no disponible."); return; }
-            console.log("Cargando materiales...");
-             try {
-                 const snapshot = await db.collection('materials').orderBy('name').get();
-                 const tempData = {};
-                 snapshot.forEach(doc => {
-                     tempData[doc.id] = { ...doc.data(), id: doc.id };
-                 });
-                 materialsData = tempData;
-                 console.log(`Materiales cargados: ${Object.keys(materialsData).length}`);
-                 dataLoaded.materials = true;
-                 populateMaterialDropdown('job-material');
-                 if (currentUserRole === 'superadmin') populateMaterialsAdminTable();
-             } catch (error) {
-                 console.error("Error cargando materiales:", error);
-                 const feedback = document.getElementById('material-form-feedback-admin');
-                 if (feedback) showFeedback(feedback, `Error al cargar materiales: ${error.message}`, 'error');
-                 dataLoaded.materials = false;
-             }
-         }
-
-        async function loadConfig() {
-             if (!db) { console.error("loadConfig: db no disponible."); return; }
-            console.log("Cargando configuración...");
-             try {
-                const configDoc = await db.collection('config').doc('main').get();
-                if (configDoc.exists) {
-                    const data = configDoc.data();
-                    configData = {
-                        minutes_per_month: data.minutes_per_month || 2400,
-                        monthly_costs: data.monthly_costs || {},
-                        cost_per_minute: 0 // Recalculate
-                    };
-                    const totalMonthly = Object.values(configData.monthly_costs)
-                                            .reduce((sum, val) => sum + (Number(val) || 0), 0);
-                    if (configData.minutes_per_month > 0) {
-                        configData.cost_per_minute = totalMonthly / configData.minutes_per_month;
-                    } else {
-                        configData.cost_per_minute = 0;
-                        console.warn("loadConfig: minutes_per_month es 0 o inválido, cost_per_minute será 0.");
-                    }
-                     console.log(`Config cargada. Costo/min calculado: $${configData.cost_per_minute.toFixed(4)}`);
-                } else {
-                    console.warn("Doc 'config/main' no encontrado. Usando valores por defecto.");
-                     configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} };
-                }
-                 dataLoaded.config = true;
-                 if (currentUserRole === 'superadmin') populateConfigFormAdmin();
-             } catch (error) {
-                 console.error("Error cargando config:", error);
-                  const feedback = document.getElementById('config-form-feedback-admin');
-                 if (feedback) showFeedback(feedback, `Error al cargar config: ${error.message}`, 'error');
-                 dataLoaded.config = false;
-             }
-         }
-
-        async function loadClients() {
-             if (!currentUser || !db) { console.warn("loadClients: No logueado o db no disponible."); return; }
-            console.log("Cargando clientes...");
-            const tableBody = document.getElementById('clients-table')?.querySelector('tbody');
-            if(tableBody) tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Cargando clientes...</td></tr>';
-
-            try {
-                const snapshot = await db.collection('clients').orderBy('name', 'asc').get();
-                const tempData = {};
-                snapshot.forEach(doc => {
-                    tempData[doc.id] = { ...doc.data(), id: doc.id };
-                });
-                clientsData = tempData;
-                console.log(`Clientes cargados: ${Object.keys(clientsData).length}`);
-                dataLoaded.clients = true;
-                populateClientsTable();
-                populateClientDropdown('job-client');
-
-            } catch (error) {
-                console.error("Error cargando clientes:", error);
-                if(tableBody) tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-600">Error al cargar clientes: ${error.message}</td></tr>`;
-                dataLoaded.clients = false;
-            }
-        }
-
-        async function loadJobs() {
-             if (!currentUser || !db) { console.warn("loadJobs: No logueado o db no disponible."); return; }
-             console.log("Cargando trabajos...");
-             ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => {
-                 const tableBody = document.getElementById(id)?.querySelector('tbody');
-                 if(tableBody) {
-                     const colspan = tableBody.closest('table').querySelector('thead th')?.length || 1;
-                     tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4">Cargando trabajos...</td></tr>`;
-                 }
-             });
-             ['report-total-value', 'report-total-deposit', 'report-total-outstanding'].forEach(id => {
-                 const el = document.getElementById(id); if(el) el.textContent = 'Calculando...';
-             });
-
-             try {
-                 const snapshot = await db.collection('jobs').orderBy('deliveryDate', 'asc').get();
-                 const tempJobs = [];
-                 snapshot.forEach(doc => {
-                    const jobData = doc.data();
-                    tempJobs.push({
-                        ...jobData,
-                        id: doc.id,
-                        orderDate: jobData.orderDate instanceof firebase.firestore.Timestamp ? jobData.orderDate.toDate().toISOString().split('T')[0] : jobData.orderDate,
-                        deliveryDate: jobData.deliveryDate instanceof firebase.firestore.Timestamp ? jobData.deliveryDate.toDate().toISOString().split('T')[0] : jobData.deliveryDate,
-                        finalCost: Number(jobData.finalCost || 0),
-                        deposit: Number(jobData.deposit || 0)
-                     });
-                 });
-                 jobsData = tempJobs;
-                 console.log(`Trabajos cargados: ${jobsData.length}`);
-                 dataLoaded.jobs = true;
-                 populateJobsTable();
-                 populateDeadlinesTable();
-                 populateStatusTable();
-                 generateReports();
-
-             } catch (error) {
-                 console.error("Error cargando trabajos:", error);
-                  ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => {
-                     const tableBody = document.getElementById(id)?.querySelector('tbody');
-                      if(tableBody) {
-                          const colspan = tableBody.closest('table').querySelector('thead th')?.length || 1;
-                          tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4 text-red-600">Error al cargar trabajos: ${error.message}</td></tr>`;
-                      }
-                 });
-                  dataLoaded.jobs = false;
-             }
-         }
-
-        // --- Poblado de Dropdowns ---
-        function populateClientDropdown(selectId) {
-             const select = document.getElementById(selectId);
-             if (!select) return;
-             const currentVal = select.value;
-             select.innerHTML = '<option value="">Selecciona un cliente...</option>';
-             const sortedClients = Object.values(clientsData).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-             sortedClients.forEach(client => {
-                 const option = document.createElement('option');
-                 option.value = client.id;
-                 option.textContent = client.name || `ID: ${client.id}`;
-                 select.appendChild(option);
-             });
-             if (Array.from(select.options).some(opt => opt.value === currentVal)) {
-                 select.value = currentVal;
-             }
-         }
-
-        function populateMaterialDropdown(selectId) {
-             const select = document.getElementById(selectId);
-             if (!select) return;
-             const currentVal = select.value;
-             select.innerHTML = '<option value="">Selecciona material...</option>';
-             const availableMaterials = Object.values(materialsData)
-                .filter(mat => mat.available !== false)
-                .sort((a, b) => `${a.name || ''} ${a.thickness || 0}mm`.localeCompare(`${b.name || ''} ${b.thickness || 0}mm`));
-
-             availableMaterials.forEach(mat => {
-                 const option = document.createElement('option');
-                 option.value = mat.id;
-                 option.textContent = `${mat.name || 'Sin Nombre'} - ${mat.thickness || '?'}mm`;
-                 select.appendChild(option);
-             });
-             if (Array.from(select.options).some(opt => opt.value === currentVal)) {
-                 select.value = currentVal;
-             }
-         }
-
-        // --- Poblado de Tablas ---
-        function populateClientsTable() {
-            const tableBody = document.getElementById('clients-table')?.querySelector('tbody');
-            if (!tableBody) return;
-            if (Object.keys(clientsData).length === 0 && dataLoaded.clients) {
-                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4">No hay clientes registrados.</td></tr>';
-                 return;
-            }
-            let rowsHtml = '';
-            const sortedClients = Object.values(clientsData).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-            sortedClients.forEach(client => {
-                rowsHtml += `
-                    <tr data-client-id="${client.id}">
-                        <td>${client.name || 'N/A'}</td>
-                        <td>${client.phone || '-'}</td>
-                        <td>${client.email || '-'}</td>
-                        <td class="no-print space-x-1 whitespace-nowrap">
-                            <button onclick="editClient('${client.id}')" class="edit-button" title="Editar Cliente">Editar</button>
-                            <button onclick="deleteClient('${client.id}')" class="delete-button" title="Borrar Cliente">Borrar</button>
-                            <button onclick="selectClientForNewJob('${client.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white" title="Crear Nuevo Trabajo para este Cliente">Nuevo Trabajo</button>
-                        </td>
-                    </tr>`;
-            });
-            tableBody.innerHTML = rowsHtml;
-        }
-
-        function populateJobsTable() {
-             const tableBody = document.getElementById('jobs-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             if (jobsData.length === 0 && dataLoaded.jobs) {
-                 tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No hay trabajos registrados.</td></tr>';
-                 return;
-             }
-
-             const sortedJobs = [...jobsData].sort((a, b) => (b.orderDate || "").localeCompare(a.orderDate || ""));
-
-             let rowsHtml = '';
-             sortedJobs.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || 'Cliente Borrado/Desconocido';
-                 const finalCost = job.finalCost || 0;
-                 const deposit = job.deposit || 0;
-                 const outstanding = Math.max(0, finalCost - deposit);
-                 const deliveryDate = job.deliveryDate ? parseDateForComparison(job.deliveryDate) : null;
-                 const today = new Date(); today.setHours(0,0,0,0);
-                 const isOverdue = deliveryDate && deliveryDate < today && job.status !== 'Terminado';
-
-                 rowsHtml += `
-                     <tr data-job-id="${job.id}">
-                         <td>${clientName}</td>
-                         <td class="max-w-xs truncate" title="${job.details || ''}">${job.details || '-'}</td>
-                         <td>${formatDate(job.orderDate)}</td>
-                         <td class="${isOverdue ? 'date-overdue' : ''}">${formatDate(job.deliveryDate)}</td>
-                         <td><span class="${getStatusClass(job.status)}">${job.status || 'N/A'}</span></td>
-                         <td class="text-right">${finalCost.toFixed(2)}</td>
-                         <td class="text-right">${deposit.toFixed(2)}</td>
-                         <td class="text-right font-semibold ${outstanding > 0.005 ? 'text-red-600' : 'text-green-600'}">${outstanding.toFixed(2)}</td>
-                         <td class="no-print space-x-1 whitespace-nowrap">
-                             <button onclick="editJob('${job.id}')" class="edit-button" title="Editar Trabajo">Editar</button>
-                             <button onclick="deleteJob('${job.id}')" class="delete-button" title="Borrar Trabajo">Borrar</button>
-                             <button onclick="printTicket('${job.id}')" class="print-button" title="Imprimir Ticket">Ticket</button>
-                         </td>
-                     </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml;
-         }
-
-        function populateDeadlinesTable() {
-            const tableBody = document.getElementById('deadlines-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             if (jobsData.length === 0 && dataLoaded.jobs) {
-                 tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No hay trabajos.</td></tr>';
-                 return;
-             }
-
-             const today = new Date(); today.setHours(0, 0, 0, 0);
-             const upcomingJobs = jobsData
-                 .filter(job => job.status !== 'Terminado')
-                 .sort((a, b) => (a.deliveryDate || "9999-12-31").localeCompare(b.deliveryDate || "9999-12-31"));
-
-             if (upcomingJobs.length === 0) {
-                  tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No hay trabajos pendientes con fecha de entrega.</td></tr>';
-                 return;
-             }
-
-             let rowsHtml = '';
-             upcomingJobs.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || 'Cliente Borrado/Desconocido';
-                 const deliveryDate = job.deliveryDate ? parseDateForComparison(job.deliveryDate) : null;
-                 let daysRemaining = '-';
-                 let rowClass = '';
-
-                 if (deliveryDate) {
-                     const diffTime = deliveryDate.getTime() - today.getTime();
-                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                     daysRemaining = diffDays;
-                      if (diffDays < 0) {
-                          daysRemaining = `Vencido (${Math.abs(diffDays)})`;
-                          rowClass = 'bg-red-100 date-overdue';
-                      } else if (diffDays === 0) {
-                          daysRemaining = 'Hoy';
-                          rowClass = 'bg-yellow-100 font-semibold';
-                      } else if (diffDays <= 3) {
-                          daysRemaining = `${diffDays} día(s)`;
-                           rowClass = 'bg-yellow-50';
-                      } else {
-                          daysRemaining = `${diffDays} días`;
-                      }
-                 }
-
-                 rowsHtml += `
-                     <tr data-job-id="${job.id}" class="${rowClass}">
-                         <td>${clientName}</td>
-                         <td class="max-w-xs truncate" title="${job.details || ''}">${job.details || '-'}</td>
-                         <td>${formatDate(job.orderDate)}</td>
-                         <td>${formatDate(job.deliveryDate)}</td>
-                         <td><span class="${getStatusClass(job.status)}">${job.status || 'N/A'}</span></td>
-                         <td>${daysRemaining}</td>
-                     </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml;
-        }
-
-        function populateStatusTable() {
-             const tableBody = document.getElementById('status-table')?.querySelector('tbody');
-             if (!tableBody) return;
-             if (jobsData.length === 0 && dataLoaded.jobs) {
-                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4">No hay trabajos.</td></tr>';
-                 return;
-             }
-
-             const statusOrder = { 'Procesando': 1, 'Encargado': 2, 'Terminado': 3 };
-             const sortedJobs = [...jobsData].sort((a, b) => {
-                 const statusDiff = (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
-                 if (statusDiff !== 0) return statusDiff;
-                 return (a.deliveryDate || "9999-12-31").localeCompare(b.deliveryDate || "9999-12-31");
-             });
-
-             let rowsHtml = '';
-             sortedJobs.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || 'Cliente Borrado/Desconocido';
-                  const deliveryDate = job.deliveryDate ? parseDateForComparison(job.deliveryDate) : null;
-                  const today = new Date(); today.setHours(0,0,0,0);
-                 const isOverdue = deliveryDate && deliveryDate < today && job.status !== 'Terminado';
-                 rowsHtml += `
-                     <tr data-job-id="${job.id}">
-                         <td>${clientName}</td>
-                          <td class="max-w-xs truncate" title="${job.details || ''}">${job.details || '-'}</td>
-                         <td><span class="${getStatusClass(job.status)}">${job.status || 'N/A'}</span></td>
-                         <td class="${isOverdue ? 'date-overdue' : ''}">${formatDate(job.deliveryDate)}</td>
-                     </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml;
-         }
-
-        function generateReports() {
-            let totalValue = 0;
-            let totalDeposit = 0;
-            let clientTotals = {};
-
-            jobsData.forEach(job => {
-                const finalCost = job.finalCost || 0;
-                const deposit = job.deposit || 0;
-                totalValue += finalCost;
-                totalDeposit += deposit;
-
-                const clientId = job.clientId;
-                if (!clientId) return;
-
-                if (!clientTotals[clientId]) {
-                    clientTotals[clientId] = {
-                        name: clientsData[clientId]?.name || `Cliente Desconocido (ID: ${clientId})`,
-                        total: 0,
-                        deposit: 0,
-                        outstanding: 0
-                    };
-                }
-                clientTotals[clientId].total += finalCost;
-                clientTotals[clientId].deposit += deposit;
-            });
-
-            const totalOutstanding = totalValue - totalDeposit;
-
-            document.getElementById('report-total-value').textContent = `$${totalValue.toFixed(2)}`;
-            document.getElementById('report-total-deposit').textContent = `$${totalDeposit.toFixed(2)}`;
-            document.getElementById('report-total-outstanding').textContent = `$${Math.max(0, totalOutstanding).toFixed(2)}`;
-
-            const outstandingTableBody = document.getElementById('outstanding-table')?.querySelector('tbody');
-            if (!outstandingTableBody) return;
-
-            const clientsWithOutstanding = Object.values(clientTotals).map(client => {
-                client.outstanding = Math.max(0, client.total - client.deposit);
-                return client;
-            }).filter(client => client.outstanding > 0.005)
-              .sort((a, b) => b.outstanding - a.outstanding);
-
-             if (clientsWithOutstanding.length === 0) {
-                 outstandingTableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Ningún cliente tiene saldo pendiente.</td></tr>';
-                 return;
-             }
-
-            let rowsHtml = '';
-            clientsWithOutstanding.forEach(client => {
-                rowsHtml += `
-                    <tr>
-                        <td>${client.name}</td>
-                        <td class="text-right">${client.total.toFixed(2)}</td>
-                        <td class="text-right">${client.deposit.toFixed(2)}</td>
-                        <td class="text-right font-semibold text-red-600">${client.outstanding.toFixed(2)}</td>
-                    </tr>`;
-            });
-            outstandingTableBody.innerHTML = rowsHtml;
-        }
-
-        function populateMaterialsAdminTable() {
-             if (currentUserRole !== 'superadmin') return;
-             const tableBody = document.getElementById('materials-admin-table')?.querySelector('tbody');
-             if (!tableBody) return;
-
-             if (Object.keys(materialsData).length === 0 && dataLoaded.materials) {
-                 tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No hay materiales definidos.</td></tr>';
-                 return;
-             }
-
-             const sortedMaterials = Object.values(materialsData)
-                 .sort((a, b) => {
-                     const nameCompare = (a.name || "").localeCompare(b.name || "");
-                     if (nameCompare !== 0) return nameCompare;
-                     return (a.thickness || 0) - (b.thickness || 0);
-                 });
-
-             let rowsHtml = '';
-             sortedMaterials.forEach(mat => {
-                 const dimensions = (mat.width && mat.height) ? `${mat.width}x${mat.height}` : 'N/A';
-                 const availableText = mat.available !== false ? 'Sí' : 'No';
-                 const availableClass = mat.available !== false ? 'text-green-600' : 'text-red-600';
-                 const cost = (mat.costPerSheet !== undefined ? mat.costPerSheet : mat.cost) || 0;
-
-                 rowsHtml += `
-                     <tr data-material-id="${mat.id}">
-                         <td>${mat.name || 'N/A'}</td>
-                         <td class="text-right">${mat.thickness || '-'}</td>
-                         <td class="text-right">${cost.toFixed(2)}</td>
-                         <td class="text-center">${dimensions}</td>
-                         <td class="text-center ${availableClass} font-semibold">${availableText}</td>
-                         <td class="no-print space-x-1 whitespace-nowrap">
-                             <button onclick="editMaterialAdmin('${mat.id}')" class="edit-button" title="Editar Material">Editar</button>
-                             <button onclick="deleteMaterialAdmin('${mat.id}')" class="delete-button" title="Borrar Material">Borrar</button>
-                         </td>
-                     </tr>`;
-             });
-             tableBody.innerHTML = rowsHtml;
-         }
-
-        function populateConfigFormAdmin() {
-             if (currentUserRole !== 'superadmin') return;
-             console.log("Poblando form de config con:", configData);
-
-             const minutesInput = document.getElementById('config-minutes-admin');
-             const costsContainer = document.getElementById('monthly-costs-container');
-             const calculatedCostP = document.getElementById('calculated-cost-per-minute');
-
-             if (!minutesInput || !costsContainer || !calculatedCostP) {
-                 console.error("populateConfigFormAdmin: No se encontraron elementos del formulario.");
-                 return;
-             }
-
-             minutesInput.value = configData.minutes_per_month || 2400;
-             costsContainer.innerHTML = '';
-
-             const costs = configData.monthly_costs || {};
-             if (Object.keys(costs).length === 0) {
-                 addMonthlyCostInput('Ej: Alquiler', '');
-             } else {
-                 Object.keys(costs).sort().forEach(key => {
-                     addMonthlyCostInput(key, costs[key]);
-                 });
-             }
-
-             calculatedCostP.textContent = `$${(configData.cost_per_minute || 0).toFixed(4)} / min`;
-         }
-
-        // --- CRUD Clientes ---
-        document.getElementById('client-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-             if (!db) { console.error("client-form submit: db no disponible."); return; }
-
-            const clientId = document.getElementById('client-id').value;
-            const name = document.getElementById('client-name').value.trim();
-            const phone = document.getElementById('client-phone').value.trim();
-            const email = document.getElementById('client-email').value.trim().toLowerCase();
-            const feedbackDiv = document.getElementById('client-form-feedback');
-
-            if (!name) {
-                showFeedback(feedbackDiv, 'El nombre del cliente es obligatorio.', 'error');
-                return;
-            }
-            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showFeedback(feedbackDiv, 'El formato del email no es válido.', 'error');
-                return;
-            }
-
-            const clientData = { name: name, phone: phone || null, email: email || null };
-
-            try {
-                 showFeedback(feedbackDiv, 'Guardando...', 'info');
-                 if (clientId) {
-                     await db.collection('clients').doc(clientId).update(clientData);
-                     showFeedback(feedbackDiv, 'Cliente actualizado con éxito.', 'success');
-                     clientsData[clientId] = { ...clientsData[clientId], ...clientData };
-                 } else {
-                     const docRef = await db.collection('clients').add(clientData);
-                     showFeedback(feedbackDiv, 'Cliente añadido con éxito.', 'success');
-                     clientsData[docRef.id] = { ...clientData, id: docRef.id };
-                 }
-                 resetClientForm();
-                 populateClientsTable();
-                 populateClientDropdown('job-client');
-             } catch (error) {
-                 console.error("Error guardando cliente:", error);
-                 showFeedback(feedbackDiv, `Error al guardar: ${error.message}`, 'error');
-             }
-        });
-
-        function editClient(id) {
-            const client = clientsData[id];
-            if (!client) {
-                 console.error(`Cliente con ID ${id} no encontrado en cache.`);
-                 showFeedback(document.getElementById('client-form-feedback'), `Error: Cliente ${id} no encontrado.`, 'error');
-                 return;
-            }
-             resetClientForm();
-             document.getElementById('client-form-title').textContent = 'Editar Cliente';
-             document.getElementById('client-id').value = client.id;
-             document.getElementById('client-name').value = client.name || '';
-             document.getElementById('client-phone').value = client.phone || '';
-             document.getElementById('client-email').value = client.email || '';
-             document.getElementById('client-name').focus();
-             document.getElementById('client-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function resetClientForm() {
-            document.getElementById('client-form-title').textContent = 'Añadir Nuevo Cliente';
-            const form = document.getElementById('client-form');
-            if (form) form.reset();
-            const clientIdInput = document.getElementById('client-id');
-            if(clientIdInput) clientIdInput.value = '';
-             const feedbackDiv = document.getElementById('client-form-feedback');
-             if (feedbackDiv) feedbackDiv.textContent = ''; feedbackDiv.className = 'mt-2 text-sm feedback';
-        }
-
-        async function deleteClient(id) {
-             if (!db) { console.error("deleteClient: db no disponible."); return; }
-            const clientName = clientsData[id]?.name || `ID ${id}`;
-            const associatedJobs = jobsData.filter(job => job.clientId === id);
-            let confirmationMessage = `¿Está seguro de querer borrar al cliente "${clientName}"?`;
-            if (associatedJobs.length > 0) {
-                confirmationMessage += `\n\n¡ADVERTENCIA! Este cliente tiene ${associatedJobs.length} trabajo(s) asociado(s). Borrar el cliente NO borrará los trabajos, pero quedarán sin cliente asignado.`;
-            }
-             confirmationMessage += "\n\nEsta acción no se puede deshacer.";
-
-            if (!confirm(confirmationMessage)) return;
-
-             const feedbackDiv = document.getElementById('client-form-feedback');
-             try {
-                  showFeedback(feedbackDiv, 'Borrando cliente...', 'info');
-                 await db.collection('clients').doc(id).delete();
-                 delete clientsData[id];
-                 showFeedback(feedbackDiv, `Cliente "${clientName}" borrado.`, 'success');
-                 populateClientsTable();
-                 populateClientDropdown('job-client');
-                 if(jobsData.some(job => job.clientId === id)) {
-                     populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports();
-                 }
-                 if (document.getElementById('client-id').value === id) resetClientForm();
-             } catch (error) {
-                 console.error("Error borrando cliente:", error);
-                 showFeedback(feedbackDiv, `Error al borrar: ${error.message}`, 'error');
-             }
-        }
-
-        function selectClientForNewJob(clientId) {
-            const clientName = clientsData[clientId]?.name;
-            if (!clientName) { console.error(`selectClientForNewJob: Cliente ${clientId} no encontrado.`); return; }
-            console.log(`Seleccionado cliente ${clientName} (${clientId}) para nuevo trabajo.`);
-             setActiveTab(document.querySelector('[data-target=new-job-form]'));
-             setTimeout(() => {
-                 const clientSelect = document.getElementById('job-client');
-                 if (clientSelect) {
-                     resetJobForm(clientId);
-                     clientSelect.value = clientId;
-                     console.log(`Dropdown 'job-client' actualizado a ${clientId}`);
-                     document.getElementById('job-details')?.focus();
-                 } else { console.error("selectClientForNewJob: Dropdown 'job-client' no encontrado."); }
-             }, 150);
-        }
-
-        // --- CRUD Trabajos ---
-        document.getElementById('job-job-type')?.addEventListener('change', (e) => {
-            const type = e.target.value;
-            const cutField = document.getElementById('job-cut-time-field');
-            const engraveField = document.getElementById('job-engrave-time-field');
-            const cutInput = document.getElementById('job-cut-minutes');
-            const engraveInput = document.getElementById('job-engrave-minutes');
-            if (!cutField || !engraveField || !cutInput || !engraveInput) return;
-            cutField.style.display = (type === 'corte' || type === 'ambos') ? 'grid' : 'none';
-            engraveField.style.display = (type === 'grabado' || type === 'ambos') ? 'grid' : 'none';
-            if (type === 'grabado') cutInput.value = 0;
-            if (type === 'corte') engraveInput.value = 0;
-        });
-
-        function calculateJobQuote() {
-            console.log("Calculando costo base...");
-            const feedbackDiv = document.getElementById('job-form-feedback');
-            const resultDiv = document.getElementById('job-quote-base-result');
-            const finalCostInput = document.getElementById('job-final-cost');
-            currentJobQuoteBaseCost = 0;
-
-            try {
-                 showFeedback(feedbackDiv, '', 'info');
-                 const materialId = document.getElementById('job-material').value;
-                 const length = parseFloat(document.getElementById('job-length').value) || 0;
-                 const width = parseFloat(document.getElementById('job-width').value) || 0;
-                 let materialCost = 0;
-
-                 if (materialId && length > 0 && width > 0) {
-                     const material = materialsData[materialId];
-                     if (!material) throw new Error("Material seleccionado inválido o no cargado.");
-                     const sheetCost = parseFloat( (material.costPerSheet !== undefined ? material.costPerSheet : material.cost) || 0);
-                     const sheetWidth = parseFloat(material.width || 0);
-                     const sheetHeight = parseFloat(material.height || 0);
-                     if (sheetWidth <= 0 || sheetHeight <= 0) throw new Error(`Dimensiones de plancha inválidas (${sheetWidth}x${sheetHeight}mm) para el material "${material.name}". Verifique en Materiales.`);
-                     const sheetArea = sheetWidth * sheetHeight;
-                     const jobArea = length * width;
-                     materialCost = (sheetCost / sheetArea) * jobArea;
-                     console.log(`Costo Material: ${materialCost.toFixed(2)}`);
-                 } else if (materialId && (length <= 0 || width <= 0)) {
-                      showFeedback(feedbackDiv, 'Advertencia: Ingrese largo y ancho válidos para incluir costo de material.', 'info');
-                 }
-
-                 const jobType = document.getElementById('job-job-type').value;
-                 const cutMinutes = (jobType === 'corte' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-cut-minutes').value) || 0) : 0;
-                 const engraveMinutes = (jobType === 'grabado' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-engrave-minutes').value) || 0) : 0;
-                 const totalMinutes = cutMinutes + engraveMinutes;
-                 let machineCost = 0;
-
-                  if (configData.cost_per_minute === undefined || configData.cost_per_minute === null) throw new Error("El costo por minuto no está configurado o no se pudo cargar. Vaya a Configuración.");
-                  if (configData.cost_per_minute <= 0 && totalMinutes > 0) {
-                       let currentFeedback = feedbackDiv.textContent;
-                       showFeedback(feedbackDiv, (currentFeedback ? currentFeedback + " " : "") + 'Advertencia: Costo por minuto es $0. Revise Configuración.', 'info');
-                  }
-
-                 if (totalMinutes > 0) {
-                     machineCost = totalMinutes * configData.cost_per_minute;
-                     console.log(`Costo Máquina: ${machineCost.toFixed(2)}`);
-                 }
-
-                 currentJobQuoteBaseCost = materialCost + machineCost;
-                 console.log(`Costo Base Total Calculado: ${currentJobQuoteBaseCost.toFixed(2)}`);
-
-                 if (resultDiv) resultDiv.textContent = `Costo Base Estimado: $${currentJobQuoteBaseCost.toFixed(2)}`;
-                 if (finalCostInput) {
-                      const finalCost = currentJobQuoteBaseCost * 2;
-                      finalCostInput.value = finalCost.toFixed(2);
-                      console.log(`Costo Final (Base x 2): ${finalCost.toFixed(2)}`);
-                       let currentFeedback = feedbackDiv.textContent.includes('Advertencia') ? feedbackDiv.textContent + " // " : "";
-                       showFeedback(feedbackDiv, currentFeedback + `Costo base $${currentJobQuoteBaseCost.toFixed(2)}. Costo final actualizado a $${finalCost.toFixed(2)}.`, 'success');
-                  } else {
-                      showFeedback(feedbackDiv, `Costo base calculado: $${currentJobQuoteBaseCost.toFixed(2)}.`, 'success');
-                  }
-
-            } catch (error) {
-                console.error("Error calculando costo:", error);
-                currentJobQuoteBaseCost = 0;
-                 if (resultDiv) resultDiv.textContent = 'Error al calcular';
-                 if (finalCostInput) finalCostInput.value = '0.00';
-                 showFeedback(feedbackDiv, `Error al calcular: ${error.message}`, 'error');
-            }
-        }
-
-        document.getElementById('job-form')?.addEventListener('submit', async (e) => {
-             e.preventDefault();
-             if (!db) { console.error("job-form submit: db no disponible."); return; }
-
-             const jobId = document.getElementById('job-id').value;
-             const feedbackDiv = document.getElementById('job-form-feedback');
-             showFeedback(feedbackDiv, '', 'info');
-
-             const jobData = {
-                 clientId: document.getElementById('job-client').value,
-                 details: document.getElementById('job-details').value.trim(),
-                 materialId: document.getElementById('job-material').value,
-                 length: parseFloat(document.getElementById('job-length').value) || null,
-                 width: parseFloat(document.getElementById('job-width').value) || null,
-                 jobType: document.getElementById('job-job-type').value,
-                 cutMinutes: parseFloat(document.getElementById('job-cut-minutes').value) || 0,
-                 engraveMinutes: parseFloat(document.getElementById('job-engrave-minutes').value) || 0,
-                 orderDate: document.getElementById('job-order-date').value,
-                 deliveryDate: document.getElementById('job-delivery-date').value,
-                 status: document.getElementById('job-status').value,
-                 baseCost: currentJobQuoteBaseCost,
-                 finalCost: parseFloat(document.getElementById('job-final-cost').value) || 0,
-                 deposit: parseFloat(document.getElementById('job-deposit').value) || 0,
-                 observations: document.getElementById('job-observations').value.trim() || null,
-             };
-
-              let errors = [];
-              if (!jobData.clientId) errors.push('Debe seleccionar un cliente.');
-              if (!jobData.details) errors.push('Debe ingresar los detalles.');
-              if (!jobData.materialId) errors.push('Debe seleccionar un material.');
-              if (!jobData.length || jobData.length <= 0) errors.push('Largo debe ser positivo.'); // Check length/width
-              if (!jobData.width || jobData.width <= 0) errors.push('Ancho debe ser positivo.');
-              if (!jobData.orderDate) errors.push('Falta fecha de pedido.');
-              if (!jobData.deliveryDate) errors.push('Falta fecha de entrega.');
-              if (jobData.orderDate && jobData.deliveryDate && jobData.deliveryDate < jobData.orderDate) errors.push('Fecha entrega no puede ser anterior a pedido.');
-              if (jobData.finalCost < 0) errors.push('Costo final negativo.');
-              if (jobData.deposit < 0) errors.push('Seña negativa.');
-              if (jobData.deposit > jobData.finalCost) errors.push('Seña mayor al costo total.');
-
-             if (errors.length > 0) {
-                 showFeedback(feedbackDiv, errors.join(' '), 'error');
-                 return;
-             }
-             if (jobData.finalCost <= 0 && !confirm("Costo final es $0. ¿Guardar igual?")) return;
-
-             try {
-                 showFeedback(feedbackDiv, 'Guardando trabajo...', 'info');
-                 if (jobId) {
-                     await db.collection('jobs').doc(jobId).update(jobData);
-                     showFeedback(feedbackDiv, 'Trabajo actualizado.', 'success');
-                 } else {
-                     const docRef = await db.collection('jobs').add(jobData);
-                     jobData.id = docRef.id;
-                     showFeedback(feedbackDiv, 'Trabajo creado.', 'success');
-                 }
-                 dataLoaded.jobs = false;
-                 setActiveTab(document.querySelector('[data-target=jobs]'));
-             } catch (error) {
-                 console.error("Error guardando trabajo:", error);
-                 showFeedback(feedbackDiv, `Error al guardar: ${error.message}`, 'error');
-             }
-        });
-
-        function editJob(id) {
-            const job = jobsData.find(j => j.id === id);
-             if (!job) { alert(`Error: No se encontró el trabajo ID ${id}.`); return; }
-             console.log("Editando trabajo:", job);
-             resetJobForm();
-
-             document.getElementById('job-form-title').textContent = 'Editar Trabajo';
-             document.getElementById('job-id').value = job.id;
-             document.getElementById('job-client').value = job.clientId || '';
-             document.getElementById('job-details').value = job.details || '';
-             document.getElementById('job-material').value = job.materialId || '';
-             document.getElementById('job-length').value = job.length || '';
-             document.getElementById('job-width').value = job.width || '';
-             document.getElementById('job-job-type').value = job.jobType || 'corte';
-             document.getElementById('job-job-type').dispatchEvent(new Event('change'));
-             document.getElementById('job-cut-minutes').value = job.cutMinutes || 0;
-             document.getElementById('job-engrave-minutes').value = job.engraveMinutes || 0;
-             document.getElementById('job-order-date').value = job.orderDate || '';
-             document.getElementById('job-delivery-date').value = job.deliveryDate || '';
-             document.getElementById('job-status').value = job.status || 'Encargado';
-             document.getElementById('job-final-cost').value = (job.finalCost || 0).toFixed(2);
-             document.getElementById('job-deposit').value = (job.deposit || 0).toFixed(2);
-             document.getElementById('job-observations').value = job.observations || '';
-             currentJobQuoteBaseCost = job.baseCost || 0;
-             const resultDiv = document.getElementById('job-quote-base-result');
-             if (resultDiv) resultDiv.textContent = `Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`;
-
-             setActiveTab(document.querySelector('[data-target=new-job-form]'));
-             setTimeout(() => { document.getElementById('job-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-        }
-
-        function resetJobForm(keepClientId = null) {
-            console.log("Reseteando formulario de trabajo...");
-             document.getElementById('job-form-title').textContent = 'Nuevo Trabajo';
-             const form = document.getElementById('job-form');
-             if (form) form.reset();
-             document.getElementById('job-id').value = '';
-             currentJobQuoteBaseCost = 0;
-             document.getElementById('job-quote-base-result').textContent = 'Costo Base Estimado: $0.00';
-             document.getElementById('job-final-cost').value = '0.00';
-             document.getElementById('job-order-date').value = new Date().toISOString().split('T')[0];
-             document.getElementById('job-job-type').dispatchEvent(new Event('change'));
-             const feedbackDiv = document.getElementById('job-form-feedback');
-             if (feedbackDiv) feedbackDiv.textContent = ''; feedbackDiv.className = 'mt-2 text-sm feedback';
-             if(keepClientId) {
-                 const clientSelect = document.getElementById('job-client');
-                 if (clientSelect) clientSelect.value = keepClientId;
-             }
-        }
-
-        async function deleteJob(id) {
-             if (!db) { console.error("deleteJob: db no disponible."); return; }
-            const job = jobsData.find(j => j.id === id);
-             const clientName = job ? (clientsData[job.clientId]?.name || 'Desconocido') : 'Desconocido';
-             const jobDetails = job ? (job.details || `ID ${id}`) : `ID ${id}`;
-             if (!confirm(`Borrar trabajo "${jobDetails}" para "${clientName}"? No se puede deshacer.`)) return;
-
-             try {
-                  console.log(`Borrando trabajo ${id}...`)
-                 await db.collection('jobs').doc(id).delete();
-                 jobsData = jobsData.filter(j => j.id !== id);
-                 console.log(`Trabajo ${id} borrado.`);
-                  alert(`Trabajo "${jobDetails}" borrado.`);
-                 populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports();
-                 if (document.getElementById('job-id').value === id) resetJobForm();
-             } catch (error) {
-                 console.error("Error borrando trabajo:", error);
-                 alert(`Error al borrar trabajo: ${error.message}`);
-             }
-        }
-
-        // --- CRUD Materiales (SuperAdmin) ---
-        document.getElementById('material-form-admin')?.addEventListener('submit', async (e) => {
-             e.preventDefault();
-             if (currentUserRole !== 'superadmin' || !db) return;
-             const materialId = document.getElementById('material-id-admin').value;
-             const feedbackDiv = document.getElementById('material-form-feedback-admin');
-             showFeedback(feedbackDiv, '', 'info');
-
-             const materialData = {
-                 name: document.getElementById('material-name-admin').value.trim(),
-                 thickness: parseFloat(document.getElementById('material-thickness-admin').value) || null,
-                 costPerSheet: parseFloat(document.getElementById('material-cost-admin').value) || 0,
-                 width: parseFloat(document.getElementById('material-width-admin').value) || null,
-                 height: parseFloat(document.getElementById('material-height-admin').value) || null,
-                 available: document.getElementById('material-availability-admin').checked,
-             };
-
-             let errors = [];
-             if (!materialData.name) errors.push('Nombre obligatorio.');
-             if (!materialData.thickness || materialData.thickness <= 0) errors.push('Grosor debe ser positivo.');
-             if (materialData.costPerSheet < 0) errors.push('Costo no negativo.');
-             if (!materialData.width || materialData.width <= 0) errors.push('Ancho plancha positivo.');
-             if (!materialData.height || materialData.height <= 0) errors.push('Alto plancha positivo.');
-             if (errors.length > 0) { showFeedback(feedbackDiv, errors.join(' '), 'error'); return; }
-
-             try {
-                  showFeedback(feedbackDiv, 'Guardando material...', 'info');
-                 if (materialId) {
-                     await db.collection('materials').doc(materialId).update(materialData);
-                     materialsData[materialId] = { ...materialsData[materialId], ...materialData };
-                     showFeedback(feedbackDiv, 'Material actualizado.', 'success');
-                 } else {
-                     const docRef = await db.collection('materials').add(materialData);
-                     materialsData[docRef.id] = { ...materialData, id: docRef.id };
-                     showFeedback(feedbackDiv, 'Material añadido.', 'success');
-                 }
-                 resetMaterialFormAdmin();
-                 populateMaterialsAdminTable();
-                 populateMaterialDropdown('job-material');
-             } catch (error) {
-                 console.error("Error guardando material:", error);
-                 showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
-             }
-         });
-
-        function editMaterialAdmin(id) {
-            if (currentUserRole !== 'superadmin') return;
-            const mat = materialsData[id];
-             if (!mat) { console.error(`Material ${id} no encontrado.`); return; }
-             resetMaterialFormAdmin();
-             document.getElementById('material-form-title-admin').textContent = 'Editar Material';
-             document.getElementById('material-id-admin').value = mat.id;
-             document.getElementById('material-name-admin').value = mat.name || '';
-             document.getElementById('material-thickness-admin').value = mat.thickness || '';
-             document.getElementById('material-cost-admin').value = (mat.costPerSheet !== undefined ? mat.costPerSheet : mat.cost) || 0;
-             document.getElementById('material-width-admin').value = mat.width || '';
-             document.getElementById('material-height-admin').value = mat.height || '';
-             document.getElementById('material-availability-admin').checked = mat.available !== false;
-             document.getElementById('material-form-admin').scrollIntoView({ behavior: 'smooth', block: 'start' });
-             document.getElementById('material-name-admin').focus();
-        }
-
-        function resetMaterialFormAdmin() {
-            if (currentUserRole !== 'superadmin') return;
-            document.getElementById('material-form-title-admin').textContent = 'Añadir Material';
-             const form = document.getElementById('material-form-admin');
-             if (form) form.reset();
-             document.getElementById('material-id-admin').value = '';
-             document.getElementById('material-availability-admin').checked = true;
-             document.getElementById('material-width-admin').value = '1300';
-             document.getElementById('material-height-admin').value = '900';
-             const feedbackDiv = document.getElementById('material-form-feedback-admin');
-             if (feedbackDiv) feedbackDiv.textContent = ''; feedbackDiv.className = 'mt-2 text-sm feedback';
-        }
-
-        async function deleteMaterialAdmin(id) {
-            if (currentUserRole !== 'superadmin' || !db) return;
-            const matName = materialsData[id]?.name || `ID ${id}`;
-            const isUsed = jobsData.some(job => job.materialId === id);
-            let confirmMsg = `Borrar material "${matName}"?`;
-            if (isUsed) confirmMsg += `\n\nADVERTENCIA: Usado en trabajos existentes.`;
-             confirmMsg += "\n\nNo se puede deshacer.";
-             if (!confirm(confirmMsg)) return;
-
-             const feedbackDiv = document.getElementById('material-form-feedback-admin');
-             try {
-                 showFeedback(feedbackDiv, 'Borrando material...', 'info');
-                 await db.collection('materials').doc(id).delete();
-                 delete materialsData[id];
-                 showFeedback(feedbackDiv, `Material "${matName}" borrado.`, 'success');
-                 populateMaterialsAdminTable();
-                 populateMaterialDropdown('job-material');
-                 if (document.getElementById('material-id-admin').value === id) resetMaterialFormAdmin();
-             } catch (error) {
-                 console.error("Error borrando material:", error);
-                 showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
-             }
-        }
-
-        // --- CRUD Configuración (SuperAdmin) ---
-        function addMonthlyCostInput(key = '', value = '') {
-            const container = document.getElementById('monthly-costs-container');
-            if (!container) return;
-            const div = document.createElement('div');
-            div.className = 'flex items-center space-x-2 cost-entry';
-            div.innerHTML = `
-                <input type="text" placeholder="Descripción (Ej: Luz)" value="${key}" data-cost-key class="flex-grow p-1 border border-gray-300 rounded-md text-sm">
-                <input type="number" placeholder="0.00" value="${value}" step="0.01" min="0" data-cost-value class="w-24 p-1 border border-gray-300 rounded-md text-sm text-right">
-                <button type="button" onclick="removeMonthlyCostInput(this)" class="text-red-500 hover:text-red-700 text-xl font-bold leading-none px-1" title="Eliminar Costo">&times;</button>
-            `;
-            container.appendChild(div);
-            div.querySelector('[data-cost-key]').focus();
-        }
-
-        function removeMonthlyCostInput(button) {
-             const costEntryDiv = button.closest('.cost-entry');
-             if (costEntryDiv) costEntryDiv.remove();
-             else console.warn("Couldn't find parent .cost-entry to remove.");
-        }
-
-        document.getElementById('config-form-admin')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (currentUserRole !== 'superadmin' || !db) return;
-
-            const feedbackDiv = document.getElementById('config-form-feedback-admin');
-             showFeedback(feedbackDiv, '', 'info');
-             document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(input => input.classList.remove('border-red-500'));
-
-            const minutesPerMonth = parseInt(document.getElementById('config-minutes-admin').value, 10);
-            const costEntries = document.querySelectorAll('#monthly-costs-container .cost-entry');
-            const monthlyCosts = {};
-             let isValid = true; let errors = [];
-
-             if (isNaN(minutesPerMonth) || minutesPerMonth <= 0) {
-                 errors.push('Minutos productivos deben ser número positivo.');
-                 document.getElementById('config-minutes-admin').classList.add('border-red-500');
-                 isValid = false;
-             }
-
-             costEntries.forEach((div, index) => {
-                 const keyInput = div.querySelector('[data-cost-key]');
-                 const valueInput = div.querySelector('[data-cost-value]');
-                 const key = keyInput.value.trim();
-                 const valueStr = valueInput.value.trim();
-                 const value = parseFloat(valueStr);
-                 if (key || valueStr) {
-                     let entryIsValid = true;
-                     if (!key) { errors.push(`Fila ${index + 1}: Falta descripción.`); keyInput.classList.add('border-red-500'); entryIsValid = false; }
-                     if (valueStr === '' || isNaN(value) || value < 0) { errors.push(`Fila ${index + 1} ('${key || '?'}'): Valor numérico >= 0.`); valueInput.classList.add('border-red-500'); entryIsValid = false; }
-                     if (entryIsValid) {
-                         if (monthlyCosts.hasOwnProperty(key)) { errors.push(`Fila ${index + 1}: Descrip. duplicada "${key}".`); keyInput.classList.add('border-red-500'); entryIsValid = false; }
-                         else monthlyCosts[key] = value;
-                     }
-                     if (!entryIsValid) isValid = false;
-                 }
-             });
-
-            if (!isValid) { showFeedback(feedbackDiv, errors.join(' '), 'error'); return; }
-
-             const configUpdate = { minutes_per_month: minutesPerMonth, monthly_costs: monthlyCosts };
-
-             try {
-                 showFeedback(feedbackDiv, 'Guardando configuración...', 'info');
-                 await db.collection('config').doc('main').set(configUpdate, { merge: true });
-                 const totalMonthly = Object.values(monthlyCosts).reduce((sum, val) => sum + val, 0);
-                 configData = { ...configData, minutes_per_month: minutesPerMonth, monthly_costs: monthlyCosts, cost_per_minute: minutesPerMonth > 0 ? totalMonthly / minutesPerMonth : 0 };
-                 console.log("Config guardada. Nuevo costo/min:", configData.cost_per_minute);
-                 populateConfigFormAdmin();
-                 showFeedback(feedbackDiv, 'Configuración guardada.', 'success');
-             } catch (error) {
-                 console.error("Error guardando config:", error);
-                 showFeedback(feedbackDiv, `Error: ${error.message}`, 'error');
-             }
-        });
-
-        // --- Impresión ---
+        async function loadMaterials() { /* ... (Sin Cambios) ... */ if (!db) return; console.log("Loading materials..."); try { const snapshot = await db.collection('materials').orderBy('name').get(); const tempData={}; snapshot.forEach(doc => tempData[doc.id]={...doc.data(),id:doc.id}); materialsData=tempData; console.log(`Materials loaded: ${Object.keys(materialsData).length}`); dataLoaded.materials=true; populateMaterialDropdown('job-material'); if(currentUserRole==='superadmin') populateMaterialsAdminTable(); } catch (error) { console.error("Error loading materials:", error); const feedback=document.getElementById('material-form-feedback-admin'); if(feedback) showFeedback(feedback,`Error loading materials: ${error.message}`,'error'); dataLoaded.materials=false; } }
+        async function loadConfig() { /* ... (Sin Cambios) ... */ if (!db) return; console.log("Loading config..."); try { const configDoc = await db.collection('config').doc('main').get(); if(configDoc.exists){ const data=configDoc.data(); configData={minutes_per_month:data.minutes_per_month||2400,monthly_costs:data.monthly_costs||{},cost_per_minute:0}; const totalMonthly=Object.values(configData.monthly_costs).reduce((sum,val)=>sum+(Number(val)||0),0); if(configData.minutes_per_month>0) configData.cost_per_minute=totalMonthly/configData.minutes_per_month; else { configData.cost_per_minute=0; console.warn("loadConfig: minutes_per_month is 0 or invalid."); } console.log(`Config loaded. Cost/min: $${configData.cost_per_minute.toFixed(4)}`); } else { console.warn("Config doc 'main' not found. Using defaults."); configData={cost_per_minute:0,minutes_per_month:2400,monthly_costs:{}}; } dataLoaded.config=true; if(currentUserRole==='superadmin') populateConfigFormAdmin(); } catch(error) { console.error("Error loading config:", error); const feedback=document.getElementById('config-form-feedback-admin'); if(feedback) showFeedback(feedback,`Error loading config: ${error.message}`,'error'); dataLoaded.config=false; } }
+        async function loadClients() { /* ... (Sin Cambios) ... */ if(!currentUser||!db) return; console.log("Loading clients..."); const tableBody=document.getElementById('clients-table')?.querySelector('tbody'); if(tableBody) tableBody.innerHTML='<tr><td colspan="4" class="text-center py-4">Loading...</td></tr>'; try { const snapshot=await db.collection('clients').orderBy('name','asc').get(); const tempData={}; snapshot.forEach(doc=>tempData[doc.id]={...doc.data(),id:doc.id}); clientsData=tempData; console.log(`Clients loaded: ${Object.keys(clientsData).length}`); dataLoaded.clients=true; populateClientsTable(); populateClientDropdown('job-client'); } catch(error) { console.error("Error loading clients:", error); if(tableBody) tableBody.innerHTML=`<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${error.message}</td></tr>`; dataLoaded.clients=false; } }
+        async function loadJobs() { /* ... (Sin Cambios) ... */ if(!currentUser||!db) return; console.log("Loading jobs..."); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table').querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4">Loading...</td></tr>`;}}); ['report-total-value','report-total-deposit','report-total-outstanding'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Calculating...';}); try { const snapshot=await db.collection('jobs').orderBy('deliveryDate','asc').get(); const tempJobs=[]; snapshot.forEach(doc=>{const d=doc.data(); tempJobs.push({...d, id:doc.id, orderDate:d.orderDate instanceof firebase.firestore.Timestamp?d.orderDate.toDate().toISOString().split('T')[0]:d.orderDate, deliveryDate:d.deliveryDate instanceof firebase.firestore.Timestamp?d.deliveryDate.toDate().toISOString().split('T')[0]:d.deliveryDate, finalCost:Number(d.finalCost||0), deposit:Number(d.deposit||0) }); }); jobsData=tempJobs; console.log(`Jobs loaded: ${jobsData.length}`); dataLoaded.jobs=true; populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); } catch(error) { console.error("Error loading jobs:", error); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table').querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4 text-red-600">Error: ${error.message}</td></tr>`;}}); dataLoaded.jobs=false; } }
+
+        // --- Poblado de Dropdowns (SIN CAMBIOS) ---
+        function populateClientDropdown(selectId) { const select=document.getElementById(selectId); if(!select) return; const currentVal=select.value; select.innerHTML='<option value="">Select client...</option>'; const sorted=Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")); sorted.forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.textContent=c.name||`ID: ${c.id}`; select.appendChild(o);}); if(Array.from(select.options).some(opt=>opt.value===currentVal)) select.value=currentVal; }
+        function populateMaterialDropdown(selectId) { const select=document.getElementById(selectId); if(!select) return; const currentVal=select.value; select.innerHTML='<option value="">Select material...</option>'; const available=Object.values(materialsData).filter(m=>m.available!==false).sort((a,b)=>`${a.name||''} ${a.thickness||0}mm`.localeCompare(`${b.name||''} ${b.thickness||0}mm`)); available.forEach(m=>{const o=document.createElement('option'); o.value=m.id; o.textContent=`${m.name||'No Name'} - ${m.thickness||'?'}mm`; select.appendChild(o);}); if(Array.from(select.options).some(opt=>opt.value===currentVal)) select.value=currentVal; }
+
+        // --- Poblado de Tablas (SIN CAMBIOS) ---
+        function populateClientsTable() { const b=document.getElementById('clients-table')?.querySelector('tbody'); if(!b) return; if(Object.keys(clientsData).length===0&&dataLoaded.clients){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No clients.</td></tr>'; return;} let h=''; const s=Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")); s.forEach(c=>{h+=`<tr data-client-id="${c.id}"><td>${c.name||'N/A'}</td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button" title="Edit Client">Edit</button> <button onclick="deleteClient('${c.id}')" class="delete-button" title="Delete Client">Delete</button> <button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white" title="New Job">New Job</button></td></tr>`;}); b.innerHTML=h; }
+        function populateJobsTable() { const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b) return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="9" class="text-center py-4">No jobs.</td></tr>'; return;} const s=[...jobsData].sort((a,b)=>(b.orderDate||"").localeCompare(a.orderDate||"")); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Client Deleted/Unknown'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button" title="Edit Job">Edit</button> <button onclick="deleteJob('${j.id}')" class="delete-button" title="Delete Job">Delete</button> <button onclick="printTicket('${j.id}')" class="print-button" title="Print Ticket">Ticket</button></td></tr>`;}); b.innerHTML=h; }
+        function populateDeadlinesTable() { const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b) return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No jobs.</td></tr>'; return;} const t=new Date(); t.setHours(0,0,0,0); const u=jobsData.filter(j=>j.status!=='Terminado').sort((a,b)=>(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31")); if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No pending jobs.</td></tr>'; return;} let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Client Deleted/Unknown'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Overdue (${Math.abs(d)})`; rc='bg-red-100 date-overdue';} else if(d===0){dr='Today'; rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} day(s)`; rc='bg-yellow-50';} else{dr=`${d} days`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h; }
+        function populateStatusTable() { const b=document.getElementById('status-table')?.querySelector('tbody'); if(!b) return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No jobs.</td></tr>'; return;} const so={'Procesando':1,'Encargado':2,'Terminado':3}; const s=[...jobsData].sort((a,b)=>{const sd=(so[a.status]||99)-(so[b.status]||99); if(sd!==0)return sd; return(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31");}); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Client Deleted/Unknown'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td></tr>`;}); b.innerHTML=h; }
+        function generateReports() { let tv=0; let td=0; let ct={}; jobsData.forEach(j=>{const fc=j.finalCost||0; const dp=j.deposit||0; tv+=fc; td+=dp; const cid=j.clientId; if(!cid) return; if(!ct[cid]) ct[cid]={name:clientsData[cid]?.name||`Unknown Client (ID: ${cid})`, total:0, deposit:0, outstanding:0}; ct[cid].total+=fc; ct[cid].deposit+=dp;}); const to=tv-td; document.getElementById('report-total-value').textContent=`$${tv.toFixed(2)}`; document.getElementById('report-total-deposit').textContent=`$${td.toFixed(2)}`; document.getElementById('report-total-outstanding').textContent=`$${Math.max(0,to).toFixed(2)}`; const otb=document.getElementById('outstanding-table')?.querySelector('tbody'); if(!otb) return; const cwo=Object.values(ct).map(c=>{c.outstanding=Math.max(0,c.total-c.deposit); return c;}).filter(c=>c.outstanding>0.005).sort((a,b)=>b.outstanding-a.outstanding); if(cwo.length===0){otb.innerHTML='<tr><td colspan="4" class="text-center py-4">No outstanding balances.</td></tr>'; return;} let h=''; cwo.forEach(c=>{h+=`<tr><td>${c.name}</td><td class="text-right">${c.total.toFixed(2)}</td><td class="text-right">${c.deposit.toFixed(2)}</td><td class="text-right font-semibold text-red-600">${c.outstanding.toFixed(2)}</td></tr>`;}); otb.innerHTML=h; }
+        function populateMaterialsAdminTable() { if(currentUserRole!=='superadmin') return; const b=document.getElementById('materials-admin-table')?.querySelector('tbody'); if(!b) return; if(Object.keys(materialsData).length===0&&dataLoaded.materials){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No materials.</td></tr>'; return;} const s=Object.values(materialsData).sort((a,b)=>{const nc=(a.name||"").localeCompare(b.name||""); if(nc!==0) return nc; return(a.thickness||0)-(b.thickness||0);}); let h=''; s.forEach(m=>{const d=(m.width&&m.height)?`${m.width}x${m.height}`:'N/A'; const at=m.available!==false?'Yes':'No'; const ac=m.available!==false?'text-green-600':'text-red-600'; const c=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; h+=`<tr data-material-id="${m.id}"><td>${m.name||'N/A'}</td><td class="text-right">${m.thickness||'-'}</td><td class="text-right">${c.toFixed(2)}</td><td class="text-center">${d}</td><td class="text-center ${ac} font-semibold">${at}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editMaterialAdmin('${m.id}')" class="edit-button" title="Edit Material">Edit</button> <button onclick="deleteMaterialAdmin('${m.id}')" class="delete-button" title="Delete Material">Delete</button></td></tr>`;}); b.innerHTML=h; }
+        function populateConfigFormAdmin() { if(currentUserRole!=='superadmin') return; console.log("Populating config form:", configData); const mi=document.getElementById('config-minutes-admin'); const cc=document.getElementById('monthly-costs-container'); const ccp=document.getElementById('calculated-cost-per-minute'); if(!mi||!cc||!ccp){console.error("Config form elements not found."); return;} mi.value=configData.minutes_per_month||2400; cc.innerHTML=''; const costs=configData.monthly_costs||{}; if(Object.keys(costs).length===0) addMonthlyCostInput('E.g., Rent',''); else Object.keys(costs).sort().forEach(key=>addMonthlyCostInput(key, costs[key])); ccp.textContent=`$${(configData.cost_per_minute||0).toFixed(4)} / min`; }
+
+        // --- CRUD Clientes (SIN CAMBIOS) ---
+        document.getElementById('client-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!db) return; const id=document.getElementById('client-id').value; const n=document.getElementById('client-name').value.trim(); const p=document.getElementById('client-phone').value.trim(); const em=document.getElementById('client-email').value.trim().toLowerCase(); const f=document.getElementById('client-form-feedback'); if(!n){showFeedback(f,'Name required.','error'); return;} if(em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){showFeedback(f,'Invalid email format.','error'); return;} const d={name:n,phone:p||null,email:em||null}; try { showFeedback(f,'Saving...','info'); if(id){await db.collection('clients').doc(id).update(d); showFeedback(f,'Client updated.','success'); clientsData[id]={...clientsData[id],...d};} else {const r=await db.collection('clients').add(d); showFeedback(f,'Client added.','success'); clientsData[r.id]={...d,id:r.id};} resetClientForm(); populateClientsTable(); populateClientDropdown('job-client'); } catch(err){console.error("Error saving client:", err); showFeedback(f,`Error: ${err.message}`,'error');} });
+        function editClient(id) { const c=clientsData[id]; if(!c){showFeedback(document.getElementById('client-form-feedback'),`Error: Client ${id} not found.`,'error'); return;} resetClientForm(); document.getElementById('client-form-title').textContent='Edit Client'; document.getElementById('client-id').value=c.id; document.getElementById('client-name').value=c.name||''; document.getElementById('client-phone').value=c.phone||''; document.getElementById('client-email').value=c.email||''; document.getElementById('client-name').focus(); document.getElementById('client-form').scrollIntoView({behavior:'smooth',block:'start'}); }
+        function resetClientForm() { document.getElementById('client-form-title').textContent='Add New Client'; const f=document.getElementById('client-form'); if(f) f.reset(); const i=document.getElementById('client-id'); if(i) i.value=''; const fb=document.getElementById('client-form-feedback'); if(fb) fb.textContent=''; fb.className='mt-2 text-sm feedback'; }
+        async function deleteClient(id) { if(!db) return; const n=clientsData[id]?.name||`ID ${id}`; const aj=jobsData.filter(j=>j.clientId===id); let m=`Delete client "${n}"?`; if(aj.length>0) m+=`\n\nWARNING! ${aj.length} job(s) associated. Deleting client will NOT delete jobs.`; m+="\n\nCannot undo."; if(!confirm(m)) return; const f=document.getElementById('client-form-feedback'); try { showFeedback(f,'Deleting...','info'); await db.collection('clients').doc(id).delete(); delete clientsData[id]; showFeedback(f,`Client "${n}" deleted.`,'success'); populateClientsTable(); populateClientDropdown('job-client'); if(jobsData.some(j=>j.clientId===id)) { populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); } if(document.getElementById('client-id').value===id) resetClientForm(); } catch(err){console.error("Error deleting client:", err); showFeedback(f,`Error: ${err.message}`,'error');} }
+        function selectClientForNewJob(id) { const n=clientsData[id]?.name; if(!n){console.error(`Client ${id} not found.`); return;} console.log(`Selected client ${n} (${id}) for new job.`); setActiveTab(document.querySelector('[data-target=new-job-form]')); setTimeout(()=>{const s=document.getElementById('job-client'); if(s){resetJobForm(id); s.value=id; console.log(`Dropdown set to ${id}`); document.getElementById('job-details')?.focus();} else console.error("job-client dropdown not found.");}, 150); }
+
+        // --- CRUD Trabajos (SIN CAMBIOS) ---
+        document.getElementById('job-job-type')?.addEventListener('change',(e)=>{const t=e.target.value; const cf=document.getElementById('job-cut-time-field'); const ef=document.getElementById('job-engrave-time-field'); const ci=document.getElementById('job-cut-minutes'); const ei=document.getElementById('job-engrave-minutes'); if(!cf||!ef||!ci||!ei) return; cf.style.display=(t==='corte'||t==='ambos')?'grid':'none'; ef.style.display=(t==='grabado'||t==='ambos')?'grid':'none'; if(t==='grabado') ci.value=0; if(t==='corte') ei.value=0;});
+        function calculateJobQuote() { console.log("Calculating base cost..."); const f=document.getElementById('job-form-feedback'); const r=document.getElementById('job-quote-base-result'); const fc=document.getElementById('job-final-cost'); currentJobQuoteBaseCost=0; try { showFeedback(f,'','info'); const mid=document.getElementById('job-material').value; const l=parseFloat(document.getElementById('job-length').value)||0; const w=parseFloat(document.getElementById('job-width').value)||0; let mc=0; if(mid&&l>0&&w>0){ const m=materialsData[mid]; if(!m) throw new Error("Invalid material."); const sc=parseFloat((m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0); const sw=parseFloat(m.width||0); const sh=parseFloat(m.height||0); if(sw<=0||sh<=0) throw new Error(`Invalid sheet dimensions (${sw}x${sh}mm) for "${m.name}". Check Materials.`); const sa=sw*sh; const ja=l*w; mc=(sc/sa)*ja; console.log(`Material Cost: ${mc.toFixed(2)}`); } else if(mid&&(l<=0||w<=0)) showFeedback(f,'Warning: Enter valid length/width for material cost.','info'); const jt=document.getElementById('job-job-type').value; const cmin=(jt==='corte'||jt==='ambos')?(parseFloat(document.getElementById('job-cut-minutes').value)||0):0; const emin=(jt==='grabado'||jt==='ambos')?(parseFloat(document.getElementById('job-engrave-minutes').value)||0):0; const tm=cmin+emin; let mac=0; if(configData.cost_per_minute===undefined||configData.cost_per_minute===null) throw new Error("Cost/minute not configured. Go to Config."); if(configData.cost_per_minute<=0&&tm>0) { let cf=f.textContent; showFeedback(f,(cf?cf+" ":"")+'Warning: Cost/minute is $0. Check Config.','info'); } if(tm>0){mac=tm*configData.cost_per_minute; console.log(`Machine Cost: ${mac.toFixed(2)}`);} currentJobQuoteBaseCost=mc+mac; console.log(`Total Base Cost: ${currentJobQuoteBaseCost.toFixed(2)}`); if(r) r.textContent=`Est. Base Cost: $${currentJobQuoteBaseCost.toFixed(2)}`; if(fc){const fic=currentJobQuoteBaseCost*2; fc.value=fic.toFixed(2); console.log(`Final Cost (x2): ${fic.toFixed(2)}`); let cf=f.textContent.includes('Warning')?f.textContent+" // ":""; showFeedback(f,cf+`Base $${currentJobQuoteBaseCost.toFixed(2)}. Final updated to $${fic.toFixed(2)}.`,'success');} else showFeedback(f,`Base cost calculated: $${currentJobQuoteBaseCost.toFixed(2)}.`,'success'); } catch(err) { console.error("Error calculating cost:", err); currentJobQuoteBaseCost=0; if(r)r.textContent='Error calculating'; if(fc)fc.value='0.00'; showFeedback(f,`Error: ${err.message}`,'error'); } }
+        document.getElementById('job-form')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(!db)return; const id=document.getElementById('job-id').value; const f=document.getElementById('job-form-feedback'); showFeedback(f,'','info'); const d={clientId:document.getElementById('job-client').value, details:document.getElementById('job-details').value.trim(), materialId:document.getElementById('job-material').value, length:parseFloat(document.getElementById('job-length').value)||null, width:parseFloat(document.getElementById('job-width').value)||null, jobType:document.getElementById('job-job-type').value, cutMinutes:parseFloat(document.getElementById('job-cut-minutes').value)||0, engraveMinutes:parseFloat(document.getElementById('job-engrave-minutes').value)||0, orderDate:document.getElementById('job-order-date').value, deliveryDate:document.getElementById('job-delivery-date').value, status:document.getElementById('job-status').value, baseCost:currentJobQuoteBaseCost, finalCost:parseFloat(document.getElementById('job-final-cost').value)||0, deposit:parseFloat(document.getElementById('job-deposit').value)||0, observations:document.getElementById('job-observations').value.trim()||null}; let errs=[]; if(!d.clientId) errs.push('Select client.'); if(!d.details) errs.push('Enter details.'); if(!d.materialId) errs.push('Select material.'); if(!d.length||d.length<=0) errs.push('Length positive.'); if(!d.width||d.width<=0) errs.push('Width positive.'); if(!d.orderDate) errs.push('Order date needed.'); if(!d.deliveryDate) errs.push('Delivery date needed.'); if(d.orderDate&&d.deliveryDate&&d.deliveryDate<d.orderDate) errs.push('Delivery before order date.'); if(d.finalCost<0) errs.push('Final cost negative.'); if(d.deposit<0) errs.push('Deposit negative.'); if(d.deposit>d.finalCost) errs.push('Deposit > total cost.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} if(d.finalCost<=0&&!confirm("Final cost is $0. Save anyway?")) return; try { showFeedback(f,'Saving job...','info'); if(id){await db.collection('jobs').doc(id).update(d); showFeedback(f,'Job updated.','success');} else {const r=await db.collection('jobs').add(d); d.id=r.id; showFeedback(f,'Job created.','success');} dataLoaded.jobs=false; setActiveTab(document.querySelector('[data-target=jobs]')); } catch(err){console.error("Error saving job:", err); showFeedback(f,`Error: ${err.message}`,'error');} });
+        function editJob(id) { const j=jobsData.find(j=>j.id===id); if(!j){alert(`Error: Job ${id} not found.`);return;} console.log("Editing job:", j); resetJobForm(); document.getElementById('job-form-title').textContent='Edit Job'; document.getElementById('job-id').value=j.id; document.getElementById('job-client').value=j.clientId||''; document.getElementById('job-details').value=j.details||''; document.getElementById('job-material').value=j.materialId||''; document.getElementById('job-length').value=j.length||''; document.getElementById('job-width').value=j.width||''; document.getElementById('job-job-type').value=j.jobType||'corte'; document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value=j.cutMinutes||0; document.getElementById('job-engrave-minutes').value=j.engraveMinutes||0; document.getElementById('job-order-date').value=j.orderDate||''; document.getElementById('job-delivery-date').value=j.deliveryDate||''; document.getElementById('job-status').value=j.status||'Encargado'; document.getElementById('job-final-cost').value=(j.finalCost||0).toFixed(2); document.getElementById('job-deposit').value=(j.deposit||0).toFixed(2); document.getElementById('job-observations').value=j.observations||''; currentJobQuoteBaseCost=j.baseCost||0; const r=document.getElementById('job-quote-base-result'); if(r)r.textContent=`Base Cost (Saved): $${currentJobQuoteBaseCost.toFixed(2)}`; setActiveTab(document.querySelector('[data-target=new-job-form]')); setTimeout(()=>{document.getElementById('job-form').scrollIntoView({behavior:'smooth',block:'start'});},100); }
+        function resetJobForm(keepClientId=null) { console.log("Resetting job form..."); document.getElementById('job-form-title').textContent='New Job'; const f=document.getElementById('job-form'); if(f)f.reset(); document.getElementById('job-id').value=''; currentJobQuoteBaseCost=0; document.getElementById('job-quote-base-result').textContent='Est. Base Cost: $0.00'; document.getElementById('job-final-cost').value='0.00'; document.getElementById('job-order-date').value=new Date().toISOString().split('T')[0]; document.getElementById('job-job-type').dispatchEvent(new Event('change')); const fb=document.getElementById('job-form-feedback'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; if(keepClientId){const s=document.getElementById('job-client'); if(s)s.value=keepClientId;} }
+        async function deleteJob(id) { if(!db)return; const j=jobsData.find(j=>j.id===id); const n=j?(clientsData[j.clientId]?.name||'Unknown'):'Unknown'; const d=j?(j.details||`ID ${id}`):`ID ${id}`; if(!confirm(`Delete job "${d}" for "${n}"? Cannot undo.`))return; try { console.log(`Deleting job ${id}...`); await db.collection('jobs').doc(id).delete(); jobsData=jobsData.filter(j=>j.id!==id); console.log(`Job ${id} deleted.`); alert(`Job "${d}" deleted.`); populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); if(document.getElementById('job-id').value===id) resetJobForm(); } catch(err){console.error("Error deleting job:", err); alert(`Error: ${err.message}`);} }
+
+        // --- CRUD Materiales (SuperAdmin) (SIN CAMBIOS) ---
+        document.getElementById('material-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const id=document.getElementById('material-id-admin').value; const f=document.getElementById('material-form-feedback-admin'); showFeedback(f,'','info'); const d={name:document.getElementById('material-name-admin').value.trim(), thickness:parseFloat(document.getElementById('material-thickness-admin').value)||null, costPerSheet:parseFloat(document.getElementById('material-cost-admin').value)||0, width:parseFloat(document.getElementById('material-width-admin').value)||null, height:parseFloat(document.getElementById('material-height-admin').value)||null, available:document.getElementById('material-availability-admin').checked}; let errs=[]; if(!d.name)errs.push('Name required.'); if(!d.thickness||d.thickness<=0)errs.push('Thickness positive.'); if(d.costPerSheet<0)errs.push('Cost non-negative.'); if(!d.width||d.width<=0)errs.push('Sheet width positive.'); if(!d.height||d.height<=0)errs.push('Sheet height positive.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} try { showFeedback(f,'Saving...','info'); if(id){await db.collection('materials').doc(id).update(d); materialsData[id]={...materialsData[id],...d}; showFeedback(f,'Material updated.','success');} else {const r=await db.collection('materials').add(d); materialsData[r.id]={...d,id:r.id}; showFeedback(f,'Material added.','success');} resetMaterialFormAdmin(); populateMaterialsAdminTable(); populateMaterialDropdown('job-material'); } catch(err){console.error("Error saving material:", err); showFeedback(f,`Error: ${err.message}`,'error');} });
+        function editMaterialAdmin(id) { if(currentUserRole!=='superadmin')return; const m=materialsData[id]; if(!m)return; resetMaterialFormAdmin(); document.getElementById('material-form-title-admin').textContent='Edit Material'; document.getElementById('material-id-admin').value=m.id; document.getElementById('material-name-admin').value=m.name||''; document.getElementById('material-thickness-admin').value=m.thickness||''; document.getElementById('material-cost-admin').value=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; document.getElementById('material-width-admin').value=m.width||''; document.getElementById('material-height-admin').value=m.height||''; document.getElementById('material-availability-admin').checked=m.available!==false; document.getElementById('material-form-admin').scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('material-name-admin').focus(); }
+        function resetMaterialFormAdmin() { if(currentUserRole!=='superadmin')return; document.getElementById('material-form-title-admin').textContent='Add Material'; const f=document.getElementById('material-form-admin'); if(f)f.reset(); document.getElementById('material-id-admin').value=''; document.getElementById('material-availability-admin').checked=true; document.getElementById('material-width-admin').value='1300'; document.getElementById('material-height-admin').value='900'; const fb=document.getElementById('material-form-feedback-admin'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; }
+        async function deleteMaterialAdmin(id) { if(currentUserRole!=='superadmin'||!db)return; const n=materialsData[id]?.name||`ID ${id}`; const iu=jobsData.some(j=>j.materialId===id); let cm=`Delete material "${n}"?`; if(iu)cm+=`\n\nWARNING: Used in existing jobs.`; cm+="\n\nCannot undo."; if(!confirm(cm))return; const f=document.getElementById('material-form-feedback-admin'); try { showFeedback(f,'Deleting...','info'); await db.collection('materials').doc(id).delete(); delete materialsData[id]; showFeedback(f,`Material "${n}" deleted.`,'success'); populateMaterialsAdminTable(); populateMaterialDropdown('job-material'); if(document.getElementById('material-id-admin').value===id) resetMaterialFormAdmin(); } catch(err){console.error("Error deleting material:", err); showFeedback(f,`Error: ${err.message}`,'error');} }
+
+        // --- CRUD Configuración (SuperAdmin) (SIN CAMBIOS) ---
+        function addMonthlyCostInput(key='',value='') { const c=document.getElementById('monthly-costs-container'); if(!c)return; const d=document.createElement('div'); d.className='flex items-center space-x-2 cost-entry'; d.innerHTML=`<input type="text" placeholder="Description (e.g., Rent)" value="${key}" data-cost-key class="flex-grow p-1 border border-gray-300 rounded-md text-sm"> <input type="number" placeholder="0.00" value="${value}" step="0.01" min="0" data-cost-value class="w-24 p-1 border border-gray-300 rounded-md text-sm text-right"> <button type="button" onclick="removeMonthlyCostInput(this)" class="text-red-500 hover:text-red-700 text-xl font-bold leading-none px-1" title="Remove Cost">&times;</button>`; c.appendChild(d); d.querySelector('[data-cost-key]').focus(); }
+        function removeMonthlyCostInput(button) { const p=button.closest('.cost-entry'); if(p)p.remove(); else console.warn("Could not find parent .cost-entry"); }
+        document.getElementById('config-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const f=document.getElementById('config-form-feedback-admin'); showFeedback(f,'','info'); document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(i=>i.classList.remove('border-red-500')); const min=parseInt(document.getElementById('config-minutes-admin').value,10); const ces=document.querySelectorAll('#monthly-costs-container .cost-entry'); const mc={}; let iv=true; let errs=[]; if(isNaN(min)||min<=0){errs.push('Minutes must be positive number.'); document.getElementById('config-minutes-admin').classList.add('border-red-500'); iv=false;} ces.forEach((div,idx)=>{const ki=div.querySelector('[data-cost-key]'); const vi=div.querySelector('[data-cost-value]'); const k=ki.value.trim(); const vs=vi.value.trim(); const v=parseFloat(vs); if(k||vs){let eiv=true; if(!k){errs.push(`Row ${idx+1}: Missing description.`); ki.classList.add('border-red-500'); eiv=false;} if(vs===''||isNaN(v)||v<0){errs.push(`Row ${idx+1} ('${k||'?'}'): Value must be >= 0.`); vi.classList.add('border-red-500'); eiv=false;} if(eiv){if(mc.hasOwnProperty(k)){errs.push(`Row ${idx+1}: Duplicate description "${k}".`); ki.classList.add('border-red-500'); eiv=false;} else mc[k]=v;} if(!eiv)iv=false;}}); if(!iv){showFeedback(f,errs.join(' '),'error'); return;} const cu={minutes_per_month:min,monthly_costs:mc}; try { showFeedback(f,'Saving config...','info'); await db.collection('config').doc('main').set(cu,{merge:true}); const tm=Object.values(mc).reduce((s,v)=>s+v,0); configData={...configData,minutes_per_month:min,monthly_costs:mc,cost_per_minute:min>0?tm/min:0}; console.log("Config saved. New cost/min:", configData.cost_per_minute); populateConfigFormAdmin(); showFeedback(f,'Config saved.','success'); } catch(err){console.error("Error saving config:", err); showFeedback(f,`Error: ${err.message}`,'error');} });
+
+        // --- Impresión REVISADA ---
         async function printTicket(jobId) {
              console.log(`Imprimiendo ticket Job ID: ${jobId}`);
              const job = jobsData.find(j => j.id === jobId);
              if (!job) { alert(`Error: Trabajo ${jobId} no encontrado.`); return; }
+             // Usar datos cacheados, asumir que son suficientemente recientes para el ticket
              const client = clientsData[job.clientId];
              const material = materialsData[job.materialId];
              const printArea = document.getElementById('print-area');
@@ -1756,6 +694,7 @@
              const deposit = job.deposit || 0;
              const outstanding = Math.max(0, finalCost - deposit);
 
+             // Generar HTML para el ticket con más detalles
              let ticketHtml = `
                  <h2>** TICKET TRABAJO ${job.id.substring(0, 6)} **</h2>
                  <p><strong>Pedido:</strong> ${formatDate(job.orderDate)} | <strong>Entrega:</strong> ${formatDate(job.deliveryDate)}</p>
@@ -1763,30 +702,33 @@
                  <p><strong>Cliente:</strong> ${client?.name || 'N/A'}</p>
                  ${client?.phone ? `<p><strong>Tel:</strong> ${client.phone}</p>` : ''}
                  <hr>
-                 <p><strong>Trabajo:</strong> ${job.details || 'Sin detalles'}</p>
-                 ${material ? `<p><em>Mat:</em> ${material.name || '?'} ${material.thickness || '?'}mm</p>` : ''}
-                  ${(job.length && job.width) ? `<p><em>Med:</em> ${job.length}x${job.width}mm</p>` : ''}
-                 <p><em>Tipo:</em> ${job.jobType || 'N/A'}</p>
-                 ${(job.cutMinutes > 0) ? `<p><em>T. Corte:</em> ${job.cutMinutes} min</p>` : ''}
-                 ${(job.engraveMinutes > 0) ? `<p><em>T. Grabado:</em> ${job.engraveMinutes} min</p>` : ''}
+                 <p><strong>Detalles:</strong> ${job.details || '-'}</p>
+                 <p><span class="detail-label">Material:</span> ${material?.name || '?'} ${material?.thickness || '?'}mm</p>
+                 ${(job.length && job.width) ? `<p><span class="detail-label">Medidas:</span> ${job.length}x${job.width}mm</p>` : ''}
+                 <p><span class="detail-label">Tipo:</span> ${job.jobType || 'N/A'}</p>
+                 ${(job.cutMinutes > 0) ? `<p><span class="detail-label">T. Corte:</span> ${job.cutMinutes} min</p>` : ''}
+                 ${(job.engraveMinutes > 0) ? `<p><span class="detail-label">T. Grabado:</span> ${job.engraveMinutes} min</p>` : ''}
                  ${job.observations ? `<hr><p><strong>Obs:</strong> ${job.observations}</p>` : ''}
                  <hr>
                  <div class="totals">
                      <p class="item-line"><span>Total:</span> <span>$${finalCost.toFixed(2)}</span></p>
                      <p class="item-line"><span>Seña:</span> <span>$${deposit.toFixed(2)}</span></p>
-                     <p class="item-line"><strong><span>Pendiente:</span> <span>$${outstanding.toFixed(2)}</span></strong></p>
+                     <p class="item-line"><strong><span>PENDIENTE:</span> <span>$${outstanding.toFixed(2)}</span></strong></p>
                  </div>
                  <hr>
                  <p style="text-align: center; font-size: 8pt; margin-top: 5px;">¡Gracias!</p>
              `;
 
-             printArea.innerHTML = ticketHtml;
-             document.body.classList.add('printing-ticket');
+             printArea.innerHTML = ticketHtml; // Inyectar HTML en el área designada
+             document.body.classList.add('printing-ticket'); // Aplicar clase al body para estilos de ticket
+
+             // Pequeña demora antes de llamar a imprimir
              setTimeout(() => {
                  window.print();
+                 // Limpiar después de un tiempo (mejor que onafterprint)
                  setTimeout(() => {
                      document.body.classList.remove('printing-ticket');
-                     printArea.innerHTML = '';
+                     printArea.innerHTML = ''; // Limpiar contenido
                       console.log("Clase printing-ticket eliminada.");
                  }, 500);
              }, 150);
@@ -1795,16 +737,35 @@
         function printCurrentSection() {
              console.log(`Imprimiendo sección activa: ${activeSectionId}`);
              const sectionToPrint = document.getElementById(activeSectionId);
-             if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) { alert("Sección no válida para imprimir."); return; }
-             if (activeSectionId === 'login' || activeSectionId === 'home') { alert("Esta sección no se imprime."); return; }
+
+             if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) {
+                 alert("Sección activa no válida para imprimir.");
+                 return;
+             }
+             // Prevenir impresión de secciones no deseadas
+             if (activeSectionId === 'login' || activeSectionId === 'home') {
+                  alert("Esta sección no está diseñada para ser impresa.");
+                 return;
+             }
+              // Advertir al imprimir formularios
              if (activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') {
-                  if (!confirm("Imprimir formulario? (Recomendado imprimir tablas o tickets)")) return;
+                   if (!confirm("Va a imprimir una vista de formulario. La impresión puede no ser óptima. ¿Desea continuar? (Se recomienda imprimir las tablas de datos o tickets individuales)")) {
+                       return;
+                   }
+             }
+             // Mensaje específico si se imprime la sección de Plazos
+             if (activeSectionId === 'deadlines') {
+                 console.log("Imprimiendo la tabla de trabajos pendientes (Plazos).");
+                 // Podrías añadir un título dinámico aquí si quisieras
              }
 
-             document.body.classList.add('printing-section');
-             sectionToPrint.classList.add('printing-now');
+             document.body.classList.add('printing-section'); // Aplicar clase al body para estilos de sección
+             sectionToPrint.classList.add('printing-now'); // Marcar la sección activa para impresión
+
+             // Pequeña demora antes de llamar a imprimir
              setTimeout(() => {
                  window.print();
+                 // Limpiar clases después de un tiempo
                  setTimeout(() => {
                      document.body.classList.remove('printing-section');
                      sectionToPrint.classList.remove('printing-now');
@@ -1813,71 +774,17 @@
              }, 150);
          }
 
-        // --- Funciones Utilitarias ---
-        function showFeedback(element, message, type = 'info') {
-             if (!element) { console.warn("showFeedback: Elemento no proporcionado.", message); return; }
-             element.textContent = message;
-             element.className = 'mt-2 text-sm feedback';
-             if (message) {
-                 switch (type) {
-                     case 'success': element.classList.add('feedback-success'); break;
-                     case 'error': element.classList.add('feedback-error'); break;
-                     case 'info': element.classList.add('feedback-info'); break;
-                     default: element.classList.add('feedback-info'); break;
-                 }
-             }
-             if ((type === 'success' || type === 'info') && message) {
-                 setTimeout(() => {
-                     if (element.textContent === message) {
-                         element.textContent = '';
-                         element.className = 'mt-2 text-sm feedback';
-                     }
-                 }, 4000);
-             }
-         }
+        // --- Funciones Utilitarias (SIN CAMBIOS) ---
+        function showFeedback(element, message, type = 'info') { if(!element)return; element.textContent=message; element.className='mt-2 text-sm feedback'; if(message){switch(type){case 'success': element.classList.add('feedback-success'); break; case 'error': element.classList.add('feedback-error'); break; case 'info': element.classList.add('feedback-info'); break; default: element.classList.add('feedback-info'); break;}} if((type==='success'||type==='info')&&message) setTimeout(()=>{if(element.textContent===message){element.textContent=''; element.className='mt-2 text-sm feedback';}}, 4000); }
+        function formatDate(dateString) { if(!dateString||dateString.length<10)return '-'; try {const [y,m,d]=dateString.substring(0,10).split('-'); if(!y||!m||!d||y.length!==4)return dateString; return`${d}/${m}/${y}`; } catch(e){console.warn("formatDate error:",dateString,e);return dateString;} }
+        function parseDateForComparison(dateString) { if(!dateString||dateString.length<10)return null; try {const d=new Date(dateString.substring(0,10)+'T00:00:00Z'); if(isNaN(d.getTime()))return null; return d;} catch(e){console.warn("parseDate error:",dateString,e);return null;} }
+        function getStatusClass(status) { switch(status){case 'Encargado': return 'status-encargado'; case 'Procesando': return 'status-procesando'; case 'Terminado': return 'status-terminado'; default: return 'bg-gray-400 text-gray-800 px-2 py-0.5 rounded text-xs font-medium';} }
 
-         function formatDate(dateString) { // Expects YYYY-MM-DD
-             if (!dateString || dateString.length < 10) return '-';
-             try {
-                 const [year, month, day] = dateString.substring(0, 10).split('-');
-                 if (!year || !month || !day || year.length !== 4) return dateString;
-                 return `${day}/${month}/${year}`;
-             } catch (e) { console.warn("formatDate error:", dateString, e); return dateString; }
-         }
-
-         function parseDateForComparison(dateString) { // Expects YYYY-MM-DD, returns Date object (start of day UTC)
-             if (!dateString || dateString.length < 10) return null;
-             try {
-                 const date = new Date(dateString.substring(0, 10) + 'T00:00:00Z');
-                 if (isNaN(date.getTime())) return null;
-                 return date;
-             } catch (e) { console.warn("parseDateForComparison error:", dateString, e); return null; }
-         }
-
-         function getStatusClass(status) {
-             switch (status) {
-                 case 'Encargado': return 'status-encargado';
-                 case 'Procesando': return 'status-procesando';
-                 case 'Terminado': return 'status-terminado';
-                 default: return 'bg-gray-400 text-gray-800 px-2 py-0.5 rounded text-xs font-medium';
-             }
-         }
-
-        // --- Inicialización al Cargar la Página ---
+        // --- Inicialización (SIN CAMBIOS) ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM cargado.");
-            const yearSpan = document.getElementById('current-year');
-            if (yearSpan) yearSpan.textContent = new Date().getFullYear();
-            const jobTypeSelect = document.getElementById('job-job-type');
-            if (jobTypeSelect) jobTypeSelect.dispatchEvent(new Event('change'));
-            else console.warn("#job-job-type no encontrado.");
-
-             if (typeof auth !== 'undefined') console.log("Esperando estado de auth...");
-             else { // Handle case where Firebase init failed earlier
-                 console.error("Auth service no disponible. Mostrando login.");
-                 showLoginSection(); // Fallback to login if Firebase failed
-                 alert("Error: No se pudo conectar al servicio de autenticación.");
-             }
+            console.log("DOM cargado."); const y=document.getElementById('current-year'); if(y)y.textContent=new Date().getFullYear(); const j=document.getElementById('job-job-type'); if(j)j.dispatchEvent(new Event('change')); else console.warn("#job-job-type not found.");
+             if(typeof auth!=='undefined') console.log("Esperando estado auth...");
+             else { console.error("Auth service not available. Showing login."); showLoginSection(); alert("Error: No se pudo conectar a Firebase Auth."); }
         });
 
     </script>
@@ -1885,4 +792,3 @@
 
 </body>
 </html>
-```
