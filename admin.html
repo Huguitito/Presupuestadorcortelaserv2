@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Presupuestos Corte Laser</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Panel de Administración 🔒</h1>
+    <div id="login">
+      <input type="password" id="password" placeholder="Contraseña de admin" />
+      <button onclick="login()">Ingresar</button>
+    </div>
+
+    <div id="adminPanel" style="display:none;">
+      <h2>Costos Fijos</h2>
+      <form id="costosForm">
+        <input type="number" name="alquiler" placeholder="Alquiler" required />
+        <input type="number" name="sueldos" placeholder="Sueldos" required />
+        <input type="number" name="luz" placeholder="Luz" required />
+        <input type="number" name="impuestos" placeholder="Impuestos" required />
+        <input type="number" name="amortizacion" placeholder="Amortización" required />
+        <input type="number" name="tuboLaser" placeholder="Tubo Láser" required />
+        <input type="number" name="mantenimiento" placeholder="Mantenimiento" required />
+        <button type="submit">Guardar Costos</button>
+      </form>
+
+      <h2>Agregar Material</h2>
+      <form id="materialForm">
+        <input type="text" name="nombre" placeholder="Nombre del material" required />
+        <input type="text" name="grosor" placeholder="Grosor" required />
+        <input type="number" name="costoPlancha" placeholder="Costo por plancha" required />
+        <label>
+          <input type="checkbox" name="disponible" /> Disponible
+        </label>
+        <button type="submit">Agregar Material</button>
+      </form>
+    </div>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>
