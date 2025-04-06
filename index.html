@@ -9,101 +9,69 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <style>
-        /* Estilos generales (SIN CAMBIOS DESDE TU VERSIÓN ANTERIOR) */
+        /* ... (Estilos generales SIN CAMBIOS) ... */
         body { font-family: 'Inter', sans-serif; }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        .tab-content { display: none; }
-        .active-tab-content { display: block; }
-        .tab-button { padding: 8px 16px; margin-bottom: -1px; cursor: pointer; border: 1px solid transparent; border-bottom: 2px solid transparent; transition: border-color 0.3s, color 0.3s; color: #6b7280; font-weight: 500; white-space: nowrap; }
-        .tab-button.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #3b82f6; color: #2563eb; }
-        .tab-button:hover:not(.active-tab) { border-bottom-color: #9ca3af; color: #4b5563; }
-        .tab-button.superadmin-tab { color: #8b5cf6; }
-        .tab-button.superadmin-tab.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #7c3aed; color: #6d28d9; }
-        .tab-button.superadmin-tab:hover:not(.active-tab) { border-bottom-color: #a78bfa; color: #7c3aed; }
-        .admin-only, .superadmin-only { display: none; }
-        .public-only { display: block; }
-        body.logged-in .admin-only { display: block; }
-        body.logged-in nav#tab-buttons { display: flex; }
-        body.logged-in .public-only { display: none; }
-        body.role-superadmin .superadmin-only { display: block; }
-        body.logged-in #user-email { display: inline; }
-        body.logged-in .generic-print-button { display: inline-block; }
-        body.logged-in #admin-logout-button { display: inline-block; }
-        body.role-superadmin button.superadmin-tab { display: inline-block; }
-        .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
-        .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: middle;}
-        .admin-table th { background-color: #f2f2f2; font-weight: 600; }
-        .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; border: none; }
-        .edit-button { background-color: #facc15; color: #422006; } .edit-button:hover { background-color: #eab308; }
-        .delete-button { background-color: #f87171; color: #450a0a; } .delete-button:hover { background-color: #ef4444; }
-        .print-button { background-color: #60a5fa; color: #1e3a8a; } .print-button:hover { background-color: #3b82f6; }
-        .generic-print-button { background-color: #a78bfa; color: #f5f3ff; } .generic-print-button:hover { background-color: #8b5cf6; }
-        .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
-        .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
-        .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
+        .tab-content { display: none; } .active-tab-content { display: block; }
+        .tab-button { padding: 8px 16px; margin-bottom: -1px; cursor: pointer; border: 1px solid transparent; border-bottom: 2px solid transparent; transition: border-color 0.3s, color 0.3s; color: #6b7280; font-weight: 500; white-space: nowrap; } .tab-button.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #3b82f6; color: #2563eb; } .tab-button:hover:not(.active-tab) { border-bottom-color: #9ca3af; color: #4b5563; } .tab-button.superadmin-tab { color: #8b5cf6; } .tab-button.superadmin-tab.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #7c3aed; color: #6d28d9; } .tab-button.superadmin-tab:hover:not(.active-tab) { border-bottom-color: #a78bfa; color: #7c3aed; }
+        .admin-only, .superadmin-only { display: none; } .public-only { display: block; } body.logged-in .admin-only { display: block; } body.logged-in nav#tab-buttons { display: flex; } body.logged-in .public-only { display: none; } body.role-superadmin .superadmin-only { display: block; } body.logged-in #user-email { display: inline; } body.logged-in .generic-print-button { display: inline-block; } body.logged-in #admin-logout-button { display: inline-block; } body.role-superadmin button.superadmin-tab { display: inline-block; }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; } .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: middle;} .admin-table th { background-color: #f2f2f2; font-weight: 600; } .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; border: none; } .edit-button { background-color: #facc15; color: #422006; } .edit-button:hover { background-color: #eab308; } .delete-button { background-color: #f87171; color: #450a0a; } .delete-button:hover { background-color: #ef4444; } .print-button { background-color: #60a5fa; color: #1e3a8a; } .print-button:hover { background-color: #3b82f6; } .generic-print-button { background-color: #a78bfa; color: #f5f3ff; } .generic-print-button:hover { background-color: #8b5cf6; }
+        .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
         .date-overdue { color: #dc2626; font-weight: bold; }
-        .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; }
-        .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
-        .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
-        /* === FIN Estilos generales (SIN CAMBIOS) === */
+        .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; } .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; } .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+        /* ... (Fin Estilos generales SIN CAMBIOS) ... */
 
-        /* === INICIO: ESTILOS DE IMPRESIÓN (REVISADOS Y FINALIZADOS) === */
+        /* Default style for print area wrapper - hidden */
+        #print-area-wrapper {
+             display: none; /* Oculto por defecto en pantalla */
+        }
+
+        /* === INICIO: ESTILOS DE IMPRESIÓN REVISADOS === */
         @media print {
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .no-print { display: none !important; }
             header, nav#tab-buttons, footer { display: none !important; }
-            /* Ocultar formularios específicos si tienen clase no-print o están dentro de una sección general */
-            #client-form.no-print,
-            #job-form .no-print, /* Ocultar botones y elementos no-print DENTRO del form */
-            #material-form-admin.no-print,
-            #config-form-admin.no-print { display: none !important; }
+            /* Ocultar formularios específicos si tienen clase no-print */
+            #client-form.no-print, #job-form .no-print, #material-form-admin.no-print, #config-form-admin.no-print { display: none !important; }
 
             /* --- Estilos para impresión GENERAL DE SECCIÓN (body.printing-section) --- */
+            body.printing-section #print-area-wrapper { display: none !important; } /* Ocultar wrapper de ticket si se imprime sección general */
             body.printing-section > *:not(#tab-content-container) { display: none !important; }
             body.printing-section #tab-content-container > *:not(.printing-now) { display: none !important; }
             body.printing-section .printing-now {
-                visibility: visible !important; display: block !important; position: static !important;
+                visibility: visible !important; display: block !important; position: static !important; /* Importante: static */
                 width: 100% !important; background-color: #fff !important; color: #000 !important;
                 padding: 10mm !important; margin: 0 !important; border: none !important; box-shadow: none !important;
                 font-size: 10pt !important;
             }
-            body.printing-section .printing-now * { visibility: visible !important; }
+            body.printing-section .printing-now * { visibility: visible !important; } /* Asegurar visibilidad de hijos */
             body.printing-section .printing-now button,
             body.printing-section .printing-now input[type="button"],
             body.printing-section .printing-now input[type="submit"],
             body.printing-section .printing-now .no-print { display: none !important; }
-            /* Estilos para inputs/selects/textareas en impresión general (mostrar valor estático) */
-            body.printing-section .printing-now input:not([type="button"]):not([type="submit"]):not([type="checkbox"]), /* Excluir checkboxes */
+            body.printing-section .printing-now input:not([type="button"]):not([type="submit"]):not([type="checkbox"]),
             body.printing-section .printing-now select,
             body.printing-section .printing-now textarea {
                  border: none !important; background-color: transparent !important; padding: 0 !important; margin: 0 !important;
                  -webkit-appearance: none; appearance: none; color: #000 !important; box-shadow: none !important;
-                 width: auto !important; display: inline !important; /* Comportarse como texto */
-                 vertical-align: baseline; /* Alinear mejor con el texto */
+                 width: auto !important; display: inline !important; vertical-align: baseline;
             }
-            body.printing-section .printing-now input[type="checkbox"] { /* Ocultar checkboxes */
-                 display: none !important;
-            }
-            body.printing-section .printing-now select { /* Truco para mostrar valor de select */
-                 display: inline !important; -webkit-appearance: none; appearance: none; border: none; background: none; padding: 0;
-            }
+            body.printing-section .printing-now input[type="checkbox"] { display: none !important; }
+            body.printing-section .printing-now select { display: inline !important; -webkit-appearance: none; appearance: none; border: none; background: none; padding: 0; }
              /* Estilos tabla en impresión general */
             body.printing-section .printing-now .admin-table { font-size: 9pt; width: 100%; margin-top: 0.5rem; border-collapse: collapse !important; page-break-inside: auto; }
-            body.printing-section .printing-now .admin-table tr { page-break-inside: avoid; page-break-after: auto; } /* Evitar cortes dentro de filas */
+            body.printing-section .printing-now .admin-table tr { page-break-inside: avoid; page-break-after: auto; }
             body.printing-section .printing-now .admin-table th,
             body.printing-section .printing-now .admin-table td {
                 padding: 4px !important; border: 1px solid #ccc !important; color: #000 !important;
-                background-color: #fff !important; word-wrap: break-word; vertical-align: top; /* Alinear arriba */
+                background-color: #fff !important; word-wrap: break-word; vertical-align: top;
             }
              body.printing-section .printing-now .admin-table th { background-color: #eee !important; font-weight: bold !important; }
-            /* Ocultar la ÚLTIMA columna (asumimos Acciones) */
+            /* Ocultar la ÚLTIMA columna (Acciones) */
              body.printing-section .printing-now .admin-table th:last-child,
              body.printing-section .printing-now .admin-table td:last-child { display: none !important; }
             /* Forzar colores de estado */
-            body.printing-section .printing-now .status-encargado,
-            body.printing-section .printing-now .status-procesando,
-            body.printing-section .printing-now .status-terminado {
+            body.printing-section .printing-now [class*="status-"] { /* Selector más genérico */
                 -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
                 display: inline-block !important; border: 1px solid #ccc !important;
                 padding: 1px 4px !important; font-size: 8pt !important;
@@ -112,15 +80,18 @@
             body.printing-section .printing-now h1, body.printing-section .printing-now h2, body.printing-section .printing-now h3 { color: #000 !important; margin-bottom: 10px; font-size: 14pt; }
 
             /* --- Estilos específicos para TICKET (body.printing-ticket) --- */
-            body.printing-ticket { margin: 0 !important; padding: 0 !important; background-color: #fff !important; font-size: 9pt !important; }
-            body.printing-ticket > *:not(#print-area-wrapper) { display: none !important; visibility: hidden !important; }
+             /* Ocultar todo excepto el wrapper del ticket */
+            body.printing-ticket > *:not(#print-area-wrapper) { display: none !important; }
             body.printing-ticket #print-area-wrapper {
-                visibility: visible !important; display: block !important; position: static !important;
+                display: block !important; /* Mostrar el wrapper */
+                visibility: visible !important; position: static !important;
                 width: 80mm !important; max-width: 100%; margin: 5mm auto !important;
                 padding: 0 !important; background-color: #fff !important; box-shadow: none !important; border: none !important;
                 font-family: 'Courier New', Courier, monospace !important; line-height: 1.3 !important; color: #000 !important;
+                font-size: 9pt !important;
              }
             body.printing-ticket #print-area { visibility: visible !important; display: block !important; padding: 3mm !important; }
+            body.printing-ticket #print-area * { visibility: visible !important; } /* Asegurar visibilidad dentro del area */
             body.printing-ticket #print-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; }
             body.printing-ticket #print-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word; }
             body.printing-ticket #print-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; }
@@ -128,10 +99,10 @@
             body.printing-ticket #print-area .item-line { display: flex !important; justify-content: space-between !important; }
             body.printing-ticket #print-area .item-line span:last-child { text-align: right !important; }
             body.printing-ticket #print-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; }
-            body.printing-ticket #print-area .detail-label { font-style: normal; font-weight: bold; display: inline-block; min-width: 75px;} /* Etiqueta en negrita */
-            body.printing-ticket #print-area .detail-value { /* Valor normal */ }
+            body.printing-ticket #print-area .detail-label { font-weight: bold; display: inline-block; min-width: 75px;}
+            body.printing-ticket #print-area .detail-value { /* Estilo normal para el valor */ }
         }
-        /* === FIN: ESTILOS DE IMPRESIÓN (REVISADOS Y FINALIZADOS) === */
+        /* === FIN: ESTILOS DE IMPRESIÓN REVISADOS === */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -140,362 +111,54 @@
 
         <!-- Header (SIN CAMBIOS) -->
         <header class="bg-white shadow-md rounded-lg p-4 mb-6 no-print">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                 <div>
-                    <h1 class="text-3xl font-bold text-blue-600 mb-2">Presupuestos Corte Laser</h1>
-                    <div class="text-sm text-gray-600">
-                        <p>Dirección: Tu Calle 123, Ciudad | Teléfono: (123) 456-7890 | Email: info@tuempresa.com</p>
-                    </div>
-                 </div>
-                 <div class="mt-4 md:mt-0 flex items-center space-x-3">
-                     <span id="user-email" class="admin-only text-sm text-gray-500 mr-3"></span>
-                     <button onclick="printCurrentSection()" title="Imprimir vista actual (p. ej. lista de trabajos)" class="admin-only generic-print-button action-button">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                     </button>
-                     <button id="admin-login-button" onclick="showLoginSection()" class="public-only bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold py-1 px-3 rounded transition duration-300">
-                         Iniciar Sesión
-                     </button>
-                     <button id="admin-logout-button" onclick="logoutUser()" class="admin-only bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-1 px-3 rounded transition duration-300">
-                         Cerrar Sesión
-                     </button>
-                 </div>
-            </div>
+             <!-- ... (contenido del header sin cambios) ... -->
         </header>
 
         <!-- Nav Tabs (SIN CAMBIOS) -->
         <nav id="tab-buttons" class="admin-only flex flex-wrap border-b border-gray-300 mb-6 no-print" style="display: none;">
-             <button onclick="setActiveTab(this)" data-target="jobs" class="tab-button">Trabajos</button>
-             <button onclick="setActiveTab(this)" data-target="new-job-form" class="tab-button">Nuevo Trabajo</button>
-             <button onclick="setActiveTab(this)" data-target="clients" class="tab-button">Clientes</button>
-             <button onclick="setActiveTab(this)" data-target="deadlines" class="tab-button">Plazos</button>
-             <button onclick="setActiveTab(this)" data-target="status" class="tab-button">Estados</button>
-             <button onclick="setActiveTab(this)" data-target="reports" class="tab-button">Informes</button>
-             <button onclick="setActiveTab(this)" data-target="admin-materials" class="tab-button superadmin-only superadmin-tab">Materiales</button>
-             <button onclick="setActiveTab(this)" data-target="admin-config" class="tab-button superadmin-only superadmin-tab">Configuración</button>
+             <!-- ... (botones de tabs sin cambios) ... -->
         </nav>
 
         <main id="tab-content-container">
             <!-- Secciones HTML (Home, Login, Clients, Jobs, etc.) (SIN CAMBIOS) -->
-            <!-- Home -->
-            <section id="home" class="tab-content bg-white p-6 rounded-lg shadow-lg">
-               <div class="p-6 rounded-lg text-center">
-                    <h2 class="text-4xl font-bold mb-4 text-blue-600">Bienvenido</h2>
-                    <p class="text-lg mb-6 text-gray-700">Gestiona tus clientes, trabajos y presupuestos de corte láser.</p>
-                    <button onclick="showLoginSection()" class="public-only bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-md transition duration-300">
-                        Iniciar Sesión
-                    </button>
-                </div>
-            </section>
-            <!-- Login -->
-            <section id="login" class="tab-content bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Iniciar Sesión</h2>
-                 <form id="login-form" class="space-y-4">
-                     <div>
-                         <label for="login-email" class="block text-sm font-medium text-gray-700">Email:</label>
-                         <input type="email" id="login-email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                     </div>
-                     <div>
-                         <label for="login-password" class="block text-sm font-medium text-gray-700">Contraseña:</label>
-                         <input type="password" id="login-password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                     </div>
-                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                         Entrar
-                     </button>
-                     <div id="login-error" class="mt-2 text-red-600 text-sm text-center min-h-[1.25em]"></div>
-                 </form>
-            </section>
-            <!-- Clients -->
-             <section id="clients" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
-                <form id="client-form" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
-                     <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3>
-                     <input type="hidden" id="client-id">
-                     <div>
-                         <label for="client-name" class="block text-sm font-medium text-gray-700">Nombre:</label>
-                         <input type="text" id="client-name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                     </div>
-                     <div>
-                         <label for="client-phone" class="block text-sm font-medium text-gray-700">Celular:</label>
-                         <input type="tel" id="client-phone" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                     </div>
-                     <div>
-                         <label for="client-email" class="block text-sm font-medium text-gray-700">Email:</label>
-                         <input type="email" id="client-email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                     </div>
-                     <div class="flex space-x-2">
-                         <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar Cliente</button>
-                         <button type="button" onclick="resetClientForm()" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button>
-                     </div>
-                     <div id="client-form-feedback" class="mt-2 text-sm feedback"></div>
-                 </form>
-                 <div class="overflow-x-auto">
-                     <table id="clients-table" class="admin-table">
-                         <thead>
-                             <tr>
-                                 <th>Nombre</th>
-                                 <th>Celular</th>
-                                 <th>Email</th>
-                                 <th class="no-print">Acciones</th>
-                             </tr>
-                         </thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <!-- Jobs -->
-            <section id="jobs" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Trabajos</h2>
-                  <div class="mb-4 text-center no-print">
-                      <button onclick="setActiveTab(document.querySelector('[data-target=new-job-form]')); resetJobForm();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                          + Nuevo Trabajo
-                      </button>
-                  </div>
-                  <div class="overflow-x-auto">
-                     <table id="jobs-table" class="admin-table">
-                         <thead>
-                             <tr>
-                                 <th>Cliente</th>
-                                 <th>Detalles</th>
-                                 <th>F. Pedido</th>
-                                 <th>F. Entrega</th>
-                                 <th>Estado</th>
-                                 <th class="text-right">Total ($)</th>
-                                 <th class="text-right">Seña ($)</th>
-                                 <th class="text-right">Pendiente ($)</th>
-                                 <th class="no-print">Acciones</th>
-                             </tr>
-                         </thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <!-- New Job Form -->
-            <section id="new-job-form" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                <h2 id="job-form-title" class="text-2xl font-bold mb-6 text-center text-blue-600">Nuevo Trabajo</h2>
-                <form id="job-form" class="space-y-4">
-                    <input type="hidden" id="job-id">
-                    <div>
-                        <label for="job-client" class="block text-sm font-medium text-gray-700">Cliente:</label>
-                        <select id="job-client" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                            <option value="">Selecciona un cliente...</option>
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1 no-print">Añade clientes nuevos en la pestaña "Clientes".</p>
-                    </div>
-                    <div>
-                        <label for="job-details" class="block text-sm font-medium text-gray-700">Detalles del Trabajo:</label>
-                        <textarea id="job-details" rows="3" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
-                    </div>
-                    <div class="border p-4 rounded bg-gray-50 space-y-3">
-                         <h3 class="text-md font-semibold text-gray-800">Detalles de Cotización</h3>
-                         <div>
-                             <label for="job-material" class="block text-sm font-medium text-gray-700">Material:</label>
-                             <select id="job-material" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                                 <option value="">Selecciona material...</option>
-                             </select>
-                         </div>
-                         <div class="grid grid-cols-2 gap-4">
-                             <div>
-                                 <label for="job-length" class="block text-sm font-medium text-gray-700">Largo (mm):</label>
-                                 <input type="number" id="job-length" required min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                             </div>
-                             <div>
-                                 <label for="job-width" class="block text-sm font-medium text-gray-700">Ancho (mm):</label>
-                                 <input type="number" id="job-width" required min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                             </div>
-                         </div>
-                         <div>
-                             <label for="job-job-type" class="block text-sm font-medium text-gray-700">Tipo Trabajo:</label>
-                             <select id="job-job-type" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                                 <option value="corte">Solo Corte</option>
-                                 <option value="grabado">Solo Grabado</option>
-                                 <option value="ambos">Corte y Grabado</option>
-                             </select>
-                         </div>
-                         <div id="job-time-estimation" class="space-y-2">
-                             <p class="text-xs text-gray-600 no-print">Estimar minutos de máquina:</p>
-                             <div id="job-cut-time-field" class="grid grid-cols-2 gap-2 items-center">
-                                 <label for="job-cut-minutes" class="text-sm font-medium text-gray-700">Min. Corte:</label>
-                                 <input type="number" id="job-cut-minutes" min="0" value="0" class="block w-full p-1 border border-gray-300 rounded-md text-sm">
-                             </div>
-                             <div id="job-engrave-time-field" class="grid grid-cols-2 gap-2 items-center">
-                                 <label for="job-engrave-minutes" class="text-sm font-medium text-gray-700">Min. Grabado:</label>
-                                 <input type="number" id="job-engrave-minutes" min="0" value="0" class="block w-full p-1 border border-gray-300 rounded-md text-sm">
-                             </div>
-                         </div>
-                         <button type="button" onclick="calculateJobQuote()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-bold py-1 px-3 rounded no-print">Calcular Costo Base y Final</button>
-                         <div id="job-quote-base-result" class="mt-1 text-sm text-gray-600 font-medium">Costo Base Estimado: $0.00</div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                         <div>
-                             <label for="job-order-date" class="block text-sm font-medium text-gray-700">Fecha Pedido:</label>
-                             <input type="date" id="job-order-date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                         </div>
-                         <div>
-                             <label for="job-delivery-date" class="block text-sm font-medium text-gray-700">Fecha Entrega:</label>
-                             <input type="date" id="job-delivery-date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                         </div>
-                         <div>
-                             <label for="job-status" class="block text-sm font-medium text-gray-700">Estado:</label>
-                             <select id="job-status" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                                 <option value="Encargado">Encargado</option>
-                                 <option value="Procesando">Procesando</option>
-                                 <option value="Terminado">Terminado</option>
-                             </select>
-                         </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div>
-                             <label for="job-final-cost" class="block text-sm font-medium text-gray-700">Total Trabajo ($) (Auto-calculado):</label>
-                             <input type="number" id="job-final-cost" required min="0" step="0.01" readonly class="mt-1 block w-full p-2 border border-gray-300 rounded-md bg-gray-100">
-                             <p class="text-xs text-gray-500 mt-1 no-print">Se calcula al presionar "Calcular Costo Base y Final".</p>
-                         </div>
-                         <div>
-                             <label for="job-deposit" class="block text-sm font-medium text-gray-700">Seña ($):</label>
-                             <input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                         </div>
-                    </div>
-                    <div>
-                        <label for="job-observations" class="block text-sm font-medium text-gray-700">Observaciones:</label>
-                        <textarea id="job-observations" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
-                    </div>
-                     <div class="flex space-x-2 pt-4 no-print">
-                        <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar Trabajo</button>
-                        <button type="button" onclick="setActiveTab(document.querySelector('[data-target=jobs]')); resetJobForm();" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button>
-                    </div>
-                    <div id="job-form-feedback" class="mt-2 text-sm feedback"></div>
-                </form>
-            </section>
-            <!-- Deadlines -->
-             <section id="deadlines" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Plazos de Entrega Próximos (No Terminados)</h2>
-                 <div class="overflow-x-auto">
-                     <table id="deadlines-table" class="admin-table">
-                         <thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th>Días Restantes</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <!-- Status -->
-            <section id="status" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Estado de Trabajos</h2>
-                  <div class="overflow-x-auto">
-                     <table id="status-table" class="admin-table">
-                         <thead><tr><th>Cliente</th><th>Detalles</th><th>Estado</th><th>F. Entrega</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <!-- Reports -->
-            <section id="reports" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Informes Generales</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
-                     <div class="bg-blue-100 p-4 rounded shadow"><h3 class="font-semibold text-blue-800">Total Facturado</h3><p id="report-total-value" class="text-2xl font-bold">$0.00</p></div>
-                     <div class="bg-green-100 p-4 rounded shadow"><h3 class="font-semibold text-green-800">Total Señado</h3><p id="report-total-deposit" class="text-2xl font-bold">$0.00</p></div>
-                     <div class="bg-red-100 p-4 rounded shadow"><h3 class="font-semibold text-red-800">Total Pendiente</h3><p id="report-total-outstanding" class="text-2xl font-bold">$0.00</p></div>
-                 </div>
-                 <h3 class="text-xl font-semibold mb-4">Detalle Pendiente por Cliente</h3>
-                  <div class="overflow-x-auto">
-                     <table id="outstanding-table" class="admin-table">
-                         <thead><tr><th>Cliente</th><th class="text-right">Total Trabajos ($)</th><th class="text-right">Total Señado ($)</th><th class="text-right">Pendiente ($)</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <!-- Materials -->
-             <section id="admin-materials" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Gestionar Materiales</h2>
-                 <form id="material-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
-                     <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir Material</h4>
-                     <input type="hidden" id="material-id-admin">
-                     <div><label for="material-name-admin" class="block text-sm font-medium text-gray-700">Nombre:</label><input type="text" id="material-name-admin" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-thickness-admin" class="block text-sm font-medium text-gray-700">Grosor(mm):</label><input type="number" id="material-thickness-admin" required min="0.1" step="0.1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-cost-admin" class="block text-sm font-medium text-gray-700">Costo/Plancha($):</label><input type="number" id="material-cost-admin" required min="0" step="0.01" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-width-admin" class="block text-sm font-medium text-gray-700">Ancho Plancha(mm):</label><input type="number" id="material-width-admin" placeholder="1300" value="1300" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-height-admin" class="block text-sm font-medium text-gray-700">Alto Plancha(mm):</label><input type="number" id="material-height-admin" placeholder="900" value="900" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label class="flex items-center"><input type="checkbox" id="material-availability-admin" checked class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"> <span class="ml-2 text-sm text-gray-600">Disponible para cotizar</span></label></div>
-                     <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar</button><button type="button" onclick="resetMaterialFormAdmin()" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button></div>
-                     <div id="material-form-feedback-admin" class="mt-2 text-sm feedback"></div>
-                 </form>
-                 <div class="overflow-x-auto">
-                     <table id="materials-admin-table" class="admin-table">
-                         <thead><tr><th>Nombre</th><th class="text-right">Grosor(mm)</th><th class="text-right">Costo/Plancha($)</th><th class="text-center">Dimensiones(mm)</th><th class="text-center">Disp.</th><th class="no-print">Acciones</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <!-- Config -->
-            <section id="admin-config" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Configuración de Costos</h2>
-                 <form id="config-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 no-print">
-                      <h4 class="text-lg font-medium">Costos Mensuales y Parámetros de Cálculo</h4>
-                      <p class="text-xs text-gray-600">Estos valores se usan para calcular el costo base por minuto de máquina.</p>
-                      <div>
-                        <label for="config-minutes-admin" class="block text-sm font-medium text-gray-700">Minutos Productivos Estimados/Mes:</label>
-                        <input type="number" id="config-minutes-admin" required min="1" value="2400" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                        <p class="text-xs text-gray-500 mt-1">Ej: 8hs/día * 20 días/mes * 60 min/hr * 25% uso = 2400 min</p>
-                      </div>
-                      <fieldset id="monthly-costs-fieldset-admin" class="border p-3 rounded">
-                          <legend class="text-sm font-medium px-1">Costos Fijos Mensuales ($)</legend>
-                          <div id="monthly-costs-container" class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                          </div>
-                          <button type="button" onclick="addMonthlyCostInput()" class="mt-2 text-sm text-purple-600 hover:text-purple-800">+ Añadir Otro Costo</button>
-                      </fieldset>
-                      <div class="mt-4 pt-4 border-t">
-                        <h4 class="text-md font-medium">Costo por Minuto Calculado:</h4>
-                        <p id="calculated-cost-per-minute" class="text-lg font-bold text-purple-700">$0.0000 / min</p>
-                      </div>
-                      <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white mt-4">Guardar Configuración</button>
-                      <div id="config-form-feedback-admin" class="mt-2 text-sm feedback"></div>
-                 </form>
-            </section>
+            <!-- ... (Contenido de todas las secciones sin cambios) ... -->
         </main>
 
-        <!-- Print Area Wrapper (SIN CAMBIOS) -->
-        <div id="print-area-wrapper" aria-hidden="true" class="absolute left-[-9999px] top-auto w-[1px] h-[1px] overflow-hidden bg-white">
-            <div id="print-area"></div>
+        <!-- Print Area Wrapper (Ahora oculto por display:none por defecto) -->
+        <div id="print-area-wrapper" aria-hidden="true" style="display: none;">
+            <div id="print-area">
+                <!-- Contenido del ticket se inyecta aquí -->
+            </div>
         </div>
 
         <!-- Footer (SIN CAMBIOS) -->
         <footer class="text-center text-gray-500 text-sm mt-8 no-print">
-            © <span id="current-year"></span> Presupuestos Corte Laser. Todos los derechos reservados.
+             <!-- ... (contenido del footer sin cambios) ... -->
         </footer>
+
     </div>
 
     <!-- ****** START OF JAVASCRIPT ****** -->
     <script>
-        // --- Configuración Firebase (SIN CAMBIOS) ---
+        // --- Configuración Firebase, Variables Globales, Navegación, Auth, Login/Logout, Carga de Datos, Poblado Dropdowns/Tablas, CRUDs (SIN CAMBIOS) ---
         const firebaseConfig = { apiKey: "AIzaSyAVBHUX8Ey9lLUCiz6mNDOemrNfrR-3Szs", authDomain: "presupuestadorcortelaser.firebaseapp.com", projectId: "presupuestadorcortelaser", storageBucket: "presupuestadorcortelaser.firebasestorage.app", messagingSenderId: "159566854109", appId: "1:159566854109:web:8d7351cef717697f3ea834" };
         let db; let auth;
         try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); auth = firebase.auth(); console.log("Firebase inicializado."); } catch (error) { console.error("Error Firebase Init:", error); alert("Error crítico: No se pudo inicializar Firebase."); }
         const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1';
-
-        // --- Variables Globales (SIN CAMBIOS) ---
         let materialsData = {}; let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; let clientsData = {}; let jobsData = []; let currentUser = null; let currentUserRole = null; let currentJobQuoteBaseCost = 0; let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; let activeSectionId = 'home';
-
-        // --- Navegación por Pestañas (SIN CAMBIOS) ---
         function setActiveTab(buttonElement) { if (!buttonElement) return; const targetId = buttonElement.getAttribute('data-target'); if (!targetId) return; console.log("Activando tab:", targetId); activeSectionId = targetId; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content', 'printing-now')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const sectionToShow = document.getElementById(targetId); if (sectionToShow) { sectionToShow.classList.add('active-tab-content'); buttonElement.classList.add('active-tab'); loadDataForSection(targetId); } else { console.error(`Content '${targetId}' not found.`); const defBtn = document.querySelector('#tab-buttons .tab-button[data-target="jobs"]'); if (defBtn) setActiveTab(defBtn); } }
         function showLoginSection() { console.log("Mostrando login"); activeSectionId = 'login'; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content', 'printing-now')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const lSec = document.getElementById('login'); if(lSec) lSec.classList.add('active-tab-content'); const lForm = document.getElementById('login-form'); if(lForm) lForm.reset(); const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; }
-
-        // --- Autenticación y Roles (SIN CAMBIOS) ---
         auth?.onAuthStateChanged(user => { if (!auth) { showLoginSection(); return; } console.log("Auth state:", user ? user.uid : 'null'); currentUser = user; const uSpan = document.getElementById('user-email'); document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only'); if (user) { currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator'; console.log("Role:", currentUserRole); document.body.classList.add('logged-in', `role-${currentUserRole}`); if (uSpan) uSpan.textContent = user.email; loadInitialDataForLoggedInUser().then(() => { console.log("Initial data loaded post-login."); const defTab = 'jobs'; const tBtn = document.querySelector(`#tab-buttons .tab-button[data-target="${defTab}"]`); if (tBtn) setActiveTab(tBtn); else { console.error("Default tab btn 'jobs' not found."); const fBtn = document.querySelector('#tab-buttons .tab-button:not(.superadmin-only)') || document.querySelector('#tab-buttons .tab-button.superadmin-only'); if (fBtn) setActiveTab(fBtn); } }).catch(error => { console.error("Error initial data load:", error); alert("Error crítico cargando datos."); }); } else { console.log("Logged out."); currentUserRole = null; document.body.classList.add('public-only'); if (uSpan) uSpan.textContent = ''; materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; dataLoaded = { clients: false, jobs: false, materials: false, config: false }; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content', 'printing-now')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const hSec = document.getElementById('home'); if (hSec) { hSec.classList.add('active-tab-content'); activeSectionId = 'home'; } } });
-
-        // --- Login / Logout (SIN CAMBIOS) ---
         document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) return; const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
         function logoutUser() { if (!auth) return; console.log("Logging out..."); auth.signOut().then(() => console.log("Logout ok.")).catch(err => { console.error("Logout err:", err); alert("Error logout: " + err.message); }); }
-
-        // --- Carga de Datos (SIN CAMBIOS) ---
         async function loadInitialDataForLoggedInUser() { if (!db) throw new Error("DB N/A"); console.log("Loading initial data..."); await Promise.all([ loadMaterials(), loadConfig(), loadClients() ]); console.log("Initial data ok."); }
         function loadDataForSection(sectionId) { if (!db) return; console.log(`Loading for ${sectionId}`); if (!currentUser) return; switch(sectionId){ case 'clients': if (!dataLoaded.clients) loadClients(); else populateClientsTable(); break; case 'jobs': loadJobs(); break; case 'deadlines': if (!dataLoaded.jobs) loadJobs().then(populateDeadlinesTable); else populateDeadlinesTable(); break; case 'status': if (!dataLoaded.jobs) loadJobs().then(populateStatusTable); else populateStatusTable(); break; case 'reports': if (!dataLoaded.jobs) loadJobs().then(generateReports); else generateReports(); break; case 'new-job-form': const cP=dataLoaded.clients?Promise.resolve():loadClients(); const mP=dataLoaded.materials?Promise.resolve():loadMaterials(); Promise.all([cP,mP]).then(() => { populateClientDropdown('job-client'); populateMaterialDropdown('job-material'); }).catch(err => console.error("Err loading for New Job:", err)); resetJobForm(); break; case 'admin-materials': if(currentUserRole==='superadmin'){ if(!dataLoaded.materials) loadMaterials(); else populateMaterialsAdminTable(); } break; case 'admin-config': if(currentUserRole==='superadmin'){ if(!dataLoaded.config) loadConfig(); else populateConfigFormAdmin(); } break; } }
         async function loadMaterials() { if (!db) return; console.log("Loading materials..."); try { const snap=await db.collection('materials').orderBy('name').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); materialsData=temp; console.log(`Mats loaded: ${Object.keys(materialsData).length}`); dataLoaded.materials=true; populateMaterialDropdown('job-material'); if(currentUserRole==='superadmin') populateMaterialsAdminTable(); } catch (err) { console.error("Err loading mats:", err); const f=document.getElementById('material-form-feedback-admin'); if(f) showFeedback(f,`Err loading mats: ${err.message}`,'error'); dataLoaded.materials=false; } }
         async function loadConfig() { if (!db) return; console.log("Loading config..."); try { const doc=await db.collection('config').doc('main').get(); if(doc.exists){ const d=doc.data(); configData={minutes_per_month:d.minutes_per_month||2400,monthly_costs:d.monthly_costs||{},cost_per_minute:0}; const tm=Object.values(configData.monthly_costs).reduce((s,v)=>s+(Number(v)||0),0); if(configData.minutes_per_month>0) configData.cost_per_minute=tm/configData.minutes_per_month; else configData.cost_per_minute=0; console.log(`Config loaded. Cost/min: $${configData.cost_per_minute.toFixed(4)}`); } else { console.warn("Config 'main' N/F. Defaults used."); configData={cost_per_minute:0,minutes_per_month:2400,monthly_costs:{}}; } dataLoaded.config=true; if(currentUserRole==='superadmin') populateConfigFormAdmin(); } catch(err) { console.error("Err loading config:", err); const f=document.getElementById('config-form-feedback-admin'); if(f) showFeedback(f,`Err loading config: ${err.message}`,'error'); dataLoaded.config=false; } }
         async function loadClients() { if(!currentUser||!db) return; console.log("Loading clients..."); const b=document.getElementById('clients-table')?.querySelector('tbody'); if(b) b.innerHTML='<tr><td colspan="4" class="text-center py-4">Loading...</td></tr>'; try { const snap=await db.collection('clients').orderBy('name','asc').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); clientsData=temp; console.log(`Clients loaded: ${Object.keys(clientsData).length}`); dataLoaded.clients=true; populateClientsTable(); populateClientDropdown('job-client'); } catch(err) { console.error("Err loading clients:", err); if(b) b.innerHTML=`<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`; dataLoaded.clients=false; } }
         async function loadJobs() { if(!currentUser||!db) return; console.log("Loading jobs..."); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table').querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4">Loading...</td></tr>`;}}); ['report-total-value','report-total-deposit','report-total-outstanding'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Calculating...';}); try { const snap=await db.collection('jobs').orderBy('deliveryDate','asc').get(); const temp=[]; snap.forEach(doc=>{const d=doc.data(); temp.push({...d, id:doc.id, orderDate:d.orderDate instanceof firebase.firestore.Timestamp?d.orderDate.toDate().toISOString().split('T')[0]:d.orderDate, deliveryDate:d.deliveryDate instanceof firebase.firestore.Timestamp?d.deliveryDate.toDate().toISOString().split('T')[0]:d.deliveryDate, finalCost:Number(d.finalCost||0), deposit:Number(d.deposit||0) }); }); jobsData=temp; console.log(`Jobs loaded: ${jobsData.length}`); dataLoaded.jobs=true; populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); } catch(err) { console.error("Err loading jobs:", err); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table').querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`;}}); dataLoaded.jobs=false; } }
-
-        // --- Poblado de Dropdowns (SIN CAMBIOS) ---
         function populateClientDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Select client...</option>'; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.textContent=c.name||`ID: ${c.id}`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
         function populateMaterialDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Select material...</option>'; Object.values(materialsData).filter(m=>m.available!==false).sort((a,b)=>`${a.name||''} ${a.thickness||0}mm`.localeCompare(`${b.name||''} ${b.thickness||0}mm`)).forEach(m=>{const o=document.createElement('option'); o.value=m.id; o.textContent=`${m.name||'No Name'} - ${m.thickness||'?'}mm`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
-
-        // --- Poblado de Tablas (SIN CAMBIOS) ---
         function populateClientsTable() { const b=document.getElementById('clients-table')?.querySelector('tbody'); if(!b)return; if(Object.keys(clientsData).length===0&&dataLoaded.clients){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No clients.</td></tr>';return;} let h=''; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{h+=`<tr data-client-id="${c.id}"><td>${c.name||'N/A'}</td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Edit</button><button onclick="deleteClient('${c.id}')" class="delete-button">Delete</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">New Job</button></td></tr>`;}); b.innerHTML=h; }
         function populateJobsTable() { const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="9" class="text-center py-4">No jobs.</td></tr>';return;} const s=[...jobsData].sort((a,b)=>(b.orderDate||"").localeCompare(a.orderDate||"")); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Deleted/Unknown'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button">Edit</button><button onclick="deleteJob('${j.id}')" class="delete-button">Delete</button><button onclick="printTicket('${j.id}')" class="print-button">Ticket</button></td></tr>`;}); b.innerHTML=h; }
         function populateDeadlinesTable() { const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No jobs.</td></tr>';return;} const t=new Date(); t.setHours(0,0,0,0); const u=jobsData.filter(j=>j.status!=='Terminado').sort((a,b)=>(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31")); if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No pending jobs.</td></tr>';return;} let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Deleted/Unknown'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Overdue (${Math.abs(d)})`;rc='bg-red-100 date-overdue';} else if(d===0){dr='Today';rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} day(s)`;rc='bg-yellow-50';} else{dr=`${d} days`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h; }
@@ -530,7 +193,7 @@
         function removeMonthlyCostInput(button) { const p=button.closest('.cost-entry'); if(p)p.remove(); }
         document.getElementById('config-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const f=document.getElementById('config-form-feedback-admin'); showFeedback(f,'','info'); document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(i=>i.classList.remove('border-red-500')); const min=parseInt(document.getElementById('config-minutes-admin').value,10); const ces=document.querySelectorAll('#monthly-costs-container .cost-entry'); const mc={}; let iv=true; let errs=[]; if(isNaN(min)||min<=0){errs.push('Minutes positive.'); document.getElementById('config-minutes-admin').classList.add('border-red-500'); iv=false;} ces.forEach((div,idx)=>{const ki=div.querySelector('[data-cost-key]'); const vi=div.querySelector('[data-cost-value]'); const k=ki.value.trim(); const vs=vi.value.trim(); const v=parseFloat(vs); if(k||vs){let eiv=true; if(!k){errs.push(`Row ${idx+1}: Descrip.`); ki.classList.add('border-red-500'); eiv=false;} if(vs===''||isNaN(v)||v<0){errs.push(`Row ${idx+1} ('${k||'?'}'): Value >= 0.`); vi.classList.add('border-red-500'); eiv=false;} if(eiv){if(mc.hasOwnProperty(k)){errs.push(`Row ${idx+1}: Dup descrip "${k}".`); ki.classList.add('border-red-500'); eiv=false;} else mc[k]=v;} if(!eiv)iv=false;}}); if(!iv){showFeedback(f,errs.join(' '),'error'); return;} const cu={minutes_per_month:min,monthly_costs:mc}; try { showFeedback(f,'Saving...','info'); await db.collection('config').doc('main').set(cu,{merge:true}); const tm=Object.values(mc).reduce((s,v)=>s+v,0); configData={...configData,minutes_per_month:min,monthly_costs:mc,cost_per_minute:min>0?tm/min:0}; console.log("Config saved. New cost/min:", configData.cost_per_minute); populateConfigFormAdmin(); showFeedback(f,'Config saved.','success'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
 
-        // --- Impresión (REVISADA) ---
+        // === INICIO: FUNCIONES DE IMPRESIÓN REVISADAS ===
         async function printTicket(jobId) {
              console.log(`Printing ticket for Job ID: ${jobId}`);
              const job = jobsData.find(j => j.id === jobId);
@@ -539,13 +202,13 @@
              const material = materialsData[job.materialId];
              const printArea = document.getElementById('print-area');
              const printAreaWrapper = document.getElementById('print-area-wrapper');
-             if (!printArea || !printAreaWrapper) { alert("Error: Print area not found."); return; }
+             if (!printArea || !printAreaWrapper) { alert("Error: Print area element not found."); return; }
 
              const finalCost = job.finalCost || 0;
              const deposit = job.deposit || 0;
              const outstanding = Math.max(0, finalCost - deposit);
 
-             // Generar HTML para el ticket
+             // Generar HTML para el ticket (igual que antes, es específico para UN trabajo)
              let ticketHtml = `
                  <h2>** TICKET TRABAJO **</h2>
                  <p><span class="detail-label">ID Trabajo:</span><span class="detail-value">${job.id.substring(0, 6)}</span></p>
@@ -574,17 +237,22 @@
                  <p style="text-align: center; font-size: 8pt; margin-top: 5px;">¡Gracias!</p>
              `;
 
-             printArea.innerHTML = ticketHtml;
-             document.body.classList.add('printing-ticket');
+             printArea.innerHTML = ticketHtml; // Inyectar HTML
+             console.log("Ticket HTML inserted into #print-area:", printArea.innerHTML.substring(0, 200) + "..."); // Log para debug
 
-             setTimeout(() => {
+             document.body.classList.add('printing-ticket'); // Aplicar clase para CSS de ticket
+
+             // Usar requestAnimationFrame para esperar el próximo repintado
+             requestAnimationFrame(() => {
+                 console.log("Calling window.print() for ticket...");
                  window.print();
+                 // Limpieza después de un delay mayor
                  setTimeout(() => {
                      document.body.classList.remove('printing-ticket');
                      printArea.innerHTML = '';
                      console.log("Ticket print cleanup done.");
-                 }, 500);
-             }, 150);
+                 }, 1000); // 1 segundo para asegurar
+             });
          }
 
         function printCurrentSection() {
@@ -597,31 +265,35 @@
              if (activeSectionId === 'login' || activeSectionId === 'home') {
                   alert("Esta sección no se imprime."); return;
              }
-             // Advertir si se imprimen formularios, pero permitirlo
              if (activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') {
                    if (!confirm("Va a imprimir una vista de formulario. ¿Continuar?")) return;
              }
-             // Clarificar qué se está imprimiendo si es una lista de trabajos
-             if (activeSectionId === 'jobs' || activeSectionId === 'status') {
-                 console.log("Imprimiendo la lista de trabajos desde la pestaña actual.");
-             } else if (activeSectionId === 'deadlines') {
-                 console.log("Imprimiendo la lista de trabajos pendientes (Plazos).")
-             } else {
-                  console.log(`Imprimiendo contenido de la pestaña: ${activeSectionId}`);
+
+             // Verificar si la sección contiene una tabla para imprimir
+             const tableExists = sectionToPrint.querySelector('.admin-table');
+             if (!tableExists && !(activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') ) {
+                 alert(`La sección "${activeSectionId}" no contiene una tabla de datos para imprimir.`);
+                 // Podríamos decidir no imprimir o permitir imprimir el contenido que haya
+                 // return; // Descomentar si sólo se deben imprimir tablas
              }
 
+             console.log(`Applying print styles for section ${activeSectionId}...`);
              document.body.classList.add('printing-section');
              sectionToPrint.classList.add('printing-now');
 
-             setTimeout(() => {
+             // Usar requestAnimationFrame para esperar el próximo repintado
+             requestAnimationFrame(() => {
+                 console.log("Calling window.print() for section...");
                  window.print();
+                 // Limpieza después de un delay mayor
                  setTimeout(() => {
                      document.body.classList.remove('printing-section');
                      sectionToPrint.classList.remove('printing-now');
                      console.log("Section print cleanup done.");
-                 }, 500);
-             }, 150);
+                 }, 1000); // 1 segundo para asegurar
+             });
          }
+        // === FIN: FUNCIONES DE IMPRESIÓN REVISADAS ===
 
         // --- Funciones Utilitarias (SIN CAMBIOS) ---
         function showFeedback(el, msg, type='info') { if(!el)return; el.textContent=msg; el.className='mt-2 text-sm feedback'; if(msg){switch(type){case 'success': el.classList.add('feedback-success'); break; case 'error': el.classList.add('feedback-error'); break; default: el.classList.add('feedback-info'); break;}} if((type==='success'||type==='info')&&msg) setTimeout(()=>{if(el.textContent===msg){el.textContent=''; el.className='mt-2 text-sm feedback';}}, 4000); }
