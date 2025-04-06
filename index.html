@@ -355,12 +355,14 @@
             </section>
         </main>
 
+        <!-- Contenedor oculto para renderizar PDF del ticket -->
         <div id="pdf-render-area"></div>
 
         <footer class="text-center text-gray-500 text-sm mt-8 no-print">
             © <span id="current-year"></span> Presupuestos Corte Laser. Todos los derechos reservados.
         </footer>
 
+        <!-- Overlay de Carga para PDF -->
         <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">
             Generando PDF...
         </div>
@@ -376,7 +378,6 @@
 
         // --- Variables Globales ---
         let materialsData = {}; let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; let clientsData = {}; let jobsData = []; let currentUser = null; let currentUserRole = null; let currentJobQuoteBaseCost = 0; let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; let activeSectionId = 'home';
-        // jsPDF se accederá via window.jspdf
 
         // --- Funciones de UI y Datos ---
         function setActiveTab(buttonElement) { if (!buttonElement) return; const targetId = buttonElement.getAttribute('data-target'); if (!targetId) return; console.log("Activando tab:", targetId); activeSectionId = targetId; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const sectionToShow = document.getElementById(targetId); if (sectionToShow) { sectionToShow.classList.add('active-tab-content'); buttonElement.classList.add('active-tab'); loadDataForSection(targetId); } else { console.error(`Content '${targetId}' not found.`); const defBtn = document.querySelector('#tab-buttons .tab-button[data-target="jobs"]'); if (defBtn) setActiveTab(defBtn); } }
@@ -418,7 +419,7 @@
         function removeMonthlyCostInput(button) { const p=button.closest('.cost-entry'); if(p)p.remove(); }
         document.getElementById('config-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const f=document.getElementById('config-form-feedback-admin'); showFeedback(f,'','info'); document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(i=>i.classList.remove('border-red-500')); const min=parseInt(document.getElementById('config-minutes-admin').value,10); const ces=document.querySelectorAll('#monthly-costs-container .cost-entry'); const mc={}; let iv=true; let errs=[]; if(isNaN(min)||min<=0){errs.push('Minutes positive.'); document.getElementById('config-minutes-admin').classList.add('border-red-500'); iv=false;} ces.forEach((div,idx)=>{const ki=div.querySelector('[data-cost-key]'); const vi=div.querySelector('[data-cost-value]'); const k=ki.value.trim(); const vs=vi.value.trim(); const v=parseFloat(vs); if(k||vs){let eiv=true; if(!k){errs.push(`Row ${idx+1}: Descrip.`); ki.classList.add('border-red-500'); eiv=false;} if(vs===''||isNaN(v)||v<0){errs.push(`Row ${idx+1} ('${k||'?'}'): Value >= 0.`); vi.classList.add('border-red-500'); eiv=false;} if(eiv){if(mc.hasOwnProperty(k)){errs.push(`Row ${idx+1}: Dup descrip "${k}".`); ki.classList.add('border-red-500'); eiv=false;} else mc[k]=v;} if(!eiv)iv=false;}}); if(!iv){showFeedback(f,errs.join(' '),'error'); return;} const cu={minutes_per_month:min,monthly_costs:mc}; try { showFeedback(f,'Saving...','info'); await db.collection('config').doc('main').set(cu,{merge:true}); const tm=Object.values(mc).reduce((s,v)=>s+v,0); configData={...configData,minutes_per_month:min,monthly_costs:mc,cost_per_minute:min>0?tm/min:0}; console.log("Config saved. New cost/min:", configData.cost_per_minute); populateConfigFormAdmin(); showFeedback(f,'Config saved.','success'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
 
-        // === INICIO: FUNCIONES DE GENERACIÓN PDF (REVISADAS) ===
+        // === INICIO: FUNCIONES DE GENERACIÓN PDF (CORREGIDAS) ===
         function showPdfLoading(show = true) {
             const overlay = document.getElementById('pdf-loading-overlay');
             if (overlay) overlay.style.display = show ? 'flex' : 'none';
@@ -426,13 +427,13 @@
 
         async function printTicket(jobId) {
              console.log(`Generating PDF ticket for Job ID: ${jobId}`);
-             // Verificar si las librerías están cargadas
+             // Verificar si las librerías están cargadas AHORA
              if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
-                 alert("Error: Librerías PDF no cargadas. Intente recargar la página.");
+                 alert("Error: Librerías PDF no cargadas. Espere un momento y reintente, o recargue la página.");
                  console.error("jsPDF or html2canvas not loaded");
                  return;
              }
-             const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
+             const { jsPDF } = window.jspdf;
 
              const job = jobsData.find(j => j.id === jobId);
              if (!job) { alert(`Error: Job ${jobId} not found.`); return; }
@@ -478,26 +479,19 @@
              renderArea.innerHTML = ticketHtml;
              console.log("Ticket HTML inserted for PDF rendering.");
 
-             await new Promise(resolve => setTimeout(resolve, 100)); // Aumentar ligera espera
+             await new Promise(resolve => setTimeout(resolve, 100));
 
              try {
-                 const canvas = await html2canvas(renderArea, {
-                     scale: 2, useCORS: true, logging: false // Desactivar logging de html2canvas si genera mucho ruido
-                 });
+                 const canvas = await html2canvas(renderArea, { scale: 2, useCORS: true, logging: false });
                  console.log("html2canvas rendering complete for ticket.");
-
                  const imgData = canvas.toDataURL('image/png');
-                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, canvas.height * (80 / canvas.width)] }); // Ajustar altura dinámicamente
-
+                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, canvas.height * (80 / canvas.width) + 6] }); // Add padding to height
                  const pdfWidth = pdf.internal.pageSize.getWidth() - 6;
                  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
                  pdf.addImage(imgData, 'PNG', 3, 3, pdfWidth, pdfHeight);
                  console.log("Image added to PDF ticket.");
-
                  pdf.save(`ticket_${jobId.substring(0,6)}.pdf`);
                  console.log("PDF ticket save initiated.");
-
              } catch (error) {
                  console.error("Error generating PDF ticket:", error);
                  alert("Error al generar el PDF del ticket: " + error.message);
@@ -510,76 +504,67 @@
 
         async function printCurrentSection() {
              console.log(`Generating PDF for section: ${activeSectionId}`);
+             // Verificar si las librerías están cargadas AHORA
              if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
-                 alert("Error: Librerías PDF no cargadas. Intente recargar.");
+                 alert("Error: Librerías PDF no cargadas. Espere un momento y reintente, o recargue la página.");
                  console.error("jsPDF or html2canvas not loaded");
                  return;
              }
-              const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
+             const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
 
              const sectionToPrint = document.getElementById(activeSectionId);
-             if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) {
-                 alert("Sección activa no válida."); return;
-             }
-             if (activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') {
-                   if (!confirm("Generar PDF de formulario? (Puede no ser ideal) ¿Continuar?")) return;
-             } else if (activeSectionId === 'login' || activeSectionId === 'home') {
-                  alert("Esta sección no se puede exportar a PDF."); return;
-             }
+             if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) { alert("Sección activa no válida."); return; }
+             if (activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') { if (!confirm("Generar PDF de formulario? (Puede no ser ideal) ¿Continuar?")) return; }
+             else if (activeSectionId === 'login' || activeSectionId === 'home') { alert("Esta sección no se puede exportar a PDF."); return; }
 
              const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint;
-             if (!elementToPrint) {
-                 alert("No se encontró contenido principal (tabla o sección) para generar PDF."); return;
-             }
-             // Ocultar columna de acciones ANTES de clonar si es una tabla
-              let actionsHeader = null;
-              let actionsCells = [];
+             if (!elementToPrint) { alert("No se encontró contenido para generar PDF."); return; }
+
+             // Ocultar elementos no deseados ANTES de renderizar
+             let hiddenElements = [];
               if (elementToPrint.tagName === 'TABLE') {
-                    actionsHeader = elementToPrint.querySelector('thead th:last-child');
-                    actionsCells = elementToPrint.querySelectorAll('tbody td:last-child');
-                    if(actionsHeader) actionsHeader.style.display = 'none';
-                    actionsCells.forEach(cell => cell.style.display = 'none');
+                    elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => {
+                        if (el.style.display !== 'none') { // Solo ocultar si no está ya oculto
+                             hiddenElements.push({element: el, originalDisplay: el.style.display});
+                             el.style.display = 'none';
+                        }
+                    });
+              } else { // Si es la sección entera, buscar botones dentro
+                   elementToPrint.querySelectorAll('button, .no-print').forEach(el => {
+                       if (el.style.display !== 'none') {
+                           hiddenElements.push({element: el, originalDisplay: el.style.display});
+                           el.style.display = 'none';
+                       }
+                   });
               }
 
              console.log("Element to print:", elementToPrint.id || elementToPrint.tagName);
              showPdfLoading(true);
 
-             // Clonar y añadir al DOM ya no es necesario con las últimas versiones de html2canvas
-             // si el elemento es visible (aunque esté fuera de la vista)
-             // await new Promise(resolve => setTimeout(resolve, 50));
+             await new Promise(resolve => setTimeout(resolve, 100)); // Pequeña espera extra
 
              try {
                  const canvas = await html2canvas(elementToPrint, {
-                     scale: 1.2, // Reducir escala un poco para tablas grandes
-                     useCORS: true,
-                     logging: false, // Desactivar logs html2canvas
-                     // Opciones para intentar capturar todo el contenido si es necesario
-                     // windowWidth: elementToPrint.scrollWidth,
-                     // windowHeight: elementToPrint.scrollHeight,
-                     // x: elementToPrint.offsetLeft,
-                     // y: elementToPrint.offsetTop,
+                     scale: 1.2, useCORS: true, logging: false,
+                     // windowWidth: elementToPrint.scrollWidth // Puede ayudar con tablas anchas
                  });
                  console.log("html2canvas rendering complete for section.");
 
                  const imgData = canvas.toDataURL('image/png');
-                 const pdf = new jsPDF({
-                     orientation: 'landscape', unit: 'mm', format: 'a4'
-                 });
+                 const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
                  const imgProps = pdf.getImageProperties(imgData);
-                 const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // A4 landscape margins
+                 const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // Márgenes A4 landscape
                  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
                  const pageHeight = pdf.internal.pageSize.getHeight() - 20; // Altura usable A4
                  let heightLeft = pdfHeight;
                  let position = 10; // Margen superior
 
-                 // Añadir primera página
                  pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight);
                  heightLeft -= pageHeight;
 
-                 // Añadir páginas adicionales si la imagen es más alta que la página
                  while (heightLeft > 0) {
-                     position -= pageHeight; // Mover la imagen hacia arriba en la siguiente página
+                     position -= pageHeight;
                      pdf.addPage();
                      pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight);
                      heightLeft -= pageHeight;
@@ -592,9 +577,10 @@
                  console.error("Error generating PDF for section:", error);
                  alert("Error al generar el PDF de la sección: " + error.message);
              } finally {
-                  // Restaurar visibilidad de columna de acciones si se ocultó
-                  if (actionsHeader) actionsHeader.style.display = '';
-                  actionsCells.forEach(cell => cell.style.display = '');
+                 // Restaurar visibilidad de elementos ocultados
+                 hiddenElements.forEach(item => {
+                     item.element.style.display = item.originalDisplay || ''; // Restaurar display original o dejar que CSS decida
+                 });
                  showPdfLoading(false);
                  console.log("PDF section generation process finished.");
              }
