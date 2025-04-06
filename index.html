@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSFczMutaWMHKE0GnJ91instagPfEbAiZr8EkJ5VVJUKSPZmrYKLzKvGTRfGGUzY3nPdgXVVhg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
-        /* Estilos generales (Sin cambios) */
+        /* Estilos generales */
         body { font-family: 'Inter', sans-serif; }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         .tab-content { display: none; } .active-tab-content { display: block; }
@@ -27,19 +27,9 @@
 
         /* Estilos para el contenedor temporal de renderizado PDF (oculto visualmente) */
         #pdf-render-area {
-            position: absolute;
-            left: -9999px; /* Mover fuera de pantalla */
-            top: auto;
-            width: 80mm; /* Ancho del ticket */
-            background-color: white;
-            padding: 3mm;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 9pt;
-            line-height: 1.3;
-            color: #000;
-            border: 1px solid #ccc; /* Borde opcional para debug */
-            visibility: hidden; /* Ocultar visualmente */
-            z-index: -1; /* Poner detrás */
+            position: absolute; left: -9999px; top: auto; width: 80mm; background-color: white;
+            padding: 3mm; font-family: 'Courier New', Courier, monospace; font-size: 9pt;
+            line-height: 1.3; color: #000; border: 1px solid #ccc; visibility: hidden; z-index: -1;
         }
          #pdf-render-area h2 { font-size: 11pt; margin-bottom: 6px; text-align: center; font-weight: bold; }
          #pdf-render-area p { margin: 2px 0; font-size: 9pt; word-wrap: break-word; }
@@ -53,23 +43,10 @@
 
          /* Estilo para indicar carga de PDF */
          .generating-pdf-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            z-index: 10000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);
+            color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000;
          }
-
-        /* Ocultar @media print ya que no se usa window.print() */
-        /*
-        @media print {
-            ... reglas eliminadas ...
-        }
-        */
+         /* Ya no se necesitan reglas @media print */
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -86,7 +63,6 @@
                  </div>
                  <div class="mt-4 md:mt-0 flex items-center space-x-3">
                      <span id="user-email" class="admin-only text-sm text-gray-500 mr-3"></span>
-                     <!-- Modificado el title del botón general -->
                      <button onclick="printCurrentSection()" title="Generar PDF de la vista actual" class="admin-only generic-print-button action-button">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
                           <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm0 3a1 1 0 011 1v1a1 1 0 11-2 0V8a1 1 0 011-1zm0 5a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
@@ -379,14 +355,12 @@
             </section>
         </main>
 
-        <!-- Contenedor temporal para renderizar el ticket antes de pasarlo a PDF -->
         <div id="pdf-render-area"></div>
 
         <footer class="text-center text-gray-500 text-sm mt-8 no-print">
             © <span id="current-year"></span> Presupuestos Corte Laser. Todos los derechos reservados.
         </footer>
 
-        <!-- Overlay de Carga para PDF -->
         <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">
             Generando PDF...
         </div>
@@ -394,7 +368,7 @@
     </div>
 
     <script>
-        // --- Configuración Firebase e Inicialización (Corregido) ---
+        // --- Configuración Firebase e Inicialización ---
         const firebaseConfig = { apiKey: "AIzaSyAVBHUX8Ey9lLUCiz6mNDOemrNfrR-3Szs", authDomain: "presupuestadorcortelaser.firebaseapp.com", projectId: "presupuestadorcortelaser", storageBucket: "presupuestadorcortelaser.firebasestorage.app", messagingSenderId: "159566854109", appId: "1:159566854109:web:8d7351cef717697f3ea834" };
         let db; let auth;
         try { firebase.initializeApp(firebaseConfig); db = firebase.firestore(); auth = firebase.auth(); console.log("Firebase inicializado."); } catch (error) { console.error("Error Firebase Init:", error); alert("Error crítico: No se pudo inicializar Firebase."); }
@@ -402,16 +376,16 @@
 
         // --- Variables Globales ---
         let materialsData = {}; let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; let clientsData = {}; let jobsData = []; let currentUser = null; let currentUserRole = null; let currentJobQuoteBaseCost = 0; let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; let activeSectionId = 'home';
-        const { jsPDF } = window.jspdf; // Acceder a jsPDF desde el scope global
+        // jsPDF se accederá via window.jspdf
 
-        // --- Funciones de UI y Datos (Navegación, Auth, Carga, Poblado, CRUDs - SIN CAMBIOS)---
+        // --- Funciones de UI y Datos ---
         function setActiveTab(buttonElement) { if (!buttonElement) return; const targetId = buttonElement.getAttribute('data-target'); if (!targetId) return; console.log("Activando tab:", targetId); activeSectionId = targetId; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const sectionToShow = document.getElementById(targetId); if (sectionToShow) { sectionToShow.classList.add('active-tab-content'); buttonElement.classList.add('active-tab'); loadDataForSection(targetId); } else { console.error(`Content '${targetId}' not found.`); const defBtn = document.querySelector('#tab-buttons .tab-button[data-target="jobs"]'); if (defBtn) setActiveTab(defBtn); } }
         function showLoginSection() { console.log("Mostrando login"); activeSectionId = 'login'; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const lSec = document.getElementById('login'); if(lSec) lSec.classList.add('active-tab-content'); const lForm = document.getElementById('login-form'); if(lForm) lForm.reset(); const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; }
         auth?.onAuthStateChanged(user => { if (!auth) { showLoginSection(); return; } console.log("Auth state:", user ? user.uid : 'null'); currentUser = user; const uSpan = document.getElementById('user-email'); document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only'); if (user) { currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator'; console.log("Role:", currentUserRole); document.body.classList.add('logged-in', `role-${currentUserRole}`); if (uSpan) uSpan.textContent = user.email; loadInitialDataForLoggedInUser().then(() => { console.log("Initial data loaded post-login."); const defTab = 'jobs'; const tBtn = document.querySelector(`#tab-buttons .tab-button[data-target="${defTab}"]`); if (tBtn) setActiveTab(tBtn); else { console.error("Default tab btn 'jobs' not found."); const fBtn = document.querySelector('#tab-buttons .tab-button:not(.superadmin-only)') || document.querySelector('#tab-buttons .tab-button.superadmin-only'); if (fBtn) setActiveTab(fBtn); } }).catch(error => { console.error("Error initial data load:", error); alert("Error crítico cargando datos."); }); } else { console.log("Logged out."); currentUserRole = null; document.body.classList.add('public-only'); if (uSpan) uSpan.textContent = ''; materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; dataLoaded = { clients: false, jobs: false, materials: false, config: false }; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const hSec = document.getElementById('home'); if (hSec) { hSec.classList.add('active-tab-content'); activeSectionId = 'home'; } } });
-        document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) return; const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
-        function logoutUser() { if (!auth) return; console.log("Logging out..."); auth.signOut().then(() => console.log("Logout ok.")).catch(err => { console.error("Logout err:", err); alert("Error logout: " + err.message); }); }
+        document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) { console.error("Auth N/A for login"); return;} const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
+        function logoutUser() { if (!auth) { console.error("Auth N/A for logout"); return; } console.log("Logging out..."); auth.signOut().then(() => console.log("Logout ok.")).catch(err => { console.error("Logout err:", err); alert("Error logout: " + err.message); }); }
         async function loadInitialDataForLoggedInUser() { if (!db) throw new Error("DB N/A"); console.log("Loading initial data..."); await Promise.all([ loadMaterials(), loadConfig(), loadClients() ]); console.log("Initial data ok."); }
-        function loadDataForSection(sectionId) { if (!db) return; console.log(`Loading for ${sectionId}`); if (!currentUser) return; switch(sectionId){ case 'clients': if (!dataLoaded.clients) loadClients(); else populateClientsTable(); break; case 'jobs': loadJobs(); break; case 'deadlines': if (!dataLoaded.jobs) loadJobs().then(populateDeadlinesTable); else populateDeadlinesTable(); break; case 'status': if (!dataLoaded.jobs) loadJobs().then(populateStatusTable); else populateStatusTable(); break; case 'reports': if (!dataLoaded.jobs) loadJobs().then(generateReports); else generateReports(); break; case 'new-job-form': const cP=dataLoaded.clients?Promise.resolve():loadClients(); const mP=dataLoaded.materials?Promise.resolve():loadMaterials(); Promise.all([cP,mP]).then(() => { populateClientDropdown('job-client'); populateMaterialDropdown('job-material'); }).catch(err => console.error("Err loading for New Job:", err)); resetJobForm(); break; case 'admin-materials': if(currentUserRole==='superadmin'){ if(!dataLoaded.materials) loadMaterials(); else populateMaterialsAdminTable(); } break; case 'admin-config': if(currentUserRole==='superadmin'){ if(!dataLoaded.config) loadConfig(); else populateConfigFormAdmin(); } break; } }
+        function loadDataForSection(sectionId) { if (!db) { console.error(`DB N/A for ${sectionId}`); return; } console.log(`Loading for ${sectionId}`); if (!currentUser) return; switch(sectionId){ case 'clients': if (!dataLoaded.clients) loadClients(); else populateClientsTable(); break; case 'jobs': loadJobs(); break; case 'deadlines': if (!dataLoaded.jobs) loadJobs().then(populateDeadlinesTable); else populateDeadlinesTable(); break; case 'status': if (!dataLoaded.jobs) loadJobs().then(populateStatusTable); else populateStatusTable(); break; case 'reports': if (!dataLoaded.jobs) loadJobs().then(generateReports); else generateReports(); break; case 'new-job-form': const cP=dataLoaded.clients?Promise.resolve():loadClients(); const mP=dataLoaded.materials?Promise.resolve():loadMaterials(); Promise.all([cP,mP]).then(() => { populateClientDropdown('job-client'); populateMaterialDropdown('job-material'); }).catch(err => console.error("Err loading for New Job:", err)); resetJobForm(); break; case 'admin-materials': if(currentUserRole==='superadmin'){ if(!dataLoaded.materials) loadMaterials(); else populateMaterialsAdminTable(); } break; case 'admin-config': if(currentUserRole==='superadmin'){ if(!dataLoaded.config) loadConfig(); else populateConfigFormAdmin(); } break; } }
         async function loadMaterials() { if (!db) return; console.log("Loading materials..."); try { const snap=await db.collection('materials').orderBy('name').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); materialsData=temp; console.log(`Mats loaded: ${Object.keys(materialsData).length}`); dataLoaded.materials=true; populateMaterialDropdown('job-material'); if(currentUserRole==='superadmin') populateMaterialsAdminTable(); } catch (err) { console.error("Err loading mats:", err); const f=document.getElementById('material-form-feedback-admin'); if(f) showFeedback(f,`Err loading mats: ${err.message}`,'error'); dataLoaded.materials=false; } }
         async function loadConfig() { if (!db) return; console.log("Loading config..."); try { const doc=await db.collection('config').doc('main').get(); if(doc.exists){ const d=doc.data(); configData={minutes_per_month:d.minutes_per_month||2400,monthly_costs:d.monthly_costs||{},cost_per_minute:0}; const tm=Object.values(configData.monthly_costs).reduce((s,v)=>s+(Number(v)||0),0); if(configData.minutes_per_month>0) configData.cost_per_minute=tm/configData.minutes_per_month; else configData.cost_per_minute=0; console.log(`Config loaded. Cost/min: $${configData.cost_per_minute.toFixed(4)}`); } else { console.warn("Config 'main' N/F. Defaults used."); configData={cost_per_minute:0,minutes_per_month:2400,monthly_costs:{}}; } dataLoaded.config=true; if(currentUserRole==='superadmin') populateConfigFormAdmin(); } catch(err) { console.error("Err loading config:", err); const f=document.getElementById('config-form-feedback-admin'); if(f) showFeedback(f,`Err loading config: ${err.message}`,'error'); dataLoaded.config=false; } }
         async function loadClients() { if(!currentUser||!db) return; console.log("Loading clients..."); const b=document.getElementById('clients-table')?.querySelector('tbody'); if(b) b.innerHTML='<tr><td colspan="4" class="text-center py-4">Loading...</td></tr>'; try { const snap=await db.collection('clients').orderBy('name','asc').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); clientsData=temp; console.log(`Clients loaded: ${Object.keys(clientsData).length}`); dataLoaded.clients=true; populateClientsTable(); populateClientDropdown('job-client'); } catch(err) { console.error("Err loading clients:", err); if(b) b.innerHTML=`<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`; dataLoaded.clients=false; } }
@@ -419,7 +393,7 @@
         function populateClientDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Select client...</option>'; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.textContent=c.name||`ID: ${c.id}`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
         function populateMaterialDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Select material...</option>'; Object.values(materialsData).filter(m=>m.available!==false).sort((a,b)=>`${a.name||''} ${a.thickness||0}mm`.localeCompare(`${b.name||''} ${b.thickness||0}mm`)).forEach(m=>{const o=document.createElement('option'); o.value=m.id; o.textContent=`${m.name||'No Name'} - ${m.thickness||'?'}mm`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
         function populateClientsTable() { const b=document.getElementById('clients-table')?.querySelector('tbody'); if(!b)return; if(Object.keys(clientsData).length===0&&dataLoaded.clients){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No clients.</td></tr>';return;} let h=''; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{h+=`<tr data-client-id="${c.id}"><td>${c.name||'N/A'}</td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Edit</button><button onclick="deleteClient('${c.id}')" class="delete-button">Delete</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">New Job</button></td></tr>`;}); b.innerHTML=h; }
-        function populateJobsTable() { const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="9" class="text-center py-4">No jobs.</td></tr>';return;} const s=[...jobsData].sort((a,b)=>(b.orderDate||"").localeCompare(a.orderDate||"")); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Deleted/Unknown'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button">Edit</button><button onclick="deleteJob('${j.id}')" class="delete-button">Delete</button><button onclick="printTicket('${j.id}')" class="print-button">Ticket PDF</button></td></tr>`;}); b.innerHTML=h; } // Modificado texto botón ticket
+        function populateJobsTable() { const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="9" class="text-center py-4">No jobs.</td></tr>';return;} const s=[...jobsData].sort((a,b)=>(b.orderDate||"").localeCompare(a.orderDate||"")); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Deleted/Unknown'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button">Edit</button><button onclick="deleteJob('${j.id}')" class="delete-button">Delete</button><button onclick="printTicket('${j.id}')" class="print-button">Ticket PDF</button></td></tr>`;}); b.innerHTML=h; }
         function populateDeadlinesTable() { const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No jobs.</td></tr>';return;} const t=new Date(); t.setHours(0,0,0,0); const u=jobsData.filter(j=>j.status!=='Terminado').sort((a,b)=>(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31")); if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No pending jobs.</td></tr>';return;} let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Deleted/Unknown'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Overdue (${Math.abs(d)})`;rc='bg-red-100 date-overdue';} else if(d===0){dr='Today';rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} day(s)`;rc='bg-yellow-50';} else{dr=`${d} days`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h; }
         function populateStatusTable() { const b=document.getElementById('status-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No jobs.</td></tr>';return;} const so={'Procesando':1,'Encargado':2,'Terminado':3}; const s=[...jobsData].sort((a,b)=>{const sd=(so[a.status]||99)-(so[b.status]||99); if(sd!==0)return sd; return(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31");}); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Deleted/Unknown'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td></tr>`;}); b.innerHTML=h; }
         function generateReports() { let tv=0; let td=0; let ct={}; jobsData.forEach(j=>{const fc=j.finalCost||0; const dp=j.deposit||0; tv+=fc; td+=dp; const cid=j.clientId; if(!cid) return; if(!ct[cid]) ct[cid]={name:clientsData[cid]?.name||`Unknown (${cid})`, total:0, deposit:0, outstanding:0}; ct[cid].total+=fc; ct[cid].deposit+=dp;}); const to=tv-td; document.getElementById('report-total-value').textContent=`$${tv.toFixed(2)}`; document.getElementById('report-total-deposit').textContent=`$${td.toFixed(2)}`; document.getElementById('report-total-outstanding').textContent=`$${Math.max(0,to).toFixed(2)}`; const otb=document.getElementById('outstanding-table')?.querySelector('tbody'); if(!otb) return; const cwo=Object.values(ct).map(c=>{c.outstanding=Math.max(0,c.total-c.deposit); return c;}).filter(c=>c.outstanding>0.005).sort((a,b)=>b.outstanding-a.outstanding); if(cwo.length===0){otb.innerHTML='<tr><td colspan="4" class="text-center py-4">No outstanding balances.</td></tr>'; return;} let h=''; cwo.forEach(c=>{h+=`<tr><td>${c.name}</td><td class="text-right">${c.total.toFixed(2)}</td><td class="text-right">${c.deposit.toFixed(2)}</td><td class="text-right font-semibold text-red-600">${c.outstanding.toFixed(2)}</td></tr>`;}); otb.innerHTML=h; }
@@ -447,16 +421,19 @@
         // === INICIO: FUNCIONES DE GENERACIÓN PDF (REVISADAS) ===
         function showPdfLoading(show = true) {
             const overlay = document.getElementById('pdf-loading-overlay');
-            if (overlay) {
-                overlay.style.display = show ? 'flex' : 'none';
-            }
+            if (overlay) overlay.style.display = show ? 'flex' : 'none';
         }
 
         async function printTicket(jobId) {
              console.log(`Generating PDF ticket for Job ID: ${jobId}`);
-             if (typeof jsPDF === 'undefined' || typeof html2canvas === 'undefined') {
-                 alert("Error: PDF generation library not loaded."); return;
+             // Verificar si las librerías están cargadas
+             if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+                 alert("Error: Librerías PDF no cargadas. Intente recargar la página.");
+                 console.error("jsPDF or html2canvas not loaded");
+                 return;
              }
+             const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
+
              const job = jobsData.find(j => j.id === jobId);
              if (!job) { alert(`Error: Job ${jobId} not found.`); return; }
              const client = clientsData[job.clientId];
@@ -464,13 +441,12 @@
              const renderArea = document.getElementById('pdf-render-area');
              if (!renderArea) { alert("Error: PDF render area element not found."); return; }
 
-             showPdfLoading(true); // Mostrar indicador
+             showPdfLoading(true);
 
              const finalCost = job.finalCost || 0;
              const deposit = job.deposit || 0;
              const outstanding = Math.max(0, finalCost - deposit);
 
-             // Generar HTML para el ticket (igual que antes)
              let ticketHtml = `
                  <h2>** TICKET TRABAJO **</h2>
                  <p><span class="detail-label">ID Trabajo:</span><span class="detail-value">${job.id.substring(0, 6)}</span></p>
@@ -499,153 +475,126 @@
                  <p style="text-align: center; font-size: 8pt; margin-top: 5px;">¡Gracias!</p>
              `;
 
-             renderArea.innerHTML = ticketHtml; // Poner HTML en el div oculto
+             renderArea.innerHTML = ticketHtml;
              console.log("Ticket HTML inserted for PDF rendering.");
 
-             // Esperar un instante para asegurar que el DOM se actualice
-             await new Promise(resolve => setTimeout(resolve, 50));
+             await new Promise(resolve => setTimeout(resolve, 100)); // Aumentar ligera espera
 
              try {
                  const canvas = await html2canvas(renderArea, {
-                     scale: 2, // Aumentar escala para mejor calidad
-                     useCORS: true, // Si hubiera imágenes externas
-                     logging: true // Habilitar logs de html2canvas para debug
+                     scale: 2, useCORS: true, logging: false // Desactivar logging de html2canvas si genera mucho ruido
                  });
-                 console.log("html2canvas rendering complete.");
+                 console.log("html2canvas rendering complete for ticket.");
 
                  const imgData = canvas.toDataURL('image/png');
-                 const pdf = new jsPDF({
-                     orientation: 'portrait',
-                     unit: 'mm',
-                     format: [80, 200] // Ancho 80mm, alto estimado (ajustable)
-                 });
+                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [80, canvas.height * (80 / canvas.width)] }); // Ajustar altura dinámicamente
 
-                 // Calcular dimensiones manteniendo proporción
-                 const imgProps = pdf.getImageProperties(imgData);
-                 const pdfWidth = pdf.internal.pageSize.getWidth() - 6; // Ancho PDF menos márgenes (3mm izq/der)
-                 const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                 const pdfWidth = pdf.internal.pageSize.getWidth() - 6;
+                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-                 pdf.addImage(imgData, 'PNG', 3, 3, pdfWidth, pdfHeight); // Añadir imagen con márgenes
-                 console.log("Image added to PDF.");
+                 pdf.addImage(imgData, 'PNG', 3, 3, pdfWidth, pdfHeight);
+                 console.log("Image added to PDF ticket.");
 
                  pdf.save(`ticket_${jobId.substring(0,6)}.pdf`);
-                 console.log("PDF save initiated.");
+                 console.log("PDF ticket save initiated.");
 
              } catch (error) {
                  console.error("Error generating PDF ticket:", error);
-                 alert("Error al generar el PDF del ticket.");
+                 alert("Error al generar el PDF del ticket: " + error.message);
              } finally {
-                 renderArea.innerHTML = ''; // Limpiar área de renderizado
-                 showPdfLoading(false); // Ocultar indicador
+                 renderArea.innerHTML = '';
+                 showPdfLoading(false);
                  console.log("PDF ticket generation process finished.");
              }
          }
 
         async function printCurrentSection() {
              console.log(`Generating PDF for section: ${activeSectionId}`);
-              if (typeof jsPDF === 'undefined' || typeof html2canvas === 'undefined') {
-                 alert("Error: PDF generation library not loaded."); return;
+             if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+                 alert("Error: Librerías PDF no cargadas. Intente recargar.");
+                 console.error("jsPDF or html2canvas not loaded");
+                 return;
              }
-             const sectionToPrint = document.getElementById(activeSectionId);
+              const { jsPDF } = window.jspdf; // Acceder a jsPDF AQUI
 
+             const sectionToPrint = document.getElementById(activeSectionId);
              if (!sectionToPrint || !sectionToPrint.classList.contains('tab-content')) {
-                 alert("Sección activa no válida para generar PDF."); return;
+                 alert("Sección activa no válida."); return;
              }
-             // Permitir PDF de cualquier sección, pero advertir para formularios
              if (activeSectionId === 'new-job-form' || activeSectionId === 'admin-materials' || activeSectionId === 'admin-config') {
-                   if (!confirm("Va a generar un PDF de una vista de formulario. El resultado puede no ser ideal. ¿Continuar?")) return;
+                   if (!confirm("Generar PDF de formulario? (Puede no ser ideal) ¿Continuar?")) return;
              } else if (activeSectionId === 'login' || activeSectionId === 'home') {
                   alert("Esta sección no se puede exportar a PDF."); return;
              }
 
-             // Intentar encontrar el elemento principal a imprimir (tabla o el div entero)
-             const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint; // Prioriza tabla, sino usa toda la sección
+             const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint;
              if (!elementToPrint) {
-                 alert("No se encontró contenido para generar el PDF en esta sección."); return;
+                 alert("No se encontró contenido principal (tabla o sección) para generar PDF."); return;
              }
+             // Ocultar columna de acciones ANTES de clonar si es una tabla
+              let actionsHeader = null;
+              let actionsCells = [];
+              if (elementToPrint.tagName === 'TABLE') {
+                    actionsHeader = elementToPrint.querySelector('thead th:last-child');
+                    actionsCells = elementToPrint.querySelectorAll('tbody td:last-child');
+                    if(actionsHeader) actionsHeader.style.display = 'none';
+                    actionsCells.forEach(cell => cell.style.display = 'none');
+              }
 
-             console.log("Element to print identified:", elementToPrint.id || elementToPrint.tagName);
+             console.log("Element to print:", elementToPrint.id || elementToPrint.tagName);
              showPdfLoading(true);
 
-             // Clonar el elemento y eliminar botones/no-print ANTES de renderizar
-             const clone = elementToPrint.cloneNode(true);
-             clone.querySelectorAll('button, .no-print, th:last-child, td:last-child').forEach(el => el.remove()); // Quitar botones y última columna
-
-             // Añadir el clon temporalmente al DOM para que html2canvas lo vea (oculto)
-             clone.style.position = 'absolute';
-             clone.style.left = '-9999px';
-             clone.style.top = '0px';
-             clone.style.width = '1000px'; // Ancho suficiente para tablas
-             clone.style.backgroundColor = 'white'; // Fondo blanco para renderizar
-             document.body.appendChild(clone);
-             console.log("Cloned element appended for rendering.");
-
-             // Esperar un instante
-             await new Promise(resolve => setTimeout(resolve, 50));
+             // Clonar y añadir al DOM ya no es necesario con las últimas versiones de html2canvas
+             // si el elemento es visible (aunque esté fuera de la vista)
+             // await new Promise(resolve => setTimeout(resolve, 50));
 
              try {
-                 const canvas = await html2canvas(clone, {
-                     scale: 1.5, // Escala decente para tablas
+                 const canvas = await html2canvas(elementToPrint, {
+                     scale: 1.2, // Reducir escala un poco para tablas grandes
                      useCORS: true,
-                     logging: true,
-                     width: clone.scrollWidth, // Usar scrollWidth para capturar todo el ancho
-                     height: clone.scrollHeight,
-                     windowWidth: clone.scrollWidth,
-                     windowHeight: clone.scrollHeight
+                     logging: false, // Desactivar logs html2canvas
+                     // Opciones para intentar capturar todo el contenido si es necesario
+                     // windowWidth: elementToPrint.scrollWidth,
+                     // windowHeight: elementToPrint.scrollHeight,
+                     // x: elementToPrint.offsetLeft,
+                     // y: elementToPrint.offsetTop,
                  });
                  console.log("html2canvas rendering complete for section.");
 
                  const imgData = canvas.toDataURL('image/png');
                  const pdf = new jsPDF({
-                     orientation: 'landscape', // Mejor para tablas anchas
-                     unit: 'mm',
-                     format: 'a4'
+                     orientation: 'landscape', unit: 'mm', format: 'a4'
                  });
 
                  const imgProps = pdf.getImageProperties(imgData);
-                 const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // Márgenes A4 (10mm izq/der)
+                 const pdfWidth = pdf.internal.pageSize.getWidth() - 20; // A4 landscape margins
                  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                 const totalPages = Math.ceil(pdfHeight / (pdf.internal.pageSize.getHeight() - 20)); // Calcular páginas
-
+                 const pageHeight = pdf.internal.pageSize.getHeight() - 20; // Altura usable A4
                  let heightLeft = pdfHeight;
-                 let position = 10; // Margen superior inicial
+                 let position = 10; // Margen superior
 
-                 pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight); // Añadir primera parte
-                 heightLeft -= (pdf.internal.pageSize.getHeight() - 20);
+                 // Añadir primera página
+                 pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight);
+                 heightLeft -= pageHeight;
 
-                 // Añadir páginas si es necesario (simplificado, jsPDF html() maneja esto mejor)
-                 // Este enfoque con una sola imagen grande puede no paginar bien.
-                 // jsPDF.html() es preferible para contenido largo como tablas.
-                 // Considerar jspdf-autotable para tablas complejas.
-                 /*
+                 // Añadir páginas adicionales si la imagen es más alta que la página
                  while (heightLeft > 0) {
-                     position = heightLeft - pdfHeight + 10; // Ajustar posición Y negativa
+                     position -= pageHeight; // Mover la imagen hacia arriba en la siguiente página
                      pdf.addPage();
                      pdf.addImage(imgData, 'PNG', 10, position, pdfWidth, pdfHeight);
-                     heightLeft -= (pdf.internal.pageSize.getHeight() - 20);
+                     heightLeft -= pageHeight;
                  }
-                 */
-                // Alternativa más simple: usar pdf.html directamente si la tabla no es muy compleja
-                /*
-                await pdf.html(clone, {
-                    callback: function(doc) {
-                        doc.save(`seccion_${activeSectionId}.pdf`);
-                    },
-                    x: 10,
-                    y: 10,
-                    width: 190, // Ancho A4 menos márgenes
-                    windowWidth: clone.scrollWidth
-                });
-                */
 
                  pdf.save(`seccion_${activeSectionId}.pdf`);
                  console.log("PDF save initiated for section.");
 
              } catch (error) {
                  console.error("Error generating PDF for section:", error);
-                 alert("Error al generar el PDF de la sección.");
+                 alert("Error al generar el PDF de la sección: " + error.message);
              } finally {
-                 document.body.removeChild(clone); // Eliminar clon
+                  // Restaurar visibilidad de columna de acciones si se ocultó
+                  if (actionsHeader) actionsHeader.style.display = '';
+                  actionsCells.forEach(cell => cell.style.display = '');
                  showPdfLoading(false);
                  console.log("PDF section generation process finished.");
              }
