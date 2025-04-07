@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" referrerpolicy="no-referrer"></script>
     <style>
-        /* Estilos generales */
+        /* ... Estilos generales (SIN CAMBIOS) ... */
         body { font-family: 'Inter', sans-serif; }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         .tab-content { display: none; } .active-tab-content { display: block; }
@@ -24,7 +24,6 @@
         .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
         .date-overdue { color: #dc2626; font-weight: bold; }
         .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; } .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; } .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
-
         #pdf-render-area {
             position: absolute; left: -9999px; visibility: hidden; z-index: -1; width: 80mm; background-color: white;
             padding: 3mm; font-family: 'Courier New', Courier, monospace !important; font-size: 9pt !important;
@@ -39,16 +38,20 @@
          #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; }
          #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;}
          #pdf-render-area .detail-value { }
-
          .generating-pdf-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);
             color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000;
          }
-         #monthly-report-table th, #monthly-report-table td {
-            padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right;
-         }
+         #monthly-report-table th, #monthly-report-table td { padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right; }
          #monthly-report-table th { background-color: #f1f5f9; font-weight: 600; text-align: center; }
          #monthly-report-table td:first-child { text-align: left; }
+         /* Estilos para <details> y <summary> */
+         details > summary { list-style: none; cursor: pointer; }
+         details > summary::-webkit-details-marker { display: none; } /* Chrome/Safari */
+         details > summary::marker { display: none; } /* Firefox */
+         details > summary { padding: 0.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-weight: 600; }
+         details[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none; }
+         details > div { border: 1px solid #e5e7eb; border-top: none; padding: 1rem; border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -120,6 +123,7 @@
                      <div id="login-error" class="mt-2 text-red-600 text-sm text-center min-h-[1.25em]"></div>
                  </form>
             </section>
+             <!-- GESTION CLIENTES: Tabla comentada -->
              <section id="clients" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
                 <form id="client-form" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
@@ -143,6 +147,7 @@
                      </div>
                      <div id="client-form-feedback" class="mt-2 text-sm feedback"></div>
                  </form>
+                 <!--
                  <div class="overflow-x-auto">
                      <table id="clients-table" class="admin-table">
                          <thead>
@@ -156,9 +161,12 @@
                          <tbody></tbody>
                      </table>
                  </div>
+                 -->
+                 <p class="text-center text-gray-500 mt-4">(El listado completo de clientes se ha ocultado para mejorar el rendimiento)</p>
             </section>
+            <!-- GESTION TRABAJOS: Solo Encargado y Procesando -->
             <section id="jobs" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Trabajos</h2>
+                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Trabajos Activos (Encargado/Procesando)</h2>
                   <div class="mb-4 text-center no-print">
                       <button onclick="setActiveTab(document.querySelector('[data-target=new-job-form]')); resetJobForm();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                           + Nuevo Trabajo
@@ -183,6 +191,7 @@
                      </table>
                  </div>
             </section>
+            <!-- NUEVO TRABAJO: Largo -> Alto -->
             <section id="new-job-form" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
                 <h2 id="job-form-title" class="text-2xl font-bold mb-6 text-center text-blue-600">Nuevo Trabajo</h2>
                 <form id="job-form" class="space-y-4">
@@ -208,7 +217,8 @@
                          </div>
                          <div class="grid grid-cols-2 gap-4">
                              <div>
-                                 <label for="job-length" class="block text-sm font-medium text-gray-700">Largo (mm):</label>
+                                 <!-- Cambio de Texto: Largo -> Alto -->
+                                 <label for="job-length" class="block text-sm font-medium text-gray-700">Alto (mm):</label>
                                  <input type="number" id="job-length" required min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                              </div>
                              <div>
@@ -288,8 +298,9 @@
                      </table>
                  </div>
             </section>
+             <!-- ESTADO TRABAJOS: Solo Procesando -->
             <section id="status" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Estado de Trabajos</h2>
+                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Trabajos en Proceso</h2>
                   <div class="overflow-x-auto">
                      <table id="status-table" class="admin-table">
                          <thead><tr><th>Cliente</th><th>Detalles</th><th>Estado</th><th>F. Entrega</th></tr></thead>
@@ -334,10 +345,11 @@
                 </div>
                  <div id="advanced-reports-feedback" class="mt-4 text-sm feedback"></div>
             </section>
+             <!-- GESTION MATERIALES: Tabla dentro de <details> -->
              <section id="admin-materials" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Gestionar Materiales</h2>
                  <form id="material-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
-                     <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir Material</h4>
+                     <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir/Editar Material</h4>
                      <input type="hidden" id="material-id-admin">
                      <div><label for="material-name-admin" class="block text-sm font-medium text-gray-700">Nombre:</label><input type="text" id="material-name-admin" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
                      <div><label for="material-thickness-admin" class="block text-sm font-medium text-gray-700">Grosor(mm):</label><input type="number" id="material-thickness-admin" required min="0.1" step="0.1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
@@ -348,12 +360,16 @@
                      <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar</button><button type="button" onclick="resetMaterialFormAdmin()" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button></div>
                      <div id="material-form-feedback-admin" class="mt-2 text-sm feedback"></div>
                  </form>
-                 <div class="overflow-x-auto">
-                     <table id="materials-admin-table" class="admin-table">
-                         <thead><tr><th>Nombre</th><th class="text-right">Grosor(mm)</th><th class="text-right">Costo/Plancha($)</th><th class="text-center">Dimensiones(mm)</th><th class="text-center">Disp.</th><th class="no-print">Acciones</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
+                 <!-- Lista desplegable -->
+                 <details class="mt-6">
+                     <summary class="hover:bg-gray-100">Ver/Ocultar Lista de Materiales</summary>
+                     <div class="overflow-x-auto mt-0 pt-4"> <!-- div interior para padding -->
+                         <table id="materials-admin-table" class="admin-table">
+                             <thead><tr><th>Nombre</th><th class="text-right">Grosor(mm)</th><th class="text-right">Costo/Plancha($)</th><th class="text-center">Dimensiones(mm)</th><th class="text-center">Disp.</th><th class="no-print">Acciones</th></tr></thead>
+                             <tbody></tbody>
+                         </table>
+                     </div>
+                 </details>
             </section>
             <section id="admin-config" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
                  <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Configuración de Costos</h2>
@@ -406,6 +422,7 @@
         document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) { console.error("Auth N/A for login"); return;} const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
         function logoutUser() { if (!auth) { console.error("Auth N/A for logout"); return; } console.log("Logging out..."); auth.signOut().then(() => console.log("Logout ok.")).catch(err => { console.error("Logout err:", err); alert("Error logout: " + err.message); }); }
         async function loadInitialDataForLoggedInUser() { if (!db) throw new Error("DB N/A"); console.log("Loading initial data..."); await Promise.all([ loadMaterials(), loadConfig(), loadClients() ]); console.log("Initial data ok."); }
+        // --- loadDataForSection MODIFICADA (v2) ---
         function loadDataForSection(sectionId) {
              if (!db) { console.error(`DB N/A for ${sectionId}`); return; }
              console.log(`Loading for ${sectionId}`);
@@ -431,9 +448,84 @@
         function populateClientDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Selecciona cliente...</option>'; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.textContent=c.name||`ID: ${c.id}`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
         function populateMaterialDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Selecciona material...</option>'; Object.values(materialsData).filter(m=>m.available!==false).sort((a,b)=>`${a.name||''} ${a.thickness||0}mm`.localeCompare(`${b.name||''} ${b.thickness||0}mm`)).forEach(m=>{const o=document.createElement('option'); o.value=m.id; o.textContent=`${m.name||'Sin Nombre'} - ${m.thickness||'?'}mm`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
         function populateClientsTable() { const b=document.getElementById('clients-table')?.querySelector('tbody'); if(!b)return; if(Object.keys(clientsData).length===0&&dataLoaded.clients){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No hay clientes.</td></tr>';return;} let h=''; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{h+=`<tr data-client-id="${c.id}"><td>${c.name||'N/A'}</td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Editar</button><button onclick="deleteClient('${c.id}')" class="delete-button">Borrar</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">Nuevo Trabajo</button></td></tr>`;}); b.innerHTML=h; }
-        function populateJobsTable() { const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="9" class="text-center py-4">No hay trabajos.</td></tr>';return;} const s=[...jobsData].sort((a,b)=>(b.orderDate||"").localeCompare(a.orderDate||"")); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desconocido'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button">Editar</button><button onclick="deleteJob('${j.id}')" class="delete-button">Borrar</button><button onclick="printTicket('${j.id}')" class="print-button">Ticket PDF</button></td></tr>`;}); b.innerHTML=h; }
+        // --- populateJobsTable MODIFICADA ---
+        function populateJobsTable() {
+            const tableBody = document.getElementById('jobs-table')?.querySelector('tbody');
+            if (!tableBody) return;
+
+            // Filtrar para mostrar solo 'Encargado' y 'Procesando'
+            const activeJobs = jobsData.filter(job => job.status === 'Encargado' || job.status === 'Procesando');
+
+            if (activeJobs.length === 0 && dataLoaded.jobs) {
+                 tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No hay trabajos activos (Encargado o Procesando).</td></tr>';
+                 return;
+            }
+
+            // Ordenar los activos por fecha de pedido descendente
+            const sortedJobs = activeJobs.sort((a, b) => (b.orderDate || "").localeCompare(a.orderDate || ""));
+
+            let rowsHtml = '';
+            sortedJobs.forEach(job => {
+                 const clientName = clientsData[job.clientId]?.name || 'Borrado/Desconocido';
+                 const finalCost = job.finalCost || 0;
+                 const deposit = job.deposit || 0;
+                 const outstanding = Math.max(0, finalCost - deposit);
+                 const deliveryDate = job.deliveryDate ? parseDateForComparison(job.deliveryDate) : null;
+                 const today = new Date(); today.setHours(0,0,0,0);
+                 const isOverdue = deliveryDate && deliveryDate < today && job.status !== 'Terminado';
+
+                 rowsHtml += `
+                     <tr data-job-id="${job.id}">
+                         <td>${clientName}</td>
+                         <td class="max-w-xs truncate" title="${job.details||''}">${job.details||'-'}</td>
+                         <td>${formatDate(job.orderDate)}</td>
+                         <td class="${isOverdue ? 'date-overdue' : ''}">${formatDate(job.deliveryDate)}</td>
+                         <td><span class="${getStatusClass(job.status)}">${job.status||'N/A'}</span></td>
+                         <td class="text-right">${finalCost.toFixed(2)}</td>
+                         <td class="text-right">${deposit.toFixed(2)}</td>
+                         <td class="text-right font-semibold ${outstanding > 0.005 ? 'text-red-600' : 'text-green-600'}">${outstanding.toFixed(2)}</td>
+                         <td class="no-print space-x-1 whitespace-nowrap">
+                             <button onclick="editJob('${job.id}')" class="edit-button">Editar</button>
+                             <button onclick="deleteJob('${job.id}')" class="delete-button">Borrar</button>
+                             <button onclick="printTicket('${job.id}')" class="print-button">Ticket PDF</button>
+                         </td>
+                     </tr>`;
+            });
+            tableBody.innerHTML = rowsHtml;
+        }
         function populateDeadlinesTable() { const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos.</td></tr>';return;} const t=new Date(); t.setHours(0,0,0,0); const u=jobsData.filter(j=>j.status!=='Terminado').sort((a,b)=>(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31")); if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos pendientes.</td></tr>';return;} let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desconocido'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Vencido (${Math.abs(d)})`;rc='bg-red-100 date-overdue';} else if(d===0){dr='Hoy';rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} día(s)`;rc='bg-yellow-50';} else{dr=`${d} días`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h; }
-        function populateStatusTable() { const b=document.getElementById('status-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No hay trabajos.</td></tr>';return;} const so={'Procesando':1,'Encargado':2,'Terminado':3}; const s=[...jobsData].sort((a,b)=>{const sd=(so[a.status]||99)-(so[b.status]||99); if(sd!==0)return sd; return(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31");}); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desconocido'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td></tr>`;}); b.innerHTML=h; }
+        // --- populateStatusTable MODIFICADA ---
+        function populateStatusTable() {
+            const tableBody = document.getElementById('status-table')?.querySelector('tbody');
+            if (!tableBody) return;
+
+            // Filtrar para mostrar solo 'Procesando'
+            const processingJobs = jobsData.filter(job => job.status === 'Procesando');
+
+            if (processingJobs.length === 0 && dataLoaded.jobs) {
+                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4">No hay trabajos en proceso.</td></tr>';
+                 return;
+            }
+
+            // Ordenar los que están en proceso (opcional, p.ej. por fecha entrega)
+            const sortedJobs = processingJobs.sort((a, b) => (a.deliveryDate || "9999-12-31").localeCompare(b.deliveryDate || "9999-12-31"));
+
+            let rowsHtml = '';
+            sortedJobs.forEach(job => {
+                 const clientName = clientsData[job.clientId]?.name || 'Borrado/Desconocido';
+                 const deliveryDate = job.deliveryDate ? parseDateForComparison(job.deliveryDate) : null;
+                 const today = new Date(); today.setHours(0,0,0,0);
+                 const isOverdue = deliveryDate && deliveryDate < today && job.status !== 'Terminado'; // Mantener lógica por si acaso
+                 rowsHtml += `
+                     <tr data-job-id="${job.id}">
+                         <td>${clientName}</td>
+                         <td class="max-w-xs truncate" title="${job.details || ''}">${job.details || '-'}</td>
+                         <td><span class="${getStatusClass(job.status)}">${job.status || 'N/A'}</span></td>
+                         <td class="${isOverdue ? 'date-overdue' : ''}">${formatDate(job.deliveryDate)}</td>
+                     </tr>`;
+            });
+            tableBody.innerHTML = rowsHtml;
+        }
         function generateReports() { let tv=0; let td=0; let ct={}; jobsData.forEach(j=>{const fc=j.finalCost||0; const dp=j.deposit||0; tv+=fc; td+=dp; const cid=j.clientId; if(!cid) return; if(!ct[cid]) ct[cid]={name:clientsData[cid]?.name||`Desconocido (${cid})`, total:0, deposit:0, outstanding:0}; ct[cid].total+=fc; ct[cid].deposit+=dp;}); const to=tv-td; document.getElementById('report-total-value').textContent=`$${tv.toFixed(2)}`; document.getElementById('report-total-deposit').textContent=`$${td.toFixed(2)}`; document.getElementById('report-total-outstanding').textContent=`$${Math.max(0,to).toFixed(2)}`; const otb=document.getElementById('outstanding-table')?.querySelector('tbody'); if(!otb) return; const cwo=Object.values(ct).map(c=>{c.outstanding=Math.max(0,c.total-c.deposit); return c;}).filter(c=>c.outstanding>0.005).sort((a,b)=>b.outstanding-a.outstanding); if(cwo.length===0){otb.innerHTML='<tr><td colspan="4" class="text-center py-4">Ningún cliente tiene saldo pendiente.</td></tr>'; return;} let h=''; cwo.forEach(c=>{h+=`<tr><td>${c.name}</td><td class="text-right">${c.total.toFixed(2)}</td><td class="text-right">${c.deposit.toFixed(2)}</td><td class="text-right font-semibold text-red-600">${c.outstanding.toFixed(2)}</td></tr>`;}); otb.innerHTML=h; }
         function populateMaterialsAdminTable() { if(currentUserRole!=='superadmin') return; const b=document.getElementById('materials-admin-table')?.querySelector('tbody'); if(!b)return; if(Object.keys(materialsData).length===0&&dataLoaded.materials){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay materiales.</td></tr>';return;} const s=Object.values(materialsData).sort((a,b)=>{const nc=(a.name||"").localeCompare(b.name||""); if(nc!==0) return nc; return(a.thickness||0)-(b.thickness||0);}); let h=''; s.forEach(m=>{const d=(m.width&&m.height)?`${m.width}x${m.height}`:'N/A'; const at=m.available!==false?'Sí':'No'; const ac=m.available!==false?'text-green-600':'text-red-600'; const c=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; h+=`<tr data-material-id="${m.id}"><td>${m.name||'N/A'}</td><td class="text-right">${m.thickness||'-'}</td><td class="text-right">${c.toFixed(2)}</td><td class="text-center">${d}</td><td class="text-center ${ac} font-semibold">${at}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editMaterialAdmin('${m.id}')" class="edit-button">Editar</button><button onclick="deleteMaterialAdmin('${m.id}')" class="delete-button">Borrar</button></td></tr>`;}); b.innerHTML=h; }
         function populateConfigFormAdmin() { if(currentUserRole!=='superadmin')return; const mi=document.getElementById('config-minutes-admin'); const cc=document.getElementById('monthly-costs-container'); const ccp=document.getElementById('calculated-cost-per-minute'); if(!mi||!cc||!ccp)return; mi.value=configData.minutes_per_month||2400; cc.innerHTML=''; const costs=configData.monthly_costs||{}; if(Object.keys(costs).length===0) addMonthlyCostInput('Ej: Alquiler',''); else Object.keys(costs).sort().forEach(key=>addMonthlyCostInput(key, costs[key])); ccp.textContent=`$${(configData.cost_per_minute||0).toFixed(4)} / min`; }
@@ -445,78 +537,18 @@
         document.getElementById('job-job-type')?.addEventListener('change',(e)=>{const t=e.target.value; const cf=document.getElementById('job-cut-time-field'); const ef=document.getElementById('job-engrave-time-field'); const ci=document.getElementById('job-cut-minutes'); const ei=document.getElementById('job-engrave-minutes'); if(!cf||!ef||!ci||!ei) return; cf.style.display=(t==='corte'||t==='ambos')?'grid':'none'; ef.style.display=(t==='grabado'||t==='ambos')?'grid':'none'; if(t==='grabado') ci.value=0; if(t==='corte') ei.value=0;});
         // --- calculateJobQuote MODIFICADA ---
         function calculateJobQuote() {
-             console.log("Calc cost...");
-             const feedbackDiv = document.getElementById('job-form-feedback');
-             const resultDiv = document.getElementById('job-quote-base-result');
-             const finalCostInput = document.getElementById('job-final-cost');
-             currentJobQuoteBaseCost = 0;
-
+             console.log("Calc cost..."); const f=document.getElementById('job-form-feedback'); const r=document.getElementById('job-quote-base-result'); const fcInput=document.getElementById('job-final-cost'); currentJobQuoteBaseCost=0;
              try {
-                 showFeedback(feedbackDiv, '', 'info');
-                 const materialId = document.getElementById('job-material').value;
-                 const length = parseFloat(document.getElementById('job-length').value) || 0;
-                 const width = parseFloat(document.getElementById('job-width').value) || 0;
-                 let materialCost = 0;
-
-                 if (materialId && length > 0 && width > 0) {
-                     const material = materialsData[materialId]; if (!material) throw new Error("Material inválido.");
-                     const sheetCost = parseFloat((material.costPerSheet !== undefined ? material.costPerSheet : material.cost) || 0);
-                     const sheetWidth = parseFloat(material.width || 0); const sheetHeight = parseFloat(material.height || 0);
-                     if (sheetWidth <= 0 || sheetHeight <= 0) throw new Error(`Dim plancha inválida ${sheetWidth}x${sheetHeight} para "${material.name}".`);
-                     const sheetArea = sheetWidth * sheetHeight; const jobArea = length * width;
-                     materialCost = (sheetCost / sheetArea) * jobArea;
-                 } else if (materialId && (length <= 0 || width <= 0)) {
-                      showFeedback(feedbackDiv, 'Aviso: Ingrese L/A para costo material.', 'info');
-                 }
-
-                 const jobType = document.getElementById('job-job-type').value;
-                 const cutMinutes = (jobType === 'corte' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-cut-minutes').value) || 0) : 0;
-                 const engraveMinutes = (jobType === 'grabado' || jobType === 'ambos') ? (parseFloat(document.getElementById('job-engrave-minutes').value) || 0) : 0;
-                 const totalMinutes = cutMinutes + engraveMinutes;
-                 let machineCost = 0;
-
-                 if (configData.cost_per_minute === undefined || configData.cost_per_minute === null) throw new Error("Costo/min N/D. Revise Config.");
-                 if (configData.cost_per_minute <= 0 && totalMinutes > 0) { let cf = feedbackDiv.textContent; showFeedback(feedbackDiv, (cf ? cf + " " : "") + 'Aviso: Costo/min es $0.', 'info'); }
-                 if (totalMinutes > 0) { machineCost = totalMinutes * configData.cost_per_minute; }
-
-                 currentJobQuoteBaseCost = materialCost + machineCost;
-                 console.log(`Base Cost Calculated: ${currentJobQuoteBaseCost.toFixed(2)}`);
-
-                 // --- Mostrar Costo Base SOLO a Super Admin ---
-                 if (currentUserRole === 'superadmin' && resultDiv) {
-                     resultDiv.textContent = `Costo Base Est: $${currentJobQuoteBaseCost.toFixed(2)}`;
-                 } else if (resultDiv) {
-                      resultDiv.textContent = ''; // Asegurar que esté vacío si no es superadmin
-                 }
-
-                 if (finalCostInput) {
-                     let finalCost = currentJobQuoteBaseCost * 2;
-                     // --- Redondeo hacia arriba al múltiplo de 10 ---
-                     finalCost = Math.ceil(finalCost / 10) * 10;
-                     // --- Fin Redondeo ---
-                     finalCostInput.value = finalCost.toFixed(2); // Mostrar con 2 decimales aunque sea múltiplo de 10
-                     console.log(`Final Cost Rounded Up to 10: ${finalCost.toFixed(2)}`);
-
-                     // --- Mensaje de Feedback SIN Costo Base para no superadmin ---
-                     let feedbackMsg = `Costo final (redondeado) actualizado a $${finalCost.toFixed(2)}.`;
-                     if (currentUserRole === 'superadmin') {
-                         feedbackMsg = `Costo base $${currentJobQuoteBaseCost.toFixed(2)}. ${feedbackMsg}`;
-                     }
-                     let currentFeedback = feedbackDiv.textContent.includes('Aviso') ? feedbackDiv.textContent + " // " : "";
-                     showFeedback(feedbackDiv, currentFeedback + feedbackMsg, 'success');
-                 } else {
-                      let feedbackMsg = `Costo base calculado.`;
-                      if (currentUserRole === 'superadmin') { feedbackMsg = `Costo base $${currentJobQuoteBaseCost.toFixed(2)}.`; }
-                      showFeedback(feedbackDiv, feedbackMsg, 'success');
-                 }
-             } catch (err) {
-                 console.error("Calc cost err:", err); currentJobQuoteBaseCost = 0;
-                 if (resultDiv) resultDiv.textContent = 'Error';
-                 if (finalCostInput) finalCostInput.value = '0.00';
-                 showFeedback(feedbackDiv, `Error: ${err.message}`, 'error');
-             }
+                 showFeedback(f,'','info'); const mid=document.getElementById('job-material').value; const l=parseFloat(document.getElementById('job-length').value)||0; const w=parseFloat(document.getElementById('job-width').value)||0; let mc=0;
+                 if(mid&&l>0&&w>0){ const m=materialsData[mid]; if(!m) throw new Error("Material inválido."); const sc=parseFloat((m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0); const sw=parseFloat(m.width||0); const sh=parseFloat(m.height||0); if(sw<=0||sh<=0) throw new Error(`Dim plancha inválida ${sw}x${sh} para "${m.name}".`); const sa=sw*sh; const ja=l*w; mc=(sc/sa)*ja; } else if(mid&&(l<=0||w<=0)) showFeedback(f,'Aviso: Ingrese Alto/Ancho para costo material.','info');
+                 const jt=document.getElementById('job-job-type').value; const cmin=(jt==='corte'||jt==='ambos')?(parseFloat(document.getElementById('job-cut-minutes').value)||0):0; const emin=(jt==='grabado'||jt==='ambos')?(parseFloat(document.getElementById('job-engrave-minutes').value)||0):0; const tm=cmin+emin; let mac=0;
+                 if(configData.cost_per_minute===undefined||configData.cost_per_minute===null) throw new Error("Costo/min N/D. Revise Config."); if(configData.cost_per_minute<=0&&tm>0) { let cf=f.textContent; showFeedback(f,(cf?cf+" ":"")+'Aviso: Costo/min es $0.','info'); } if(tm>0){mac=tm*configData.cost_per_minute;}
+                 currentJobQuoteBaseCost=mc+mac; console.log(`Base Cost Calculated: ${currentJobQuoteBaseCost.toFixed(2)}`);
+                 if(currentUserRole === 'superadmin' && r) { r.textContent=`Costo Base Est: $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent = ''; }
+                 if(fcInput){ let finalCost=currentJobQuoteBaseCost*2; finalCost=Math.ceil(finalCost/10)*10; fcInput.value=finalCost.toFixed(2); console.log(`Final Cost Rounded: ${finalCost.toFixed(2)}`); let fbMsg=`Costo final (redondeado) $${finalCost.toFixed(2)}.`; if(currentUserRole==='superadmin'){fbMsg=`Base $${currentJobQuoteBaseCost.toFixed(2)}. ${fbMsg}`;} let currFb=f.textContent.includes('Aviso')?f.textContent+" // ":""; showFeedback(f,currFb+fbMsg,'success'); } else { let fbMsg=`Costo base calculado.`; if(currentUserRole==='superadmin'){fbMsg=`Base $${currentJobQuoteBaseCost.toFixed(2)}.`} showFeedback(f,fbMsg,'success'); }
+             } catch(err) { console.error("Calc cost err:", err); currentJobQuoteBaseCost=0; if(r)r.textContent='Error'; if(fcInput)fcInput.value='0.00'; showFeedback(f,`Error: ${err.message}`,'error'); }
          }
-        document.getElementById('job-form')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(!db)return; const id=document.getElementById('job-id').value; const f=document.getElementById('job-form-feedback'); showFeedback(f,'','info'); const finalCostValue = parseFloat(document.getElementById('job-final-cost').value) || 0; const d={clientId:document.getElementById('job-client').value, details:document.getElementById('job-details').value.trim(), materialId:document.getElementById('job-material').value, length:parseFloat(document.getElementById('job-length').value)||null, width:parseFloat(document.getElementById('job-width').value)||null, jobType:document.getElementById('job-job-type').value, cutMinutes:parseFloat(document.getElementById('job-cut-minutes').value)||0, engraveMinutes:parseFloat(document.getElementById('job-engrave-minutes').value)||0, orderDate:document.getElementById('job-order-date').value, deliveryDate:document.getElementById('job-delivery-date').value, status:document.getElementById('job-status').value, baseCost:currentJobQuoteBaseCost, finalCost: finalCostValue, deposit:parseFloat(document.getElementById('job-deposit').value)||0, observations:document.getElementById('job-observations').value.trim()||null}; let errs=[]; if(!d.clientId)errs.push('Seleccione cliente.'); if(!d.details)errs.push('Ingrese detalles.'); if(!d.materialId)errs.push('Seleccione material.'); if(!d.length||d.length<=0)errs.push('Largo positivo.'); if(!d.width||d.width<=0)errs.push('Ancho positivo.'); if(!d.orderDate)errs.push('Falta F.Pedido.'); if(!d.deliveryDate)errs.push('Falta F.Entrega.'); if(d.orderDate&&d.deliveryDate&&d.deliveryDate<d.orderDate)errs.push('Entrega < Pedido.'); if(d.finalCost<0)errs.push('Costo final neg.'); if(d.deposit<0)errs.push('Seña neg.'); if(d.deposit>d.finalCost)errs.push('Seña > Total.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} if(d.finalCost<=0&&!confirm("Costo final $0 o menos. Guardar?"))return; try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('jobs').doc(id).update(d); showFeedback(f,'Trabajo actualizado.','success');} else {const r=await db.collection('jobs').add(d); d.id=r.id; showFeedback(f,'Trabajo creado.','success');} dataLoaded.jobs=false; setActiveTab(document.querySelector('[data-target=jobs]')); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
+        document.getElementById('job-form')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(!db)return; const id=document.getElementById('job-id').value; const f=document.getElementById('job-form-feedback'); showFeedback(f,'','info'); const finalCostValue=parseFloat(document.getElementById('job-final-cost').value)||0; const d={clientId:document.getElementById('job-client').value, details:document.getElementById('job-details').value.trim(), materialId:document.getElementById('job-material').value, length:parseFloat(document.getElementById('job-length').value)||null, width:parseFloat(document.getElementById('job-width').value)||null, jobType:document.getElementById('job-job-type').value, cutMinutes:parseFloat(document.getElementById('job-cut-minutes').value)||0, engraveMinutes:parseFloat(document.getElementById('job-engrave-minutes').value)||0, orderDate:document.getElementById('job-order-date').value, deliveryDate:document.getElementById('job-delivery-date').value, status:document.getElementById('job-status').value, baseCost:currentJobQuoteBaseCost, finalCost: finalCostValue, deposit:parseFloat(document.getElementById('job-deposit').value)||0, observations:document.getElementById('job-observations').value.trim()||null}; let errs=[]; if(!d.clientId)errs.push('Seleccione cliente.'); if(!d.details)errs.push('Ingrese detalles.'); if(!d.materialId)errs.push('Seleccione material.'); if(!d.length||d.length<=0)errs.push('Alto positivo.'); if(!d.width||d.width<=0)errs.push('Ancho positivo.'); if(!d.orderDate)errs.push('F.Pedido.'); if(!d.deliveryDate)errs.push('F.Entrega.'); if(d.orderDate&&d.deliveryDate&&d.deliveryDate<d.orderDate)errs.push('Entrega < Pedido.'); if(d.finalCost<0)errs.push('Costo final neg.'); if(d.deposit<0)errs.push('Seña neg.'); if(d.deposit>d.finalCost)errs.push('Seña > Total.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} if(d.finalCost<=0&&!confirm("Costo final $0 o menos. Guardar?"))return; try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('jobs').doc(id).update(d); showFeedback(f,'Trabajo actualizado.','success');} else {const r=await db.collection('jobs').add(d); d.id=r.id; showFeedback(f,'Trabajo creado.','success');} dataLoaded.jobs=false; setActiveTab(document.querySelector('[data-target=jobs]')); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
         // --- editJob MODIFICADA ---
         function editJob(id) {
             const j = jobsData.find(j => j.id === id); if (!j) { alert(`Trabajo ${id} N/E.`); return; } console.log("Editando:", j);
@@ -527,8 +559,7 @@
             document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value = j.cutMinutes || 0;
             document.getElementById('job-engrave-minutes').value = j.engraveMinutes || 0; document.getElementById('job-order-date').value = j.orderDate || '';
             document.getElementById('job-delivery-date').value = j.deliveryDate || ''; document.getElementById('job-status').value = j.status || 'Encargado';
-            document.getElementById('job-final-cost').value = (j.finalCost || 0).toFixed(2); // Cargar valor guardado (ya redondeado)
-            document.getElementById('job-deposit').value = (j.deposit || 0).toFixed(2); document.getElementById('job-observations').value = j.observations || '';
+            document.getElementById('job-final-cost').value = (j.finalCost || 0).toFixed(2); document.getElementById('job-deposit').value = (j.deposit || 0).toFixed(2); document.getElementById('job-observations').value = j.observations || '';
             currentJobQuoteBaseCost = j.baseCost || 0;
             const r = document.getElementById('job-quote-base-result');
             if (currentUserRole === 'superadmin' && r) { r.textContent = `Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent = ''; }
@@ -549,13 +580,13 @@
         function showPdfLoading(show = true) { const o=document.getElementById('pdf-loading-overlay'); if(o) o.style.display=show?'flex':'none'; }
         async function printTicket(jobId) {
              console.log(`Generating PDF ticket: ${jobId}`);
-             if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;}
+             if(typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;}
              const { jsPDF } = window.jspdf;
-             const job=jobsData.find(j=>j.id===jobId); if(!job){alert(`Error: Job ${jobId} N/E.`); return;}
-             const client=clientsData[job.clientId]; const material=materialsData[job.materialId];
-             const renderArea=document.getElementById('pdf-render-area'); if(!renderArea){alert("Error: Render area N/E."); return;}
+             const job = jobsData.find(j => j.id === jobId); if (!job) { alert(`Error: Job ${jobId} N/E.`); return; }
+             const client = clientsData[job.clientId]; const material = materialsData[job.materialId];
+             const renderArea = document.getElementById('pdf-render-area'); if (!renderArea) { alert("Error: Render area N/E."); return; }
              showPdfLoading(true);
-             const finalCost=job.finalCost||0; const deposit=job.deposit||0; const outstanding=Math.max(0,finalCost-deposit);
+             const finalCost = job.finalCost || 0; const deposit = job.deposit || 0; const outstanding = Math.max(0, finalCost - deposit);
              const clientNameForFile = client?.name?.replace(/[^a-z0-9_]/gi, '_').replace(/ /g, '_').toLowerCase() || 'cliente';
              const fileName = `ticket_${clientNameForFile}_${jobId.substring(0,6)}.pdf`;
 
@@ -655,7 +686,7 @@
         function getStatusClass(s) { switch(s){case 'Encargado': return 'status-encargado'; case 'Procesando': return 'status-procesando'; case 'Terminado': return 'status-terminado'; default: return 'bg-gray-400 text-gray-800 px-2 py-0.5 rounded text-xs font-medium';} }
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM loaded."); const y=document.getElementById('current-year'); if(y)y.textContent= '2025'; /* Año fijo solicitado */ const j=document.getElementById('job-job-type'); if(j)j.dispatchEvent(new Event('change'));
+            console.log("DOM loaded."); const y=document.getElementById('current-year'); if(y)y.textContent= '2025'; const j=document.getElementById('job-job-type'); if(j)j.dispatchEvent(new Event('change'));
              if(typeof auth!=='undefined') console.log("Waiting for auth state...");
              else { console.error("Auth N/A. Showing login."); showLoginSection(); alert("Error: Auth service failed."); }
         });
