@@ -4,29 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presupuestos Corte Laser</title>
+    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- jsPDF and html2canvas Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" referrerpolicy="no-referrer"></script>
     <style>
-        /* ... (Estilos generales y específicos SIN CAMBIOS) ... */
-        body { font-family: 'Inter', sans-serif; } @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        .main-section { display: none; } .main-section.active-section { display: block; }
-        .app-layout { display: flex; min-height: 100vh; } #sidebar { width: 240px; flex-shrink: 0; } #main-content { flex-grow: 1; }
-        #sidebar { background-color: #1f2937; color: #d1d5db; } #sidebar a, #sidebar button { display: flex; align-items: center; padding: 10px 16px; color: #d1d5db; text-decoration: none; transition: background-color 0.2s, color 0.2s; border-left: 3px solid transparent; } #sidebar a:hover, #sidebar button:hover { background-color: #374151; color: #fff; } #sidebar li.active > a, #sidebar li.active > button { background-color: #1d4ed8; color: #fff; font-weight: 600; border-left-color: #60a5fa; } #sidebar .sidebar-title { padding: 16px; font-size: 1.1rem; font-weight: 600; color: #9ca3af; border-bottom: 1px solid #374151; } #sidebar .nav-icon { margin-right: 10px; width: 20px; text-align: center; } #sidebar .user-info { padding: 16px; border-top: 1px solid #374151; margin-top: auto; } #sidebar .user-info span { display: block; font-size: 0.8rem; color: #9ca3af; word-break: break-all; } #sidebar .user-info button { width: 100%; justify-content: center; margin-top: 8px; background-color: #dc2626; color: white; border-radius: 4px; border-left: none; } #sidebar .user-info button:hover { background-color: #b91c1c; }
-        #sidebar .admin-only, #sidebar .superadmin-only { display: none; } body.logged-in #sidebar .admin-only { display: block; } body.role-superadmin #sidebar .superadmin-only { display: block; } body:not(.logged-in) #sidebar { display: none; } body:not(.logged-in) #main-content { width: 100%; }
+        /* Estilos generales */
+        body { font-family: 'Inter', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        /* Layout Principal con Sidebar */
+        .app-layout { display: flex; min-height: 100vh; }
+        #sidebar { width: 240px; flex-shrink: 0; }
+        #main-content { flex-grow: 1; }
+
+        /* Ocultar contenido por defecto */
+        .main-section { display: none; }
+        .main-section.active-section { display: block; }
+
+        /* Estilos Sidebar */
+        #sidebar { background-color: #1f2937; color: #d1d5db; }
+        #sidebar a, #sidebar button { display: flex; align-items: center; padding: 10px 16px; color: #d1d5db; text-decoration: none; transition: background-color 0.2s, color 0.2s; border-left: 3px solid transparent; }
+        #sidebar a:hover, #sidebar button:hover { background-color: #374151; color: #fff; }
+        #sidebar li.active > a, #sidebar li.active > button { background-color: #1d4ed8; color: #fff; font-weight: 600; border-left-color: #60a5fa; }
+        #sidebar .sidebar-title { padding: 16px; font-size: 1.1rem; font-weight: 600; color: #9ca3af; border-bottom: 1px solid #374151; }
+        #sidebar .nav-icon { margin-right: 10px; width: 20px; text-align: center; }
+        #sidebar .user-info { padding: 16px; border-top: 1px solid #374151; margin-top: auto; }
+        #sidebar .user-info span { display: block; font-size: 0.8rem; color: #9ca3af; word-break: break-all; }
+        #sidebar .user-info button { width: 100%; justify-content: center; margin-top: 8px; background-color: #dc2626; color: white; border-radius: 4px; border-left: none; }
+        #sidebar .user-info button:hover { background-color: #b91c1c; }
+
+        /* Visibilidad basada en roles */
+        #sidebar .admin-only, #sidebar .superadmin-only { display: none; }
+        body.logged-in #sidebar .admin-only { display: block; } body.role-superadmin #sidebar .superadmin-only { display: block; }
+        body:not(.logged-in) #sidebar { display: none; } body:not(.logged-in) #main-content { width: 100%; }
+
+        /* Estilos Tablas y Formularios */
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; } .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: middle;} .admin-table th { background-color: #f2f2f2; font-weight: 600; } .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; border: none; } .edit-button { background-color: #facc15; color: #422006; } .edit-button:hover { background-color: #eab308; } .delete-button { background-color: #f87171; color: #450a0a; } .delete-button:hover { background-color: #ef4444; } .print-button { background-color: #60a5fa; color: #1e3a8a; } .print-button:hover { background-color: #3b82f6; } .generic-print-button { background-color: #a78bfa; color: #f5f3ff; } .generic-print-button:hover { background-color: #8b5cf6; }
         .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
         .date-overdue { color: #dc2626; font-weight: bold; }
         .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; } .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; } .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
-        #pdf-render-area { position: absolute; left: -9999px; visibility: hidden; z-index: -1; width: 80mm; background-color: white; padding: 3mm; font-family: 'Courier New', Courier, monospace !important; font-size: 9pt !important; line-height: 1.3 !important; color: #000 !important; border: 1px solid #ccc; } #pdf-render-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; } #pdf-render-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word !important; } #pdf-render-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; } #pdf-render-area strong { font-weight: bold !important; } #pdf-render-area .item-line { display: flex !important; justify-content: space-between !important; } #pdf-render-area .item-line span:last-child { text-align: right !important; } #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; } #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;} #pdf-render-area .detail-value { }
-        .generating-pdf-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000; }
-        #monthly-report-table th, #monthly-report-table td { padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right; } #monthly-report-table th { background-color: #f1f5f9; font-weight: 600; text-align: center; } #monthly-report-table td:first-child { text-align: left; } #monthly-report-table td:nth-child(2) { text-align: center; }
-        /* Estilos Buscador */
-        .search-container { margin-bottom: 1rem; }
-        .search-input { padding: 8px 12px 8px 32px; /* Espacio para icono */ border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 400px; /* Limitar ancho */ background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23aaa"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'); background-repeat: no-repeat; background-position: 8px center; background-size: 16px 16px; }
+
+        /* Estilos PDF Render Area */
+        #pdf-render-area { position: absolute; left: -9999px; visibility: hidden; z-index: -1; width: 80mm; background-color: white; padding: 3mm; font-family: 'Courier New', Courier, monospace !important; font-size: 9pt !important; line-height: 1.3 !important; color: #000 !important; border: 1px solid #ccc; }
+         #pdf-render-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; } #pdf-render-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word !important; } #pdf-render-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; } #pdf-render-area strong { font-weight: bold !important; } #pdf-render-area .item-line { display: flex !important; justify-content: space-between !important; } #pdf-render-area .item-line span:last-child { text-align: right !important; } #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; } #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;} #pdf-render-area .detail-value { }
+         .generating-pdf-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000; }
+         #monthly-report-table th, #monthly-report-table td { padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right; } #monthly-report-table th { background-color: #f1f5f9; font-weight: 600; text-align: center; } #monthly-report-table td:first-child { text-align: left; } #monthly-report-table td:nth-child(2) { text-align: center; }
+         .search-container { margin-bottom: 1rem; } .search-input { padding: 8px 12px 8px 32px; border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 400px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23aaa"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'); background-repeat: no-repeat; background-position: 8px center; background-size: 16px 16px; }
+
+        /* Estilos específicos para la sección Asistente */
+        #assistant label, #assistant select, #assistant input[type="number"] { display: block; margin-bottom: 10px; }
+        #assistant input[type="number"] { /* Usar clases Tailwind mejor */ padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 200px; }
+        #assistant select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: white; width: 100%; max-width: 300px;}
+        #assistant button { /* Ya tiene action-button, podemos añadir color específico */ background-color: #2563eb; color: white; }
+        #assistant button:hover { background-color: #1d4ed8; }
+        .assistant-resultado { /* Renombrado desde .resultado */ margin-top: 20px; background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; color: #856404; }
+
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -41,6 +79,8 @@
                     <li class="admin-only"><a href="#" onclick="navigateTo('clients')" data-target="clients"><span class="nav-icon">👥</span>Clientes</a></li>
                     <li class="admin-only"><a href="#" onclick="navigateTo('deadlines')" data-target="deadlines"><span class="nav-icon">🗓️</span>Plazos</a></li>
                     <li class="admin-only"><a href="#" onclick="navigateTo('status')" data-target="status"><span class="nav-icon">📊</span>Estados</a></li>
+                     <!-- Nuevo enlace Asistente -->
+                    <li class="admin-only"><a href="#" onclick="navigateTo('assistant')" data-target="assistant"><span class="nav-icon">⏱️</span>Asistente Tiempos</a></li>
                     <li class="superadmin-only"><a href="#" onclick="navigateTo('reports')" data-target="reports"><span class="nav-icon">📈</span>Informes Grales.</a></li>
                     <li class="superadmin-only"><a href="#" onclick="navigateTo('advanced-reports')" data-target="advanced-reports"><span class="nav-icon">📄</span>Reportes Det.</a></li>
                     <li class="superadmin-only"><a href="#" onclick="navigateTo('admin-materials')" data-target="admin-materials"><span class="nav-icon">🧱</span>Materiales</a></li>
@@ -92,21 +132,17 @@
                 <section id="login" class="main-section bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto">
                      <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Iniciar Sesión</h2>
                      <form id="login-form" class="space-y-4">
-                         <div><label for="login-email" class="block text-sm font-medium">Email:</label><input type="email" id="login-email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
-                         <div><label for="login-password" class="block text-sm font-medium">Contraseña:</label><input type="password" id="login-password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                         <div><label for="login-email" class="block text-sm font-medium">Email:</label><input type="email" id="login-email" required class="mt-1 block w-full p-2 border rounded shadow-sm"></div>
+                         <div><label for="login-password" class="block text-sm font-medium">Contraseña:</label><input type="password" id="login-password" required class="mt-1 block w-full p-2 border rounded shadow-sm"></div>
                          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Entrar</button>
                          <div id="login-error" class="mt-2 text-red-600 text-sm text-center min-h-[1.25em]"></div>
                      </form>
                 </section>
                  <section id="clients" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
-                    <!-- Buscador de Clientes -->
-                    <div class="search-container no-print">
-                        <input type="search" id="client-search" placeholder="Buscar cliente por nombre, email o teléfono..." class="search-input" oninput="filterClients()">
-                    </div>
-                    <form id="client-form" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
-                         <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3>
-                         <input type="hidden" id="client-id">
+                    <div class="search-container no-print"><input type="search" id="client-search" placeholder="Buscar cliente..." class="search-input" oninput="filterClients()"></div>
+                    <form id="client-form" class="bg-gray-50 p-4 rounded border space-y-3 mb-6 no-print">
+                         <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3><input type="hidden" id="client-id">
                          <div><label for="client-name" class="block text-sm font-medium">Nombre:</label><input type="text" id="client-name" required class="mt-1 block w-full p-2 border rounded"></div>
                          <div><label for="client-phone" class="block text-sm font-medium">Celular:</label><input type="tel" id="client-phone" class="mt-1 block w-full p-2 border rounded"></div>
                          <div><label for="client-email" class="block text-sm font-medium">Email:</label><input type="email" id="client-email" class="mt-1 block w-full p-2 border rounded"></div>
@@ -118,13 +154,8 @@
                 <section id="jobs" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
                      <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Trabajos</h2>
                       <div class="mb-4 flex justify-between items-center no-print">
-                          <!-- Buscador de Trabajos -->
-                           <div class="search-container flex-grow mr-4">
-                               <input type="search" id="job-search" placeholder="Buscar por cliente o detalles..." class="search-input" oninput="filterJobs()">
-                           </div>
-                          <button onclick="navigateTo('new-job-form'); resetJobForm();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded whitespace-nowrap">
-                              + Nuevo Trabajo
-                          </button>
+                           <div class="search-container flex-grow mr-4"><input type="search" id="job-search" placeholder="Buscar por cliente o detalles..." class="search-input" oninput="filterJobs()"></div>
+                          <button onclick="navigateTo('new-job-form'); resetJobForm();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded whitespace-nowrap">+ Nuevo Trabajo</button>
                       </div>
                       <div class="overflow-x-auto"><table id="jobs-table" class="admin-table"><thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th class="text-right">Total ($)</th><th class="text-right">Seña ($)</th><th class="text-right">Pendiente ($)</th><th class="no-print">Acciones</th></tr></thead><tbody></tbody></table></div>
                 </section>
@@ -197,6 +228,37 @@
                           <div id="config-form-feedback-admin" class="mt-2 text-sm feedback"></div>
                      </form>
                 </section>
+                <!-- Nueva Sección Asistente -->
+                <section id="assistant" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">✨ Asistente de Tiempos Corte y Grabado</h2>
+
+                    <div class="max-w-md mx-auto">
+                        <label for="tipoTrabajo">Tipo de trabajo:</label>
+                        <select id="tipoTrabajo" onchange="actualizarVisibilidad()" class="mb-4">
+                          <option value="corte3">Corte - MDF 3mm</option>
+                          <option value="corte5">Corte - MDF 5.5mm</option>
+                          <option value="grabado">Grabado</option>
+                          <option value="marcado">Marcado</option>
+                          <option value="combinado3">Corte + Grabado - MDF 3mm</option>
+                          <option value="combinado5">Corte + Grabado - MDF 5.5mm</option>
+                        </select>
+
+                        <div id="dimensiones">
+                          <label for="ancho">Ancho (mm):</label>
+                          <input type="number" id="ancho" step="0.1">
+
+                          <label for="alto">Alto (mm):</label>
+                          <input type="number" id="alto" step="0.1">
+                        </div>
+
+                        <button onclick="calcularTiempoAsistente()" class="action-button mt-4">Calcular tiempo</button>
+
+                        <div id="resultadoAsistente" class="assistant-resultado" style="display:none;">
+                             <!-- El resultado se mostrará aquí -->
+                        </div>
+                    </div>
+                </section>
+
             </div><!-- Fin #section-content-container -->
             <div id="pdf-render-area"></div>
              <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">Generando PDF...</div>
@@ -214,48 +276,25 @@
         const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1';
         let materialsData = {}; let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; let clientsData = {}; let jobsData = []; let currentUser = null; let currentUserRole = null; let currentJobQuoteBaseCost = 0; let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; let activeSectionId = 'home';
 
-        // --- Nueva Función de Navegación Sidebar ---
+        // --- Navegación y UI ---
         function navigateTo(targetId) {
-            console.log("Navegando a:", targetId);
-            activeSectionId = targetId; // Actualizar sección activa global
-
-            // Ocultar todas las secciones principales
-            document.querySelectorAll('#section-content-container .main-section').forEach(section => {
-                section.classList.remove('active-section');
-            });
-            // Quitar clase activa de todos los links del sidebar
-            document.querySelectorAll('#sidebar li').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            // Mostrar la sección correcta
-            const sectionToShow = document.getElementById(targetId);
-            if (sectionToShow) {
-                sectionToShow.classList.add('active-section');
-                const activeLink = document.querySelector(`#sidebar a[data-target='${targetId}']`)?.closest('li');
-                if(activeLink) activeLink.classList.add('active');
-                loadDataForSection(targetId);
-            } else {
-                console.error(`navigateTo: Sección '${targetId}' no encontrada.`);
-                 navigateTo('home'); // Fallback a home si no se encuentra
-            }
-        }
-
-        function showLoginSection() {
-             console.log("Mostrando login"); activeSectionId = 'login';
+             console.log("Navegando a:", targetId); activeSectionId = targetId;
              document.querySelectorAll('#section-content-container .main-section').forEach(s => s.classList.remove('active-section'));
              document.querySelectorAll('#sidebar li').forEach(item => item.classList.remove('active'));
-             const loginSection = document.getElementById('login'); if(loginSection) loginSection.classList.add('active-section');
-             const loginForm = document.getElementById('login-form'); if(loginForm) loginForm.reset();
-             const errorDiv = document.getElementById('login-error'); if(errorDiv) errorDiv.textContent = '';
+             const sectionToShow = document.getElementById(targetId);
+             if (sectionToShow) {
+                 sectionToShow.classList.add('active-section');
+                 const activeLink = document.querySelector(`#sidebar a[data-target='${targetId}']`)?.closest('li');
+                 if(activeLink) activeLink.classList.add('active');
+                 loadDataForSection(targetId);
+             } else { console.error(`Sección '${targetId}' no encontrada.`); navigateTo('home'); }
          }
-
+        function showLoginSection() { console.log("Mostrando login"); activeSectionId = 'login'; document.querySelectorAll('#section-content-container .main-section').forEach(s => s.classList.remove('active-section')); document.querySelectorAll('#sidebar li').forEach(item => item.classList.remove('active')); const lSec = document.getElementById('login'); if(lSec) lSec.classList.add('active-section'); const lForm = document.getElementById('login-form'); if(lForm) lForm.reset(); const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; }
         auth?.onAuthStateChanged(user => { if (!auth) { showLoginSection(); return; } console.log("Auth state:", user ? user.uid : 'null'); currentUser = user; const uSpan = document.getElementById('user-email'); document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only'); if (user) { currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator'; console.log("Role:", currentUserRole); document.body.classList.add('logged-in', `role-${currentUserRole}`); if (uSpan) uSpan.textContent = user.email; loadInitialDataForLoggedInUser().then(() => { console.log("Initial data loaded post-login."); navigateTo('jobs'); }).catch(error => { console.error("Error initial data load:", error); alert("Error crítico cargando datos."); navigateTo('home'); }); } else { console.log("Logged out."); currentUserRole = null; document.body.classList.add('public-only'); if (uSpan) uSpan.textContent = ''; materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; dataLoaded = { clients: false, jobs: false, materials: false, config: false }; navigateTo('home'); } });
         document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) return; const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
         function logoutUser() { if (!auth) return; console.log("Logging out..."); auth.signOut().then(() => console.log("Logout ok.")).catch(err => { console.error("Logout err:", err); alert("Error logout: " + err.message); }); }
-        async function loadInitialDataForLoggedInUser() { if (!db) throw new Error("DB N/A"); console.log("Loading initial data..."); await Promise.all([ loadMaterials(), loadConfig(), loadClients() ]); console.log("Initial data ok."); }
 
-        // --- loadDataForSection (Corregida para Edición y Roles) ---
+        // --- Carga de Datos (Corregida para Edición y Roles) ---
          function loadDataForSection(sectionId) {
              if (!db) { console.error(`DB N/A for ${sectionId}`); return; }
              console.log(`Loading for ${sectionId}`);
@@ -265,97 +304,34 @@
                  case 'jobs': case 'deadlines': case 'status':
                      if (!dataLoaded.jobs) loadJobs(); else { if (sectionId === 'deadlines') populateDeadlinesTable(); else if (sectionId === 'status') populateStatusTable(); else if (sectionId === 'jobs') populateJobsTable(); } break;
                  case 'reports': if (currentUserRole === 'superadmin') { if (!dataLoaded.jobs) loadJobs().then(generateReports); else generateReports(); } break;
-                 case 'new-job-form':
-                     const cP=dataLoaded.clients?Promise.resolve():loadClients(); const mP=dataLoaded.materials?Promise.resolve():loadMaterials(); Promise.all([cP,mP]).then(() => { populateClientDropdown('job-client'); populateMaterialDropdown('job-material'); if (!document.getElementById('job-id').value) { resetJobForm(); } }).catch(err => console.error("Err loading for New Job:", err)); break;
-                 case 'admin-materials':
-                     if (currentUserRole === 'superadmin') { if (!dataLoaded.materials) loadMaterials(); else { populateMaterialsAdminTable(); if (!document.getElementById('material-id-admin').value) { resetMaterialFormAdmin(); } } } break;
+                 case 'new-job-form': const cP=dataLoaded.clients?Promise.resolve():loadClients(); const mP=dataLoaded.materials?Promise.resolve():loadMaterials(); Promise.all([cP,mP]).then(() => { populateClientDropdown('job-client'); populateMaterialDropdown('job-material'); if (!document.getElementById('job-id').value) { resetJobForm(); } }).catch(err => console.error("Err loading for New Job:", err)); break;
+                 case 'admin-materials': if (currentUserRole === 'superadmin') { if (!dataLoaded.materials) loadMaterials(); else { populateMaterialsAdminTable(); if (!document.getElementById('material-id-admin').value) { resetMaterialFormAdmin(); } } } break;
                  case 'admin-config': if (currentUserRole === 'superadmin') { if (!dataLoaded.config) loadConfig(); else populateConfigFormAdmin(); } break;
                  case 'advanced-reports': if (currentUserRole === 'superadmin') { if (!dataLoaded.jobs) loadJobs(); document.getElementById('daily-report-output').innerHTML = 'Haga clic para generar reporte diario.'; document.getElementById('monthly-report-output').innerHTML = 'Haga clic para generar reporte mensual.'; const fb = document.getElementById('advanced-reports-feedback'); if(fb) fb.textContent=''; fb.className='mt-4 text-sm feedback'; } break;
+                 case 'assistant': /* No necesita cargar datos */ break; // No hacer nada especial para el asistente
                  default: console.log(`No data loading for ${sectionId}`);
              }
          }
+        async function loadInitialDataForLoggedInUser() { if (!db) throw new Error("DB N/A"); console.log("Loading initial data..."); await Promise.all([ loadMaterials(), loadConfig(), loadClients() ]); console.log("Initial data ok."); }
         async function loadMaterials() { if (!db) return; console.log("Loading materials..."); try { const snap=await db.collection('materials').orderBy('name').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); materialsData=temp; console.log(`Mats loaded: ${Object.keys(materialsData).length}`); dataLoaded.materials=true; populateMaterialDropdown('job-material'); if(currentUserRole==='superadmin') populateMaterialsAdminTable(); } catch (err) { console.error("Err loading mats:", err); const f=document.getElementById('material-form-feedback-admin'); if(f) showFeedback(f,`Error cargando materiales: ${err.message}`,'error'); dataLoaded.materials=false; } }
         async function loadConfig() { if (!db) return; console.log("Loading config..."); try { const doc=await db.collection('config').doc('main').get(); if(doc.exists){ const d=doc.data(); configData={minutes_per_month:d.minutes_per_month||2400,monthly_costs:d.monthly_costs||{},cost_per_minute:0}; const tm=Object.values(configData.monthly_costs).reduce((s,v)=>s+(Number(v)||0),0); if(configData.minutes_per_month>0) configData.cost_per_minute=tm/configData.minutes_per_month; else configData.cost_per_minute=0; console.log(`Config loaded. Cost/min: $${configData.cost_per_minute.toFixed(4)}`); } else { console.warn("Config 'main' N/F. Defaults used."); configData={cost_per_minute:0,minutes_per_month:2400,monthly_costs:{}}; } dataLoaded.config=true; if(currentUserRole==='superadmin') populateConfigFormAdmin(); } catch(err) { console.error("Err loading config:", err); const f=document.getElementById('config-form-feedback-admin'); if(f) showFeedback(f,`Error cargando config: ${err.message}`,'error'); dataLoaded.config=false; } }
-        async function loadClients() { if(!currentUser||!db) return; console.log("Loading clients..."); const b=document.getElementById('clients-table')?.querySelector('tbody'); if(b) b.innerHTML='<tr><td colspan="4" class="text-center py-4">Cargando...</td></tr>'; try { const snap=await db.collection('clients').orderBy('name','asc').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); clientsData=temp; console.log(`Clients loaded: ${Object.keys(clientsData).length}`); dataLoaded.clients=true; populateClientsTable(); populateClientDropdown('job-client'); filterClients(); /* Aplicar filtro inicial si hay */ } catch(err) { console.error("Err loading clients:", err); if(b) b.innerHTML=`<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`; dataLoaded.clients=false; } }
-        async function loadJobs() { if(!currentUser||!db) return; console.log("Loading jobs..."); ['jobs-table','deadlines-table','status-table','outstanding-table', 'monthly-report-output', 'daily-report-output'].forEach(id=>{const el=document.getElementById(id); if(!el) return; if(el.tagName==='TBODY'){const c=el.closest('table')?.querySelector('thead th')?.length||1; el.innerHTML=`<tr><td colspan="${c}" class="text-center py-4">Cargando...</td></tr>`;} else if (el.id === 'monthly-report-output' || el.id === 'daily-report-output'){el.innerHTML='Cargando datos de trabajos...';}}); ['report-total-value','report-total-deposit','report-total-outstanding'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Calculando...';}); try { const snap=await db.collection('jobs').orderBy('orderDate','desc').get(); const temp=[]; snap.forEach(doc=>{const d=doc.data(); temp.push({...d, id:doc.id, orderDate:d.orderDate instanceof firebase.firestore.Timestamp?d.orderDate.toDate().toISOString().split('T')[0]:d.orderDate, deliveryDate:d.deliveryDate instanceof firebase.firestore.Timestamp?d.deliveryDate.toDate().toISOString().split('T')[0]:d.deliveryDate, finalCost:Number(d.finalCost||0), deposit:Number(d.deposit||0) }); }); jobsData=temp; console.log(`Jobs loaded: ${jobsData.length}`); dataLoaded.jobs=true; populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); filterJobs(); /* Aplicar filtro inicial si hay */ } catch(err) { console.error("Err loading jobs:", err); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table')?.querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`;}}); dataLoaded.jobs=false; } }
+        async function loadClients() { if(!currentUser||!db) return; console.log("Loading clients..."); const b=document.getElementById('clients-table')?.querySelector('tbody'); if(b) b.innerHTML='<tr><td colspan="4" class="text-center py-4">Cargando...</td></tr>'; try { const snap=await db.collection('clients').orderBy('name','asc').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); clientsData=temp; console.log(`Clients loaded: ${Object.keys(clientsData).length}`); dataLoaded.clients=true; populateClientsTable(); populateClientDropdown('job-client'); filterClients(); } catch(err) { console.error("Err loading clients:", err); if(b) b.innerHTML=`<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`; dataLoaded.clients=false; } }
+        async function loadJobs() { if(!currentUser||!db) return; console.log("Loading jobs..."); ['jobs-table','deadlines-table','status-table','outstanding-table', 'monthly-report-output', 'daily-report-output'].forEach(id=>{const el=document.getElementById(id); if(!el) return; if(el.tagName==='TBODY'){const c=el.closest('table')?.querySelector('thead th')?.length||1; el.innerHTML=`<tr><td colspan="${c}" class="text-center py-4">Cargando...</td></tr>`;} else if (el.id === 'monthly-report-output' || el.id === 'daily-report-output'){el.innerHTML='Cargando datos de trabajos...';}}); ['report-total-value','report-total-deposit','report-total-outstanding'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Calculando...';}); try { const snap=await db.collection('jobs').orderBy('orderDate','desc').get(); const temp=[]; snap.forEach(doc=>{const d=doc.data(); temp.push({...d, id:doc.id, orderDate:d.orderDate instanceof firebase.firestore.Timestamp?d.orderDate.toDate().toISOString().split('T')[0]:d.orderDate, deliveryDate:d.deliveryDate instanceof firebase.firestore.Timestamp?d.deliveryDate.toDate().toISOString().split('T')[0]:d.deliveryDate, finalCost:Number(d.finalCost||0), deposit:Number(d.deposit||0) }); }); jobsData=temp; console.log(`Jobs loaded: ${jobsData.length}`); dataLoaded.jobs=true; populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); filterJobs(); } catch(err) { console.error("Err loading jobs:", err); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table')?.querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`;}}); dataLoaded.jobs=false; } }
         function populateClientDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Selecciona cliente...</option>'; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.textContent=c.name||`ID: ${c.id}`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
         function populateMaterialDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Selecciona material...</option>'; Object.values(materialsData).filter(m=>m.available!==false).sort((a,b)=>`${a.name||''} ${a.thickness||0}mm`.localeCompare(`${b.name||''} ${b.thickness||0}mm`)).forEach(m=>{const o=document.createElement('option'); o.value=m.id; o.textContent=`${m.name||'Sin Nombre'} - ${m.thickness||'?'}mm`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
 
-        // --- Ordenamiento de Estados ---
+        // --- Ordenamiento y Filtros ---
         const statusOrderValue = { 'Encargado': 1, 'Procesando': 2, 'Terminado': 3 };
-        function sortByStatusAndDate(a, b) {
-             const statusDiff = (statusOrderValue[a.status] || 99) - (statusOrderValue[b.status] || 99);
-             if (statusDiff !== 0) return statusDiff;
-             // Si el estado es el mismo, ordenar por fecha de pedido descendente (más nuevos primero)
-             return (b.orderDate || "").localeCompare(a.orderDate || "");
-         }
-         function sortByStatusAndDelivery(a, b) {
-              const statusDiff = (statusOrderValue[a.status] || 99) - (statusOrderValue[b.status] || 99);
-              if (statusDiff !== 0) return statusDiff;
-               // Si el estado es el mismo, ordenar por fecha de entrega ascendente (más próximos primero)
-              return (a.deliveryDate || "9999-12-31").localeCompare(b.deliveryDate || "9999-12-31");
-          }
-
-         // --- Funciones de Búsqueda ---
-         function filterClients() { populateClientsTable(); } // Llama a poblar tabla, que ahora incluye el filtro
-         function filterJobs() { populateJobsTable(); } // Llama a poblar tabla, que ahora incluye el filtro
+        function sortByStatusAndDate(a, b) { const sd=(statusOrderValue[a.status]||99)-(statusOrderValue[b.status]||99); if(sd!==0)return sd; return (b.orderDate||"").localeCompare(a.orderDate||""); }
+        function sortByStatusAndDelivery(a, b) { const sd=(statusOrderValue[a.status]||99)-(statusOrderValue[b.status]||99); if(sd!==0)return sd; return (a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31"); }
+        function filterClients() { populateClientsTable(); }
+        function filterJobs() { populateJobsTable(); }
 
         // --- Poblado de Tablas (con filtro y ordenamiento) ---
-        function populateClientsTable() {
-            const b = document.getElementById('clients-table')?.querySelector('tbody'); if (!b) return;
-            const searchTerm = document.getElementById('client-search')?.value.toLowerCase() || '';
-
-            // Filtrar datos
-            const filteredClients = Object.values(clientsData).filter(client => {
-                return (client.name?.toLowerCase().includes(searchTerm) ||
-                        client.email?.toLowerCase().includes(searchTerm) ||
-                        client.phone?.includes(searchTerm));
-            }).sort((a, b) => (a.name || "").localeCompare(b.name || "")); // Ordenar alfabéticamente
-
-            if (filteredClients.length === 0) { b.innerHTML = `<tr><td colspan="4" class="text-center py-4">No hay clientes${searchTerm ? ' que coincidan.' : '.'}</td></tr>`; return; }
-            let h = '';
-            filteredClients.forEach(c => { h += `<tr data-client-id="${c.id}"><td>${c.name || 'N/A'}</td><td>${c.phone || '-'}</td><td>${c.email || '-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Editar</button><button onclick="deleteClient('${c.id}')" class="delete-button">Borrar</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">Nuevo Trabajo</button></td></tr>`; });
-            b.innerHTML = h;
-        }
-
-        function populateJobsTable() {
-             const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b)return;
-             const searchTerm = document.getElementById('job-search')?.value.toLowerCase() || '';
-
-             // Filtrar y luego ordenar
-             const filteredAndSortedJobs = jobsData.filter(job => {
-                 const clientName = clientsData[job.clientId]?.name?.toLowerCase() || '';
-                 const details = job.details?.toLowerCase() || '';
-                 return clientName.includes(searchTerm) || details.includes(searchTerm);
-             }).sort(sortByStatusAndDate); // Ordenar por Estado y luego Fecha Pedido Desc
-
-             if(filteredAndSortedJobs.length === 0 && dataLoaded.jobs){b.innerHTML=`<tr><td colspan="9" class="text-center py-4">No hay trabajos${searchTerm ? ' que coincidan.' : '.'}</td></tr>`; return;}
-             if (!dataLoaded.jobs && filteredAndSortedJobs.length === 0) {b.innerHTML = '<tr><td colspan="9" class="text-center py-4">Cargando...</td></tr>'; return;} // Si aún no cargó datos
-
-             let h='';
-             filteredAndSortedJobs.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button">Editar</button><button onclick="deleteJob('${j.id}')" class="delete-button">Borrar</button><button onclick="printTicket('${j.id}')" class="print-button">Ticket PDF</button></td></tr>`;});
-             b.innerHTML=h;
-         }
-
-        function populateDeadlinesTable() {
-             const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b)return;
-             if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos.</td></tr>';return;}
-             const t=new Date(); t.setHours(0,0,0,0);
-             // Filtrar no terminados y ordenar por Estado y luego Fecha Entrega Asc
-             const u=jobsData.filter(j=>j.status!=='Terminado').sort(sortByStatusAndDelivery);
-
-             if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos pendientes.</td></tr>';return;}
-             let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Vencido (${Math.abs(d)})`;rc='bg-red-100 date-overdue';} else if(d===0){dr='Hoy';rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} día(s)`;rc='bg-yellow-50';} else{dr=`${d} días`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h;
-         }
-
-        function populateStatusTable() {
-             const b=document.getElementById('status-table')?.querySelector('tbody'); if(!b)return;
-             if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No hay trabajos.</td></tr>';return;}
-             // Ordenar por Estado y luego Fecha Entrega Asc
-             const s=[...jobsData].sort(sortByStatusAndDelivery);
-
-             let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td></tr>`;}); b.innerHTML=h;
-         }
+        function populateClientsTable() { const b=document.getElementById('clients-table')?.querySelector('tbody'); if (!b) return; const term=document.getElementById('client-search')?.value.toLowerCase()||''; const fClients=Object.values(clientsData).filter(c=>(c.name?.toLowerCase().includes(term)||c.email?.toLowerCase().includes(term)||c.phone?.includes(term))).sort((a,b)=>(a.name||"").localeCompare(b.name||"")); if(fClients.length===0){b.innerHTML=`<tr><td colspan="4" class="text-center py-4">No hay clientes${term?' que coincidan.':'.'}</td></tr>`;return;} let h=''; fClients.forEach(c=>{h+=`<tr data-client-id="${c.id}"><td>${c.name||'N/A'}</td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Editar</button><button onclick="deleteClient('${c.id}')" class="delete-button">Borrar</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">Nuevo Trabajo</button></td></tr>`;}); b.innerHTML=h; }
+        function populateJobsTable() { const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b)return; const term=document.getElementById('job-search')?.value.toLowerCase()||''; const fJobs=jobsData.filter(j=>{const n=clientsData[j.clientId]?.name?.toLowerCase()||''; const d=j.details?.toLowerCase()||''; return n.includes(term)||d.includes(term);}).sort(sortByStatusAndDate); if(fJobs.length===0&&dataLoaded.jobs){b.innerHTML=`<tr><td colspan="9" class="text-center py-4">No hay trabajos${term?' que coincidan.':'.'}</td></tr>`; return;} if(!dataLoaded.jobs&&fJobs.length===0){b.innerHTML='<tr><td colspan="9" class="text-center py-4">Cargando...</td></tr>'; return;} let h=''; fJobs.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button">Editar</button><button onclick="deleteJob('${j.id}')" class="delete-button">Borrar</button><button onclick="printTicket('${j.id}')" class="print-button">Ticket PDF</button></td></tr>`;}); b.innerHTML=h; }
+        function populateDeadlinesTable() { const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos.</td></tr>';return;} const t=new Date(); t.setHours(0,0,0,0); const u=jobsData.filter(j=>j.status!=='Terminado').sort(sortByStatusAndDelivery); if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos pendientes.</td></tr>';return;} let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Vencido (${Math.abs(d)})`;rc='bg-red-100 date-overdue';} else if(d===0){dr='Hoy';rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} día(s)`;rc='bg-yellow-50';} else{dr=`${d} días`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h; }
+        function populateStatusTable() { const b=document.getElementById('status-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No hay trabajos.</td></tr>';return;} const s=[...jobsData].sort(sortByStatusAndDelivery); let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td></tr>`;}); b.innerHTML=h; }
         function generateReports() { let tv=0; let td=0; let ct={}; jobsData.forEach(j=>{const fc=j.finalCost||0; const dp=j.deposit||0; tv+=fc; td+=dp; const cid=j.clientId; if(!cid) return; if(!ct[cid]) ct[cid]={name:clientsData[cid]?.name||`Desconocido (${cid})`, total:0, deposit:0, outstanding:0}; ct[cid].total+=fc; ct[cid].deposit+=dp;}); const to=tv-td; document.getElementById('report-total-value').textContent=`$${tv.toFixed(2)}`; document.getElementById('report-total-deposit').textContent=`$${td.toFixed(2)}`; document.getElementById('report-total-outstanding').textContent=`$${Math.max(0,to).toFixed(2)}`; const otb=document.getElementById('outstanding-table')?.querySelector('tbody'); if(!otb) return; const cwo=Object.values(ct).map(c=>{c.outstanding=Math.max(0,c.total-c.deposit); return c;}).filter(c=>c.outstanding>0.005).sort((a,b)=>b.outstanding-a.outstanding); if(cwo.length===0){otb.innerHTML='<tr><td colspan="4" class="text-center py-4">Ningún cliente tiene saldo pendiente.</td></tr>'; return;} let h=''; cwo.forEach(c=>{h+=`<tr><td>${c.name}</td><td class="text-right">${c.total.toFixed(2)}</td><td class="text-right">${c.deposit.toFixed(2)}</td><td class="text-right font-semibold text-red-600">${c.outstanding.toFixed(2)}</td></tr>`;}); otb.innerHTML=h; }
         function populateMaterialsAdminTable() { if(currentUserRole!=='superadmin') return; const b=document.getElementById('materials-admin-table')?.querySelector('tbody'); if(!b)return; if(Object.keys(materialsData).length===0&&dataLoaded.materials){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay materiales.</td></tr>';return;} const s=Object.values(materialsData).sort((a,b)=>{const nc=(a.name||"").localeCompare(b.name||""); if(nc!==0) return nc; return(a.thickness||0)-(b.thickness||0);}); let h=''; s.forEach(m=>{const d=(m.width&&m.height)?`${m.width}x${m.height}`:'N/A'; const at=m.available!==false?'Sí':'No'; const ac=m.available!==false?'text-green-600':'text-red-600'; const c=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; h+=`<tr data-material-id="${m.id}"><td>${m.name||'N/A'}</td><td class="text-right">${m.thickness||'-'}</td><td class="text-right">${c.toFixed(2)}</td><td class="text-center">${d}</td><td class="text-center ${ac} font-semibold">${at}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editMaterialAdmin('${m.id}')" class="edit-button">Editar</button><button onclick="deleteMaterialAdmin('${m.id}')" class="delete-button">Borrar</button></td></tr>`;}); b.innerHTML=h; }
         function populateConfigFormAdmin() { if(currentUserRole!=='superadmin')return; const mi=document.getElementById('config-minutes-admin'); const cc=document.getElementById('monthly-costs-container'); const ccp=document.getElementById('calculated-cost-per-minute'); if(!mi||!cc||!ccp)return; mi.value=configData.minutes_per_month||2400; cc.innerHTML=''; const costs=configData.monthly_costs||{}; if(Object.keys(costs).length===0) addMonthlyCostInput('Ej: Alquiler',''); else Object.keys(costs).sort().forEach(key=>addMonthlyCostInput(key, costs[key])); ccp.textContent=`$${(configData.cost_per_minute||0).toFixed(4)} / min`; }
@@ -366,7 +342,7 @@
         function selectClientForNewJob(id) { const n=clientsData[id]?.name; if(!n)return; console.log(`Seleccionado cliente ${n} (${id})`); navigateTo('new-job-form'); setTimeout(()=>{const s=document.getElementById('job-client'); if(s){resetJobForm(id); s.value=id; document.getElementById('job-details')?.focus();} else console.error("job-client N/E.");}, 150); }
         document.getElementById('job-job-type')?.addEventListener('change',(e)=>{const t=e.target.value; const cf=document.getElementById('job-cut-time-field'); const ef=document.getElementById('job-engrave-time-field'); const ci=document.getElementById('job-cut-minutes'); const ei=document.getElementById('job-engrave-minutes'); if(!cf||!ef||!ci||!ei) return; cf.style.display=(t==='corte'||t==='ambos')?'grid':'none'; ef.style.display=(t==='grabado'||t==='ambos')?'grid':'none'; if(t==='grabado') ci.value=0; if(t==='corte') ei.value=0;});
 
-        // --- calculateJobQuote (Corregida para redondeo y visibilidad) ---
+        // --- calculateJobQuote (Corregida redondeo y visibilidad) ---
         function calculateJobQuote() {
              console.log("Calc cost..."); const f=document.getElementById('job-form-feedback'); const r=document.getElementById('job-quote-base-result'); const fcInput=document.getElementById('job-final-cost'); currentJobQuoteBaseCost=0;
              try {
@@ -380,46 +356,73 @@
              } catch(err) { console.error("Calc cost err:", err); currentJobQuoteBaseCost=0; if(r)r.textContent='Error'; if(fcInput)fcInput.value='0.00'; showFeedback(f,`Error: ${err.message}`,'error'); }
          }
         document.getElementById('job-form')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(!db)return; const id=document.getElementById('job-id').value; const f=document.getElementById('job-form-feedback'); showFeedback(f,'','info'); const d={clientId:document.getElementById('job-client').value, details:document.getElementById('job-details').value.trim(), materialId:document.getElementById('job-material').value, length:parseFloat(document.getElementById('job-length').value)||null, width:parseFloat(document.getElementById('job-width').value)||null, jobType:document.getElementById('job-job-type').value, cutMinutes:parseFloat(document.getElementById('job-cut-minutes').value)||0, engraveMinutes:parseFloat(document.getElementById('job-engrave-minutes').value)||0, orderDate:document.getElementById('job-order-date').value, deliveryDate:document.getElementById('job-delivery-date').value, status:document.getElementById('job-status').value, baseCost:currentJobQuoteBaseCost, finalCost:parseFloat(document.getElementById('job-final-cost').value)||0, deposit:parseFloat(document.getElementById('job-deposit').value)||0, observations:document.getElementById('job-observations').value.trim()||null}; let errs=[]; if(!d.clientId)errs.push('Seleccione cliente.'); if(!d.details)errs.push('Ingrese detalles.'); if(!d.materialId)errs.push('Seleccione material.'); if(!d.length||d.length<=0)errs.push('Largo positivo.'); if(!d.width||d.width<=0)errs.push('Ancho positivo.'); if(!d.orderDate)errs.push('Falta F.Pedido.'); if(!d.deliveryDate)errs.push('Falta F.Entrega.'); if(d.orderDate&&d.deliveryDate&&d.deliveryDate<d.orderDate)errs.push('Entrega < Pedido.'); if(d.finalCost<0)errs.push('Costo final neg.'); if(d.deposit<0)errs.push('Seña neg.'); if(d.deposit>d.finalCost)errs.push('Seña > Total.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('jobs').doc(id).update(d); showFeedback(f,'Trabajo actualizado.','success');} else {const r=await db.collection('jobs').add(d); d.id=r.id; showFeedback(f,'Trabajo creado.','success');} dataLoaded.jobs=false; navigateTo('jobs'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
-        // --- editJob (Corregida visibilidad Costo Base) ---
-        function editJob(id) {
-             const j = jobsData.find(j => j.id === id); if (!j) { alert(`Trabajo ${id} N/E.`); return; } console.log("Editando:", j);
-             document.getElementById('job-form-title').textContent = 'Editar Trabajo'; document.getElementById('job-id').value = j.id;
-             document.getElementById('job-client').value = j.clientId || ''; document.getElementById('job-details').value = j.details || ''; document.getElementById('job-material').value = j.materialId || ''; document.getElementById('job-length').value = j.length || ''; document.getElementById('job-width').value = j.width || ''; document.getElementById('job-job-type').value = j.jobType || 'corte'; document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value = j.cutMinutes || 0; document.getElementById('job-engrave-minutes').value = j.engraveMinutes || 0; document.getElementById('job-order-date').value = j.orderDate || ''; document.getElementById('job-delivery-date').value = j.deliveryDate || ''; document.getElementById('job-status').value = j.status || 'Encargado'; document.getElementById('job-final-cost').value = (j.finalCost || 0).toFixed(2); document.getElementById('job-deposit').value = (j.deposit || 0).toFixed(2); document.getElementById('job-observations').value = j.observations || '';
-             currentJobQuoteBaseCost = j.baseCost || 0;
-             const r = document.getElementById('job-quote-base-result');
-             if (currentUserRole === 'superadmin' && r) { r.textContent = `Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent = ''; }
-             navigateTo('new-job-form');
-             setTimeout(() => { document.getElementById('job-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-         }
+        function editJob(id) { const j=jobsData.find(j=>j.id===id); if(!j){alert(`Trabajo ${id} N/E.`);return;} console.log("Editando:", j); document.getElementById('job-form-title').textContent='Editar Trabajo'; document.getElementById('job-id').value=j.id; document.getElementById('job-client').value=j.clientId||''; document.getElementById('job-details').value=j.details||''; document.getElementById('job-material').value=j.materialId||''; document.getElementById('job-length').value=j.length||''; document.getElementById('job-width').value=j.width||''; document.getElementById('job-job-type').value=j.jobType||'corte'; document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value=j.cutMinutes||0; document.getElementById('job-engrave-minutes').value=j.engraveMinutes||0; document.getElementById('job-order-date').value=j.orderDate||''; document.getElementById('job-delivery-date').value=j.deliveryDate||''; document.getElementById('job-status').value=j.status||'Encargado'; document.getElementById('job-final-cost').value=(j.finalCost||0).toFixed(2); document.getElementById('job-deposit').value=(j.deposit||0).toFixed(2); document.getElementById('job-observations').value=j.observations||''; currentJobQuoteBaseCost=j.baseCost||0; const r=document.getElementById('job-quote-base-result'); if(currentUserRole==='superadmin'&&r){r.textContent=`Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`;}else if(r){r.textContent='';} navigateTo('new-job-form'); setTimeout(()=>{document.getElementById('job-form').scrollIntoView({behavior:'smooth',block:'start'});},100); }
         function resetJobForm(keepClientId=null) { console.log("Reseteando form trabajo..."); document.getElementById('job-form-title').textContent='Nuevo Trabajo'; const f=document.getElementById('job-form'); if(f)f.reset(); document.getElementById('job-id').value=''; currentJobQuoteBaseCost=0; const r=document.getElementById('job-quote-base-result'); if(r)r.textContent='Costo Base Est: $0.00'; document.getElementById('job-final-cost').value='0.00'; document.getElementById('job-order-date').value=new Date().toISOString().split('T')[0]; document.getElementById('job-job-type').dispatchEvent(new Event('change')); const fb=document.getElementById('job-form-feedback'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; if(keepClientId){const s=document.getElementById('job-client'); if(s)s.value=keepClientId;} }
         async function deleteJob(id) { if(!db)return; const j=jobsData.find(j=>j.id===id); const n=j?(clientsData[j.clientId]?.name||'Desconocido'):'Desconocido'; const d=j?(j.details||`ID ${id}`):`ID ${id}`; if(!confirm(`Borrar trabajo "${d}" para "${n}"?`))return; try { console.log(`Borrando job ${id}...`); await db.collection('jobs').doc(id).delete(); jobsData=jobsData.filter(j=>j.id!==id); console.log(`Job ${id} borrado.`); alert(`Trabajo "${d}" borrado.`); populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); if(document.getElementById('job-id').value===id) resetJobForm(); } catch(err){alert(`Error: ${err.message}`);} }
         document.getElementById('material-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const id=document.getElementById('material-id-admin').value; const f=document.getElementById('material-form-feedback-admin'); showFeedback(f,'','info'); const d={name:document.getElementById('material-name-admin').value.trim(), thickness:parseFloat(document.getElementById('material-thickness-admin').value)||null, costPerSheet:parseFloat(document.getElementById('material-cost-admin').value)||0, width:parseFloat(document.getElementById('material-width-admin').value)||null, height:parseFloat(document.getElementById('material-height-admin').value)||null, available:document.getElementById('material-availability-admin').checked}; let errs=[]; if(!d.name)errs.push('Nombre.'); if(!d.thickness||d.thickness<=0)errs.push('Grosor.'); if(d.costPerSheet<0)errs.push('Costo.'); if(!d.width||d.width<=0)errs.push('Ancho.'); if(!d.height||d.height<=0)errs.push('Alto.'); if(errs.length>0){showFeedback(f,errs.join(' ')+' obligatorio/positivo.','error'); return;} try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('materials').doc(id).update(d); materialsData[id]={...materialsData[id],...d}; showFeedback(f,'Actualizado.','success');} else {const r=await db.collection('materials').add(d); materialsData[r.id]={...d,id:r.id}; showFeedback(f,'Añadido.','success');} resetMaterialFormAdmin(); populateMaterialsAdminTable(); populateMaterialDropdown('job-material'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
-        function editMaterialAdmin(id) { if(currentUserRole!=='superadmin')return; const m=materialsData[id]; if(!m)return; /* No resetear */ document.getElementById('material-form-title-admin').textContent='Editar Material'; document.getElementById('material-id-admin').value=m.id; document.getElementById('material-name-admin').value=m.name||''; document.getElementById('material-thickness-admin').value=m.thickness||''; document.getElementById('material-cost-admin').value=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; document.getElementById('material-width-admin').value=m.width||''; document.getElementById('material-height-admin').value=m.height||''; document.getElementById('material-availability-admin').checked=m.available!==false; document.getElementById('material-form-admin').scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('material-name-admin').focus(); }
+        function editMaterialAdmin(id) { if(currentUserRole!=='superadmin')return; const m=materialsData[id]; if(!m)return; document.getElementById('material-form-title-admin').textContent='Editar Material'; document.getElementById('material-id-admin').value=m.id; document.getElementById('material-name-admin').value=m.name||''; document.getElementById('material-thickness-admin').value=m.thickness||''; document.getElementById('material-cost-admin').value=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; document.getElementById('material-width-admin').value=m.width||''; document.getElementById('material-height-admin').value=m.height||''; document.getElementById('material-availability-admin').checked=m.available!==false; document.getElementById('material-form-admin').scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('material-name-admin').focus(); }
         function resetMaterialFormAdmin() { if(currentUserRole!=='superadmin')return; document.getElementById('material-form-title-admin').textContent='Añadir Material'; const f=document.getElementById('material-form-admin'); if(f)f.reset(); document.getElementById('material-id-admin').value=''; document.getElementById('material-availability-admin').checked=true; document.getElementById('material-width-admin').value='1300'; document.getElementById('material-height-admin').value='900'; const fb=document.getElementById('material-form-feedback-admin'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; }
         async function deleteMaterialAdmin(id) { if(currentUserRole!=='superadmin'||!db)return; const n=materialsData[id]?.name||`ID ${id}`; const iu=jobsData.some(j=>j.materialId===id); let cm=`Borrar "${n}"?`; if(iu)cm+=`\n\nATENCIÓN: Usado en trabajos.`; cm+="\n\nNo se puede deshacer."; if(!confirm(cm))return; const f=document.getElementById('material-form-feedback-admin'); try { showFeedback(f,'Borrando...','info'); await db.collection('materials').doc(id).delete(); delete materialsData[id]; showFeedback(f,`Material "${n}" borrado.`,'success'); populateMaterialsAdminTable(); populateMaterialDropdown('job-material'); if(document.getElementById('material-id-admin').value===id) resetMaterialFormAdmin(); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} }
         function addMonthlyCostInput(key='',value='') { const c=document.getElementById('monthly-costs-container'); if(!c)return; const d=document.createElement('div'); d.className='flex items-center space-x-2 cost-entry'; d.innerHTML=`<input type="text" placeholder="Descripción" value="${key}" data-cost-key class="flex-grow p-1 border rounded text-sm"> <input type="number" placeholder="0.00" value="${value}" step="0.01" min="0" data-cost-value class="w-24 p-1 border rounded text-sm text-right"> <button type="button" onclick="removeMonthlyCostInput(this)" class="text-red-500 hover:text-red-700 text-xl font-bold leading-none px-1" title="Eliminar">&times;</button>`; c.appendChild(d); d.querySelector('[data-cost-key]').focus(); }
         function removeMonthlyCostInput(button) { const p=button.closest('.cost-entry'); if(p)p.remove(); }
         document.getElementById('config-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const f=document.getElementById('config-form-feedback-admin'); showFeedback(f,'','info'); document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(i=>i.classList.remove('border-red-500')); const min=parseInt(document.getElementById('config-minutes-admin').value,10); const ces=document.querySelectorAll('#monthly-costs-container .cost-entry'); const mc={}; let iv=true; let errs=[]; if(isNaN(min)||min<=0){errs.push('Minutos positivo.'); document.getElementById('config-minutes-admin').classList.add('border-red-500'); iv=false;} ces.forEach((div,idx)=>{const ki=div.querySelector('[data-cost-key]'); const vi=div.querySelector('[data-cost-value]'); const k=ki.value.trim(); const vs=vi.value.trim(); const v=parseFloat(vs); if(k||vs){let eiv=true; if(!k){errs.push(`Fila ${idx+1}: Descrip.`); ki.classList.add('border-red-500'); eiv=false;} if(vs===''||isNaN(v)||v<0){errs.push(`Fila ${idx+1} ('${k||'?'}'): Valor >= 0.`); vi.classList.add('border-red-500'); eiv=false;} if(eiv){if(mc.hasOwnProperty(k)){errs.push(`Fila ${idx+1}: Descrip. duplicada "${k}".`); ki.classList.add('border-red-500'); eiv=false;} else mc[k]=v;} if(!eiv)iv=false;}}); if(!iv){showFeedback(f,errs.join(' '),'error'); return;} const cu={minutes_per_month:min,monthly_costs:mc}; try { showFeedback(f,'Guardando...','info'); await db.collection('config').doc('main').set(cu,{merge:true}); const tm=Object.values(mc).reduce((s,v)=>s+v,0); configData={...configData,minutes_per_month:min,monthly_costs:mc,cost_per_minute:min>0?tm/min:0}; console.log("Config guardada. Costo/min:", configData.cost_per_minute); populateConfigFormAdmin(); showFeedback(f,'Config guardada.','success'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
 
-        // --- Funciones de Generación PDF ---
+        // --- Funciones PDF y Reportes ---
         function showPdfLoading(show = true) { const o=document.getElementById('pdf-loading-overlay'); if(o) o.style.display=show?'flex':'none'; }
         async function printTicket(jobId) {
              console.log(`Generating PDF ticket: ${jobId}`); if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;} const { jsPDF } = window.jspdf; const job=jobsData.find(j=>j.id===jobId); if (!job) { alert(`Error: Job ${jobId} N/E.`); return; } const client=clientsData[job.clientId]; const material=materialsData[job.materialId]; const renderArea=document.getElementById('pdf-render-area'); if (!renderArea) { alert("Error: Render area N/E."); return; } showPdfLoading(true); const finalCost=job.finalCost||0; const deposit=job.deposit||0; const outstanding=Math.max(0,finalCost-deposit); const clientNameForFile=client?.name?.replace(/[^a-z0-9_]/gi, '_').replace(/ /g, '_').toLowerCase()||'cliente'; const fileName=`ticket_${clientNameForFile}_${jobId.substring(0,6)}.pdf`;
              let ticketHtml = `<h2>** TICKET TRABAJO **</h2><p><span class="detail-label">ID Trabajo:</span><span class="detail-value">${job.id.substring(0, 6)}</span></p><p><span class="detail-label">Pedido:</span><span class="detail-value">${formatDate(job.orderDate)}</span></p><p><span class="detail-label">Entrega:</span><span class="detail-value">${formatDate(job.deliveryDate)}</span></p><hr><p><strong>CLIENTE:</strong></p><p><span class="detail-label">Nombre:</span><span class="detail-value">${client?.name||'N/A'}</span></p>${client?.phone?`<p><span class="detail-label">Tel:</span><span class="detail-value">${client.phone}</span></p>`:''}<hr><p><strong>DETALLES TRABAJO:</strong></p><p>${job.details||'-'}</p><p><span class="detail-label">Material:</span> <span class="detail-value">${material?.name||'?'} ${material?.thickness||'?'}mm</span></p>${(job.length&&job.width)?`<p><span class="detail-label">Medidas:</span> <span class="detail-value">${job.length}x${job.width}mm</span></p>`:''}<p><span class="detail-label">Tipo:</span> <span class="detail-value">${job.jobType||'N/A'}</span></p>${(job.cutMinutes>0)?`<p><span class="detail-label">T. Corte:</span> <span class="detail-value">${job.cutMinutes} min</span></p>`:''}${(job.engraveMinutes>0)?`<p><span class="detail-label">T. Grabado:</span> <span class="detail-value">${job.engraveMinutes} min</span></p>`:''}${job.observations?`<hr><p><strong>Obs:</strong> ${job.observations}</p>`:''}<hr><div class="totals"><p class="item-line"><span>Total:</span> <span>$${finalCost.toFixed(2)}</span></p><p class="item-line"><span>Seña:</span> <span>$${deposit.toFixed(2)}</span></p><p class="item-line"><strong><span>PENDIENTE:</span> <span>$${outstanding.toFixed(2)}</span></strong></p></div><hr><p style="text-align: center; font-size: 8pt; margin-top: 5px;">¡Gracias!</p>`;
              renderArea.innerHTML=ticketHtml; const origStyle={position:renderArea.style.position,left:renderArea.style.left,top:renderArea.style.top,visibility:renderArea.style.visibility,zIndex:renderArea.style.zIndex}; renderArea.style.position='fixed'; renderArea.style.left='0px'; renderArea.style.top='0px'; renderArea.style.visibility='visible'; renderArea.style.zIndex='-1'; await new Promise(resolve => requestAnimationFrame(resolve));
              try { if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D."); const canvas=await html2canvas(renderArea,{scale:2,useCORS:true,logging:false}); const imgData=canvas.toDataURL('image/png'); const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[80,canvas.height*(80/canvas.width)+10]}); const pdfWidth=pdf.internal.pageSize.getWidth()-6; const pdfHeight=(canvas.height*pdfWidth)/canvas.width; pdf.addImage(imgData,'PNG',3,3,pdfWidth,pdfHeight); pdf.save(fileName); } catch(err){console.error("Error PDF ticket:", err); alert("Error generando PDF ticket: "+err.message);} finally { renderArea.style.position=origStyle.position; renderArea.style.left=origStyle.left; renderArea.style.top=origStyle.top; renderArea.style.visibility=origStyle.visibility; renderArea.style.zIndex=origStyle.zIndex; renderArea.innerHTML=''; showPdfLoading(false); console.log("PDF ticket finished."); }
-         }
+        }
         async function printCurrentSection() {
              console.log(`Generating PDF section: ${activeSectionId}`); if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;} const { jsPDF } = window.jspdf; const sectionToPrint=document.getElementById(activeSectionId); if(!sectionToPrint||!sectionToPrint.classList.contains('main-section')){alert("Sección N/V."); return;} if(activeSectionId==='new-job-form'||activeSectionId==='admin-materials'||activeSectionId==='admin-config'){if(!confirm("Generar PDF de formulario? (Puede no ser ideal) ¿Continuar?")) return;} else if(activeSectionId==='login'||activeSectionId==='home'){alert("Esta sección no se exporta."); return;} const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint; if (!elementToPrint) { alert("No content found."); return; } let hiddenElements = []; if (elementToPrint.tagName === 'TABLE') { elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}}); } else { elementToPrint.querySelectorAll('button, .no-print').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}}); } console.log("Element:", elementToPrint.id||elementToPrint.tagName); showPdfLoading(true); await new Promise(resolve => setTimeout(resolve, 100));
              try { if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D."); const canvas=await html2canvas(elementToPrint,{scale:1.2,useCORS:true,logging:false}); const imgData=canvas.toDataURL('image/png'); const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}); const imgProps=pdf.getImageProperties(imgData); const pdfWidth=pdf.internal.pageSize.getWidth()-20; const pdfHeight=(imgProps.height*pdfWidth)/imgProps.width; const pageHeight=pdf.internal.pageSize.getHeight()-20; let heightLeft=pdfHeight; let position=10; pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight; while(heightLeft>0){ position-=pageHeight; pdf.addPage(); pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight; } pdf.save(`seccion_${activeSectionId}.pdf`); } catch(err){console.error("Error PDF section:", err); alert("Error generando PDF sección: "+err.message);} finally{ hiddenElements.forEach(item=>{item.element.style.display=item.originalDisplay||'';}); showPdfLoading(false); console.log("PDF section finished."); }
         }
-
-        // --- Funciones de Reporte Bajo Demanda (Corregida mensual) ---
         function generateDailyReport() { const o=document.getElementById('daily-report-output'); const f=document.getElementById('advanced-reports-feedback'); showFeedback(f,'','info'); if(!dataLoaded.jobs){showFeedback(f,'Datos no cargados. Recargue Trabajos.','error'); o.innerHTML='Error: Datos no disponibles.'; return;} const today=new Date().toISOString().split('T')[0]; const todaysJobs=jobsData.filter(j=>j.orderDate===today); let totalAmount=todaysJobs.reduce((s,j)=>s+(j.finalCost||0),0); const count=todaysJobs.length; if(count===0)o.innerHTML=`<p>No se ingresaron trabajos hoy (${formatDate(today)}).</p>`; else o.innerHTML=`<p><strong>Reporte del día ${formatDate(today)}:</strong></p><p> - Cantidad trabajos: <strong>${count}</strong></p><p> - Monto total presup.: <strong>$${totalAmount.toFixed(2)}</strong></p>`; showFeedback(f,'Reporte diario generado.','success'); }
+        // --- generateMonthlyReport (Corregida para incluir cantidad) ---
         function generateMonthlyReport() {
             const o=document.getElementById('monthly-report-output'); const f=document.getElementById('advanced-reports-feedback'); showFeedback(f,'','info'); if(!dataLoaded.jobs){showFeedback(f,'Datos no cargados. Recargue Trabajos.','error'); o.innerHTML='Error: Datos no disponibles.'; return;} const rd={}; const mn=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]; const t=new Date();
             for(let i=0; i<12; i++){ const d=new Date(t.getFullYear(),t.getMonth()-i,1); const y=d.getFullYear(); const m=d.getMonth(); const mk=`${y}-${(m+1).toString().padStart(2,'0')}`; rd[mk]={total:0,debt:0,count:0,monthLabel:`${mn[m]} ${y}`}; jobsData.forEach(j=>{if(j.orderDate&&j.orderDate.startsWith(mk)){const fc=j.finalCost||0; const dp=j.deposit||0; const ou=Math.max(0,fc-dp); rd[mk].count++; rd[mk].total+=fc; rd[mk].debt+=ou;}}); }
             const sk=Object.keys(rd).sort().reverse(); let th=`<table id="monthly-report-table" class="w-full text-sm border-collapse border border-gray-300"><thead><tr><th>Mes</th><th>Cant. Trab.</th><th>Total Presup. ($)</th><th>Deuda Pendiente ($)</th></tr></thead><tbody>`; if(sk.length===0)th+=`<tr><td colspan="4" class="text-center py-3">No hay datos.</td></tr>`; else sk.forEach(k=>{const d=rd[k]; th+=`<tr><td>${d.monthLabel}</td><td>${d.count}</td><td>${d.total.toFixed(2)}</td><td class="${d.debt>0.005?'text-red-600 font-semibold':''}">${d.debt.toFixed(2)}</td></tr>`;}); th+=`</tbody></table>`; o.innerHTML=th; showFeedback(f,'Reporte mensual generado.','success');
+        }
+
+        // --- Funciones del Asistente ---
+        function calcularTiempoAsistente() { // Renombrada para evitar conflicto potencial
+            const tipo = document.getElementById("tipoTrabajo").value;
+            const anchoInput = document.getElementById("ancho");
+            const altoInput = document.getElementById("alto");
+            const ancho = parseFloat(anchoInput.value);
+            const alto = parseFloat(altoInput.value);
+            const resultadoDiv = document.getElementById("resultadoAsistente"); // Usar ID específico
+
+            if (isNaN(ancho) || isNaN(alto) || ancho <= 0 || alto <= 0) {
+                resultadoDiv.innerHTML = `<strong class="text-red-600">Error: Ingrese ancho y alto válidos.</strong>`;
+                resultadoDiv.style.display = "block";
+                return;
+            }
+
+            const area = (ancho / 10) * (alto / 10); // cm²
+            const perimetro = 2 * (ancho + alto) / 10; // cm
+            let tiempo = 0;
+            let detalles = [];
+
+            switch (tipo) {
+                case "corte3": tiempo = perimetro * 0.34; detalles.push(`Corte MDF 3mm: ${tiempo.toFixed(1)} seg`); break;
+                case "corte5": tiempo = perimetro * 0.51; detalles.push(`Corte MDF 5.5mm: ${tiempo.toFixed(1)} seg`); break;
+                case "grabado": tiempo = area * 0.38; detalles.push(`Grabado: ${tiempo.toFixed(1)} seg`); break;
+                case "marcado": tiempo = perimetro * 0.05; detalles.push(`Marcado: ${tiempo.toFixed(1)} seg`); break;
+                case "combinado3": let c3 = perimetro * 0.34; let g3 = area * 0.38; tiempo = c3 + g3; detalles.push(`Corte 3mm: ${c3.toFixed(1)}s`); detalles.push(`Grabado: ${g3.toFixed(1)}s`); break;
+                case "combinado5": let c5 = perimetro * 0.51; let g5 = area * 0.38; tiempo = c5 + g5; detalles.push(`Corte 5.5mm: ${c5.toFixed(1)}s`); detalles.push(`Grabado: ${g5.toFixed(1)}s`); break;
+            }
+            const tiempoMinutos = tiempo / 60;
+
+            resultadoDiv.innerHTML = `<strong>Tiempo estimado:</strong><br>${detalles.join("<br>")}<br><br><strong>Total: ${tiempo.toFixed(1)} seg (${tiempoMinutos.toFixed(1)} min)</strong>`;
+            resultadoDiv.style.display = "block";
+        }
+        function actualizarVisibilidad() { // Para el asistente
+            const resDiv = document.getElementById("resultadoAsistente");
+            if (resDiv) resDiv.style.display = "none";
         }
 
         // --- Funciones Utilitarias ---
@@ -432,9 +435,10 @@
             console.log("DOM loaded."); const y=document.getElementById('current-year'); if(y)y.textContent= 2025; const j=document.getElementById('job-job-type'); if(j)j.dispatchEvent(new Event('change'));
              if(typeof auth!=='undefined') console.log("Waiting for auth state...");
              else { console.error("Auth N/A. Showing login."); showLoginSection(); alert("Error: Auth service failed."); }
-             // Añadir listeners para búsqueda después de que el DOM cargue
              document.getElementById('client-search')?.addEventListener('input', filterClients);
              document.getElementById('job-search')?.addEventListener('input', filterJobs);
+             // Activar la vista inicial (home o login via onAuthStateChanged)
+             if (!currentUser) navigateTo('home'); // Asegurar que home se muestre si no hay usuario inicial
         });
 
     </script>
