@@ -20,56 +20,76 @@
 
         /* Layout Principal con Sidebar */
         .app-layout { display: flex; min-height: 100vh; }
-        #sidebar { width: 240px; flex-shrink: 0; }
-        #main-content { flex-grow: 1; }
+        #sidebar { width: 240px; flex-shrink: 0; /* Evita que se encoja */ }
+        #main-content { flex-grow: 1; /* Ocupa el espacio restante */ }
 
         /* Ocultar contenido por defecto */
         .main-section { display: none; }
         .main-section.active-section { display: block; }
 
         /* Estilos Sidebar */
-        #sidebar { background-color: #1f2937; color: #d1d5db; }
-        #sidebar a, #sidebar button { display: flex; align-items: center; padding: 10px 16px; color: #d1d5db; text-decoration: none; transition: background-color 0.2s, color 0.2s; border-left: 3px solid transparent; }
-        #sidebar a:hover, #sidebar button:hover { background-color: #374151; color: #fff; }
-        #sidebar li.active > a, #sidebar li.active > button { background-color: #1d4ed8; color: #fff; font-weight: 600; border-left-color: #60a5fa; }
-        #sidebar .sidebar-title { padding: 16px; font-size: 1.1rem; font-weight: 600; color: #9ca3af; border-bottom: 1px solid #374151; }
+        #sidebar { background-color: #1f2937; /* gray-800 */ color: #d1d5db; /* gray-300 */ }
+        #sidebar a, #sidebar button { display: flex; align-items: center; padding: 10px 16px; color: #d1d5db; /* gray-300 */ text-decoration: none; transition: background-color 0.2s, color 0.2s; border-left: 3px solid transparent; }
+        #sidebar a:hover, #sidebar button:hover { background-color: #374151; /* gray-700 */ color: #fff; }
+        #sidebar li.active > a, #sidebar li.active > button { background-color: #1d4ed8; /* blue-700 */ color: #fff; font-weight: 600; border-left-color: #60a5fa; /* blue-400 */ }
+        #sidebar .sidebar-title { padding: 16px; font-size: 1.1rem; font-weight: 600; color: #9ca3af; /* gray-400 */ border-bottom: 1px solid #374151; }
         #sidebar .nav-icon { margin-right: 10px; width: 20px; text-align: center; }
-        #sidebar .user-info { padding: 16px; border-top: 1px solid #374151; margin-top: auto; }
+        #sidebar .user-info { padding: 16px; border-top: 1px solid #374151; margin-top: auto; /* Empuja al fondo */ }
         #sidebar .user-info span { display: block; font-size: 0.8rem; color: #9ca3af; word-break: break-all; }
         #sidebar .user-info button { width: 100%; justify-content: center; margin-top: 8px; background-color: #dc2626; color: white; border-radius: 4px; border-left: none; }
         #sidebar .user-info button:hover { background-color: #b91c1c; }
 
-        /* Visibilidad basada en roles */
+        /* Visibilidad basada en roles (aplicada a LI ahora) */
         #sidebar .admin-only, #sidebar .superadmin-only { display: none; }
-        body.logged-in #sidebar .admin-only { display: block; } body.role-superadmin #sidebar .superadmin-only { display: block; }
-        body:not(.logged-in) #sidebar { display: none; } body:not(.logged-in) #main-content { width: 100%; }
+        body.logged-in #sidebar .admin-only { display: block; }
+        body.role-superadmin #sidebar .superadmin-only { display: block; }
+        /* Ocultar sidebar en estado público/login */
+        body:not(.logged-in) #sidebar { display: none; }
+        body:not(.logged-in) #main-content { width: 100%; } /* Ocupar todo si no hay sidebar */
 
-        /* Estilos Tablas y Formularios */
+
+        /* Estilos Tablas y Formularios (sin cambios significativos) */
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; } .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: middle;} .admin-table th { background-color: #f2f2f2; font-weight: 600; } .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; border: none; } .edit-button { background-color: #facc15; color: #422006; } .edit-button:hover { background-color: #eab308; } .delete-button { background-color: #f87171; color: #450a0a; } .delete-button:hover { background-color: #ef4444; } .print-button { background-color: #60a5fa; color: #1e3a8a; } .print-button:hover { background-color: #3b82f6; } .generic-print-button { background-color: #a78bfa; color: #f5f3ff; } .generic-print-button:hover { background-color: #8b5cf6; }
         .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
         .date-overdue { color: #dc2626; font-weight: bold; }
         .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; } .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; } .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
 
-        /* Estilos PDF Render Area */
-        #pdf-render-area { position: absolute; left: -9999px; visibility: hidden; z-index: -1; width: 80mm; background-color: white; padding: 3mm; font-family: 'Courier New', Courier, monospace !important; font-size: 9pt !important; line-height: 1.3 !important; color: #000 !important; border: 1px solid #ccc; }
-         #pdf-render-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; } #pdf-render-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word !important; } #pdf-render-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; } #pdf-render-area strong { font-weight: bold !important; } #pdf-render-area .item-line { display: flex !important; justify-content: space-between !important; } #pdf-render-area .item-line span:last-child { text-align: right !important; } #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; } #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;} #pdf-render-area .detail-value { }
-         .generating-pdf-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000; }
-         #monthly-report-table th, #monthly-report-table td { padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right; } #monthly-report-table th { background-color: #f1f5f9; font-weight: 600; text-align: center; } #monthly-report-table td:first-child { text-align: left; } #monthly-report-table td:nth-child(2) { text-align: center; }
-         .search-container { margin-bottom: 1rem; } .search-input { padding: 8px 12px 8px 32px; border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 400px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23aaa"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'); background-repeat: no-repeat; background-position: 8px center; background-size: 16px 16px; }
+        /* Estilos para el contenedor temporal de renderizado PDF (oculto visualmente) */
+        #pdf-render-area {
+            position: absolute; left: -9999px; visibility: hidden; z-index: -1; width: 80mm; background-color: white;
+            padding: 3mm; font-family: 'Courier New', Courier, monospace !important; font-size: 9pt !important;
+            line-height: 1.3 !important; color: #000 !important; border: 1px solid #ccc;
+        }
+         #pdf-render-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; }
+         #pdf-render-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word !important; }
+         #pdf-render-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; }
+         #pdf-render-area strong { font-weight: bold !important; }
+         #pdf-render-area .item-line { display: flex !important; justify-content: space-between !important; }
+         #pdf-render-area .item-line span:last-child { text-align: right !important; }
+         #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; }
+         #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;}
+         #pdf-render-area .detail-value { }
 
-        /* Estilos específicos para la sección Asistente */
-        #assistant label, #assistant select, #assistant input[type="number"] { display: block; margin-bottom: 10px; }
-        #assistant input[type="number"] { /* Usar clases Tailwind mejor */ padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 200px; }
-        #assistant select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: white; width: 100%; max-width: 300px;}
-        #assistant button { /* Ya tiene action-button, podemos añadir color específico */ background-color: #2563eb; color: white; }
-        #assistant button:hover { background-color: #1d4ed8; }
-        .assistant-resultado { /* Renombrado desde .resultado */ margin-top: 20px; background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; color: #856404; }
-
+         .generating-pdf-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);
+            color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000;
+         }
+         /* Estilos tabla reporte mensual */
+         #monthly-report-table th, #monthly-report-table td {
+            padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right;
+         }
+         #monthly-report-table th { background-color: #f1f5f9; font-weight: 600; text-align: center; }
+         #monthly-report-table td:first-child { text-align: left; } /* Alinear mes */
+         #monthly-report-table td:nth-child(2) { text-align: center; } /* Alinear cantidad */
+         /* Estilos Buscador */
+         .search-container { margin-bottom: 1rem; }
+         .search-input { padding: 8px 12px 8px 32px; border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 400px; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23aaa"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'); background-repeat: no-repeat; background-position: 8px center; background-size: 16px 16px; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
     <div class="app-layout">
+        <!-- Sidebar de Navegación Actualizada -->
         <aside id="sidebar" class="flex flex-col h-screen sticky top-0 no-print">
             <div class="sidebar-title">Menú</div>
             <nav class="flex-grow overflow-y-auto">
@@ -79,8 +99,14 @@
                     <li class="admin-only"><a href="#" onclick="navigateTo('clients')" data-target="clients"><span class="nav-icon">👥</span>Clientes</a></li>
                     <li class="admin-only"><a href="#" onclick="navigateTo('deadlines')" data-target="deadlines"><span class="nav-icon">🗓️</span>Plazos</a></li>
                     <li class="admin-only"><a href="#" onclick="navigateTo('status')" data-target="status"><span class="nav-icon">📊</span>Estados</a></li>
-                     <!-- Nuevo enlace Asistente -->
                     <li class="admin-only"><a href="#" onclick="navigateTo('assistant')" data-target="assistant"><span class="nav-icon">⏱️</span>Asistente Tiempos</a></li>
+                    <!-- Enlace Externo Añadido -->
+                    <li class="admin-only">
+                        <a href="https://huguitito.github.io/ParametrosLaser/" target="_blank" rel="noopener noreferrer">
+                          <span class="nav-icon">⚡</span>Parámetros Máquinas
+                        </a>
+                    </li>
+                    <!-- Fin Enlace Externo -->
                     <li class="superadmin-only"><a href="#" onclick="navigateTo('reports')" data-target="reports"><span class="nav-icon">📈</span>Informes Grales.</a></li>
                     <li class="superadmin-only"><a href="#" onclick="navigateTo('advanced-reports')" data-target="advanced-reports"><span class="nav-icon">📄</span>Reportes Det.</a></li>
                     <li class="superadmin-only"><a href="#" onclick="navigateTo('admin-materials')" data-target="admin-materials"><span class="nav-icon">🧱</span>Materiales</a></li>
@@ -95,6 +121,7 @@
             </div>
         </aside>
 
+        <!-- Contenido Principal -->
         <div id="main-content" class="p-4 md:p-8 overflow-y-auto">
             <div class="public-only text-right mb-4">
                  <button id="admin-login-button-main" onclick="showLoginSection()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
@@ -121,6 +148,7 @@
                 </div>
             </header>
 
+            <!-- Contenedor de Secciones -->
             <div id="section-content-container">
                 <section id="home" class="main-section bg-white p-6 rounded-lg shadow-lg">
                    <div class="p-6 rounded-lg text-center">
@@ -228,13 +256,12 @@
                           <div id="config-form-feedback-admin" class="mt-2 text-sm feedback"></div>
                      </form>
                 </section>
-                <!-- Nueva Sección Asistente -->
+                 <!-- Nueva Sección Asistente -->
                 <section id="assistant" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">✨ Asistente de Tiempos Corte y Grabado</h2>
-
                     <div class="max-w-md mx-auto">
                         <label for="tipoTrabajo">Tipo de trabajo:</label>
-                        <select id="tipoTrabajo" onchange="actualizarVisibilidad()" class="mb-4">
+                        <select id="tipoTrabajo" onchange="actualizarVisibilidadAsistente()" class="mb-4 p-2 border rounded w-full max-w-xs">
                           <option value="corte3">Corte - MDF 3mm</option>
                           <option value="corte5">Corte - MDF 5.5mm</option>
                           <option value="grabado">Grabado</option>
@@ -242,23 +269,16 @@
                           <option value="combinado3">Corte + Grabado - MDF 3mm</option>
                           <option value="combinado5">Corte + Grabado - MDF 5.5mm</option>
                         </select>
-
                         <div id="dimensiones">
                           <label for="ancho">Ancho (mm):</label>
-                          <input type="number" id="ancho" step="0.1">
-
+                          <input type="number" id="ancho" step="0.1" class="mt-1 mb-3 block w-full p-2 border rounded">
                           <label for="alto">Alto (mm):</label>
-                          <input type="number" id="alto" step="0.1">
+                          <input type="number" id="alto" step="0.1" class="mt-1 mb-3 block w-full p-2 border rounded">
                         </div>
-
-                        <button onclick="calcularTiempoAsistente()" class="action-button mt-4">Calcular tiempo</button>
-
-                        <div id="resultadoAsistente" class="assistant-resultado" style="display:none;">
-                             <!-- El resultado se mostrará aquí -->
-                        </div>
+                        <button onclick="calcularTiempoAsistente()" class="action-button bg-blue-600 hover:bg-blue-700 text-white mt-4">Calcular Tiempo</button>
+                        <div id="resultadoAsistente" class="assistant-resultado mt-5" style="display:none;"></div>
                     </div>
                 </section>
-
             </div><!-- Fin #section-content-container -->
             <div id="pdf-render-area"></div>
              <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">Generando PDF...</div>
@@ -276,19 +296,8 @@
         const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1';
         let materialsData = {}; let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; let clientsData = {}; let jobsData = []; let currentUser = null; let currentUserRole = null; let currentJobQuoteBaseCost = 0; let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; let activeSectionId = 'home';
 
-        // --- Navegación y UI ---
-        function navigateTo(targetId) {
-             console.log("Navegando a:", targetId); activeSectionId = targetId;
-             document.querySelectorAll('#section-content-container .main-section').forEach(s => s.classList.remove('active-section'));
-             document.querySelectorAll('#sidebar li').forEach(item => item.classList.remove('active'));
-             const sectionToShow = document.getElementById(targetId);
-             if (sectionToShow) {
-                 sectionToShow.classList.add('active-section');
-                 const activeLink = document.querySelector(`#sidebar a[data-target='${targetId}']`)?.closest('li');
-                 if(activeLink) activeLink.classList.add('active');
-                 loadDataForSection(targetId);
-             } else { console.error(`Sección '${targetId}' no encontrada.`); navigateTo('home'); }
-         }
+        // --- Funciones Navegación y UI ---
+        function navigateTo(targetId) { console.log("Navegando a:", targetId); activeSectionId = targetId; document.querySelectorAll('#section-content-container .main-section').forEach(s => s.classList.remove('active-section')); document.querySelectorAll('#sidebar li').forEach(item => item.classList.remove('active')); const sectionToShow = document.getElementById(targetId); if (sectionToShow) { sectionToShow.classList.add('active-section'); const activeLink = document.querySelector(`#sidebar a[data-target='${targetId}']`)?.closest('li'); if(activeLink) activeLink.classList.add('active'); loadDataForSection(targetId); } else { console.error(`Sección '${targetId}' N/E.`); navigateTo('home'); } }
         function showLoginSection() { console.log("Mostrando login"); activeSectionId = 'login'; document.querySelectorAll('#section-content-container .main-section').forEach(s => s.classList.remove('active-section')); document.querySelectorAll('#sidebar li').forEach(item => item.classList.remove('active')); const lSec = document.getElementById('login'); if(lSec) lSec.classList.add('active-section'); const lForm = document.getElementById('login-form'); if(lForm) lForm.reset(); const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; }
         auth?.onAuthStateChanged(user => { if (!auth) { showLoginSection(); return; } console.log("Auth state:", user ? user.uid : 'null'); currentUser = user; const uSpan = document.getElementById('user-email'); document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only'); if (user) { currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator'; console.log("Role:", currentUserRole); document.body.classList.add('logged-in', `role-${currentUserRole}`); if (uSpan) uSpan.textContent = user.email; loadInitialDataForLoggedInUser().then(() => { console.log("Initial data loaded post-login."); navigateTo('jobs'); }).catch(error => { console.error("Error initial data load:", error); alert("Error crítico cargando datos."); navigateTo('home'); }); } else { console.log("Logged out."); currentUserRole = null; document.body.classList.add('public-only'); if (uSpan) uSpan.textContent = ''; materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; dataLoaded = { clients: false, jobs: false, materials: false, config: false }; navigateTo('home'); } });
         document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) return; const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
@@ -308,7 +317,7 @@
                  case 'admin-materials': if (currentUserRole === 'superadmin') { if (!dataLoaded.materials) loadMaterials(); else { populateMaterialsAdminTable(); if (!document.getElementById('material-id-admin').value) { resetMaterialFormAdmin(); } } } break;
                  case 'admin-config': if (currentUserRole === 'superadmin') { if (!dataLoaded.config) loadConfig(); else populateConfigFormAdmin(); } break;
                  case 'advanced-reports': if (currentUserRole === 'superadmin') { if (!dataLoaded.jobs) loadJobs(); document.getElementById('daily-report-output').innerHTML = 'Haga clic para generar reporte diario.'; document.getElementById('monthly-report-output').innerHTML = 'Haga clic para generar reporte mensual.'; const fb = document.getElementById('advanced-reports-feedback'); if(fb) fb.textContent=''; fb.className='mt-4 text-sm feedback'; } break;
-                 case 'assistant': /* No necesita cargar datos */ break; // No hacer nada especial para el asistente
+                 case 'assistant': break;
                  default: console.log(`No data loading for ${sectionId}`);
              }
          }
@@ -324,8 +333,7 @@
         const statusOrderValue = { 'Encargado': 1, 'Procesando': 2, 'Terminado': 3 };
         function sortByStatusAndDate(a, b) { const sd=(statusOrderValue[a.status]||99)-(statusOrderValue[b.status]||99); if(sd!==0)return sd; return (b.orderDate||"").localeCompare(a.orderDate||""); }
         function sortByStatusAndDelivery(a, b) { const sd=(statusOrderValue[a.status]||99)-(statusOrderValue[b.status]||99); if(sd!==0)return sd; return (a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31"); }
-        function filterClients() { populateClientsTable(); }
-        function filterJobs() { populateJobsTable(); }
+        function filterClients() { populateClientsTable(); } function filterJobs() { populateJobsTable(); }
 
         // --- Poblado de Tablas (con filtro y ordenamiento) ---
         function populateClientsTable() { const b=document.getElementById('clients-table')?.querySelector('tbody'); if (!b) return; const term=document.getElementById('client-search')?.value.toLowerCase()||''; const fClients=Object.values(clientsData).filter(c=>(c.name?.toLowerCase().includes(term)||c.email?.toLowerCase().includes(term)||c.phone?.includes(term))).sort((a,b)=>(a.name||"").localeCompare(b.name||"")); if(fClients.length===0){b.innerHTML=`<tr><td colspan="4" class="text-center py-4">No hay clientes${term?' que coincidan.':'.'}</td></tr>`;return;} let h=''; fClients.forEach(c=>{h+=`<tr data-client-id="${c.id}"><td>${c.name||'N/A'}</td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Editar</button><button onclick="deleteClient('${c.id}')" class="delete-button">Borrar</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">Nuevo Trabajo</button></td></tr>`;}); b.innerHTML=h; }
@@ -342,8 +350,8 @@
         function selectClientForNewJob(id) { const n=clientsData[id]?.name; if(!n)return; console.log(`Seleccionado cliente ${n} (${id})`); navigateTo('new-job-form'); setTimeout(()=>{const s=document.getElementById('job-client'); if(s){resetJobForm(id); s.value=id; document.getElementById('job-details')?.focus();} else console.error("job-client N/E.");}, 150); }
         document.getElementById('job-job-type')?.addEventListener('change',(e)=>{const t=e.target.value; const cf=document.getElementById('job-cut-time-field'); const ef=document.getElementById('job-engrave-time-field'); const ci=document.getElementById('job-cut-minutes'); const ei=document.getElementById('job-engrave-minutes'); if(!cf||!ef||!ci||!ei) return; cf.style.display=(t==='corte'||t==='ambos')?'grid':'none'; ef.style.display=(t==='grabado'||t==='ambos')?'grid':'none'; if(t==='grabado') ci.value=0; if(t==='corte') ei.value=0;});
 
-        // --- calculateJobQuote (Corregida redondeo y visibilidad) ---
-        function calculateJobQuote() {
+        // --- calculateJobQuote (Redondeo y Visibilidad) ---
+         function calculateJobQuote() {
              console.log("Calc cost..."); const f=document.getElementById('job-form-feedback'); const r=document.getElementById('job-quote-base-result'); const fcInput=document.getElementById('job-final-cost'); currentJobQuoteBaseCost=0;
              try {
                  showFeedback(f,'','info'); const mid=document.getElementById('job-material').value; const l=parseFloat(document.getElementById('job-length').value)||0; const w=parseFloat(document.getElementById('job-width').value)||0; let mc=0;
@@ -356,7 +364,17 @@
              } catch(err) { console.error("Calc cost err:", err); currentJobQuoteBaseCost=0; if(r)r.textContent='Error'; if(fcInput)fcInput.value='0.00'; showFeedback(f,`Error: ${err.message}`,'error'); }
          }
         document.getElementById('job-form')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(!db)return; const id=document.getElementById('job-id').value; const f=document.getElementById('job-form-feedback'); showFeedback(f,'','info'); const d={clientId:document.getElementById('job-client').value, details:document.getElementById('job-details').value.trim(), materialId:document.getElementById('job-material').value, length:parseFloat(document.getElementById('job-length').value)||null, width:parseFloat(document.getElementById('job-width').value)||null, jobType:document.getElementById('job-job-type').value, cutMinutes:parseFloat(document.getElementById('job-cut-minutes').value)||0, engraveMinutes:parseFloat(document.getElementById('job-engrave-minutes').value)||0, orderDate:document.getElementById('job-order-date').value, deliveryDate:document.getElementById('job-delivery-date').value, status:document.getElementById('job-status').value, baseCost:currentJobQuoteBaseCost, finalCost:parseFloat(document.getElementById('job-final-cost').value)||0, deposit:parseFloat(document.getElementById('job-deposit').value)||0, observations:document.getElementById('job-observations').value.trim()||null}; let errs=[]; if(!d.clientId)errs.push('Seleccione cliente.'); if(!d.details)errs.push('Ingrese detalles.'); if(!d.materialId)errs.push('Seleccione material.'); if(!d.length||d.length<=0)errs.push('Largo positivo.'); if(!d.width||d.width<=0)errs.push('Ancho positivo.'); if(!d.orderDate)errs.push('Falta F.Pedido.'); if(!d.deliveryDate)errs.push('Falta F.Entrega.'); if(d.orderDate&&d.deliveryDate&&d.deliveryDate<d.orderDate)errs.push('Entrega < Pedido.'); if(d.finalCost<0)errs.push('Costo final neg.'); if(d.deposit<0)errs.push('Seña neg.'); if(d.deposit>d.finalCost)errs.push('Seña > Total.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('jobs').doc(id).update(d); showFeedback(f,'Trabajo actualizado.','success');} else {const r=await db.collection('jobs').add(d); d.id=r.id; showFeedback(f,'Trabajo creado.','success');} dataLoaded.jobs=false; navigateTo('jobs'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
-        function editJob(id) { const j=jobsData.find(j=>j.id===id); if(!j){alert(`Trabajo ${id} N/E.`);return;} console.log("Editando:", j); document.getElementById('job-form-title').textContent='Editar Trabajo'; document.getElementById('job-id').value=j.id; document.getElementById('job-client').value=j.clientId||''; document.getElementById('job-details').value=j.details||''; document.getElementById('job-material').value=j.materialId||''; document.getElementById('job-length').value=j.length||''; document.getElementById('job-width').value=j.width||''; document.getElementById('job-job-type').value=j.jobType||'corte'; document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value=j.cutMinutes||0; document.getElementById('job-engrave-minutes').value=j.engraveMinutes||0; document.getElementById('job-order-date').value=j.orderDate||''; document.getElementById('job-delivery-date').value=j.deliveryDate||''; document.getElementById('job-status').value=j.status||'Encargado'; document.getElementById('job-final-cost').value=(j.finalCost||0).toFixed(2); document.getElementById('job-deposit').value=(j.deposit||0).toFixed(2); document.getElementById('job-observations').value=j.observations||''; currentJobQuoteBaseCost=j.baseCost||0; const r=document.getElementById('job-quote-base-result'); if(currentUserRole==='superadmin'&&r){r.textContent=`Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`;}else if(r){r.textContent='';} navigateTo('new-job-form'); setTimeout(()=>{document.getElementById('job-form').scrollIntoView({behavior:'smooth',block:'start'});},100); }
+        // --- editJob (Corregida visibilidad Costo Base) ---
+        function editJob(id) {
+             const j = jobsData.find(j => j.id === id); if (!j) { alert(`Trabajo ${id} N/E.`); return; } console.log("Editando:", j);
+             document.getElementById('job-form-title').textContent = 'Editar Trabajo'; document.getElementById('job-id').value = j.id;
+             document.getElementById('job-client').value = j.clientId || ''; document.getElementById('job-details').value = j.details || ''; document.getElementById('job-material').value = j.materialId || ''; document.getElementById('job-length').value = j.length || ''; document.getElementById('job-width').value = j.width || ''; document.getElementById('job-job-type').value = j.jobType || 'corte'; document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value = j.cutMinutes || 0; document.getElementById('job-engrave-minutes').value = j.engraveMinutes || 0; document.getElementById('job-order-date').value = j.orderDate || ''; document.getElementById('job-delivery-date').value = j.deliveryDate || ''; document.getElementById('job-status').value = j.status || 'Encargado'; document.getElementById('job-final-cost').value = (j.finalCost || 0).toFixed(2); document.getElementById('job-deposit').value = (j.deposit || 0).toFixed(2); document.getElementById('job-observations').value = j.observations || '';
+             currentJobQuoteBaseCost = j.baseCost || 0;
+             const r = document.getElementById('job-quote-base-result');
+             if (currentUserRole === 'superadmin' && r) { r.textContent = `Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent = ''; }
+             navigateTo('new-job-form');
+             setTimeout(() => { document.getElementById('job-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+         }
         function resetJobForm(keepClientId=null) { console.log("Reseteando form trabajo..."); document.getElementById('job-form-title').textContent='Nuevo Trabajo'; const f=document.getElementById('job-form'); if(f)f.reset(); document.getElementById('job-id').value=''; currentJobQuoteBaseCost=0; const r=document.getElementById('job-quote-base-result'); if(r)r.textContent='Costo Base Est: $0.00'; document.getElementById('job-final-cost').value='0.00'; document.getElementById('job-order-date').value=new Date().toISOString().split('T')[0]; document.getElementById('job-job-type').dispatchEvent(new Event('change')); const fb=document.getElementById('job-form-feedback'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; if(keepClientId){const s=document.getElementById('job-client'); if(s)s.value=keepClientId;} }
         async function deleteJob(id) { if(!db)return; const j=jobsData.find(j=>j.id===id); const n=j?(clientsData[j.clientId]?.name||'Desconocido'):'Desconocido'; const d=j?(j.details||`ID ${id}`):`ID ${id}`; if(!confirm(`Borrar trabajo "${d}" para "${n}"?`))return; try { console.log(`Borrando job ${id}...`); await db.collection('jobs').doc(id).delete(); jobsData=jobsData.filter(j=>j.id!==id); console.log(`Job ${id} borrado.`); alert(`Trabajo "${d}" borrado.`); populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); if(document.getElementById('job-id').value===id) resetJobForm(); } catch(err){alert(`Error: ${err.message}`);} }
         document.getElementById('material-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const id=document.getElementById('material-id-admin').value; const f=document.getElementById('material-form-feedback-admin'); showFeedback(f,'','info'); const d={name:document.getElementById('material-name-admin').value.trim(), thickness:parseFloat(document.getElementById('material-thickness-admin').value)||null, costPerSheet:parseFloat(document.getElementById('material-cost-admin').value)||0, width:parseFloat(document.getElementById('material-width-admin').value)||null, height:parseFloat(document.getElementById('material-height-admin').value)||null, available:document.getElementById('material-availability-admin').checked}; let errs=[]; if(!d.name)errs.push('Nombre.'); if(!d.thickness||d.thickness<=0)errs.push('Grosor.'); if(d.costPerSheet<0)errs.push('Costo.'); if(!d.width||d.width<=0)errs.push('Ancho.'); if(!d.height||d.height<=0)errs.push('Alto.'); if(errs.length>0){showFeedback(f,errs.join(' ')+' obligatorio/positivo.','error'); return;} try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('materials').doc(id).update(d); materialsData[id]={...materialsData[id],...d}; showFeedback(f,'Actualizado.','success');} else {const r=await db.collection('materials').add(d); materialsData[r.id]={...d,id:r.id}; showFeedback(f,'Añadido.','success');} resetMaterialFormAdmin(); populateMaterialsAdminTable(); populateMaterialDropdown('job-material'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
@@ -367,63 +385,29 @@
         function removeMonthlyCostInput(button) { const p=button.closest('.cost-entry'); if(p)p.remove(); }
         document.getElementById('config-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const f=document.getElementById('config-form-feedback-admin'); showFeedback(f,'','info'); document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(i=>i.classList.remove('border-red-500')); const min=parseInt(document.getElementById('config-minutes-admin').value,10); const ces=document.querySelectorAll('#monthly-costs-container .cost-entry'); const mc={}; let iv=true; let errs=[]; if(isNaN(min)||min<=0){errs.push('Minutos positivo.'); document.getElementById('config-minutes-admin').classList.add('border-red-500'); iv=false;} ces.forEach((div,idx)=>{const ki=div.querySelector('[data-cost-key]'); const vi=div.querySelector('[data-cost-value]'); const k=ki.value.trim(); const vs=vi.value.trim(); const v=parseFloat(vs); if(k||vs){let eiv=true; if(!k){errs.push(`Fila ${idx+1}: Descrip.`); ki.classList.add('border-red-500'); eiv=false;} if(vs===''||isNaN(v)||v<0){errs.push(`Fila ${idx+1} ('${k||'?'}'): Valor >= 0.`); vi.classList.add('border-red-500'); eiv=false;} if(eiv){if(mc.hasOwnProperty(k)){errs.push(`Fila ${idx+1}: Descrip. duplicada "${k}".`); ki.classList.add('border-red-500'); eiv=false;} else mc[k]=v;} if(!eiv)iv=false;}}); if(!iv){showFeedback(f,errs.join(' '),'error'); return;} const cu={minutes_per_month:min,monthly_costs:mc}; try { showFeedback(f,'Guardando...','info'); await db.collection('config').doc('main').set(cu,{merge:true}); const tm=Object.values(mc).reduce((s,v)=>s+v,0); configData={...configData,minutes_per_month:min,monthly_costs:mc,cost_per_minute:min>0?tm/min:0}; console.log("Config guardada. Costo/min:", configData.cost_per_minute); populateConfigFormAdmin(); showFeedback(f,'Config guardada.','success'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
 
-        // --- Funciones PDF y Reportes ---
+        // --- Funciones de Generación PDF ---
         function showPdfLoading(show = true) { const o=document.getElementById('pdf-loading-overlay'); if(o) o.style.display=show?'flex':'none'; }
         async function printTicket(jobId) {
              console.log(`Generating PDF ticket: ${jobId}`); if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;} const { jsPDF } = window.jspdf; const job=jobsData.find(j=>j.id===jobId); if (!job) { alert(`Error: Job ${jobId} N/E.`); return; } const client=clientsData[job.clientId]; const material=materialsData[job.materialId]; const renderArea=document.getElementById('pdf-render-area'); if (!renderArea) { alert("Error: Render area N/E."); return; } showPdfLoading(true); const finalCost=job.finalCost||0; const deposit=job.deposit||0; const outstanding=Math.max(0,finalCost-deposit); const clientNameForFile=client?.name?.replace(/[^a-z0-9_]/gi, '_').replace(/ /g, '_').toLowerCase()||'cliente'; const fileName=`ticket_${clientNameForFile}_${jobId.substring(0,6)}.pdf`;
              let ticketHtml = `<h2>** TICKET TRABAJO **</h2><p><span class="detail-label">ID Trabajo:</span><span class="detail-value">${job.id.substring(0, 6)}</span></p><p><span class="detail-label">Pedido:</span><span class="detail-value">${formatDate(job.orderDate)}</span></p><p><span class="detail-label">Entrega:</span><span class="detail-value">${formatDate(job.deliveryDate)}</span></p><hr><p><strong>CLIENTE:</strong></p><p><span class="detail-label">Nombre:</span><span class="detail-value">${client?.name||'N/A'}</span></p>${client?.phone?`<p><span class="detail-label">Tel:</span><span class="detail-value">${client.phone}</span></p>`:''}<hr><p><strong>DETALLES TRABAJO:</strong></p><p>${job.details||'-'}</p><p><span class="detail-label">Material:</span> <span class="detail-value">${material?.name||'?'} ${material?.thickness||'?'}mm</span></p>${(job.length&&job.width)?`<p><span class="detail-label">Medidas:</span> <span class="detail-value">${job.length}x${job.width}mm</span></p>`:''}<p><span class="detail-label">Tipo:</span> <span class="detail-value">${job.jobType||'N/A'}</span></p>${(job.cutMinutes>0)?`<p><span class="detail-label">T. Corte:</span> <span class="detail-value">${job.cutMinutes} min</span></p>`:''}${(job.engraveMinutes>0)?`<p><span class="detail-label">T. Grabado:</span> <span class="detail-value">${job.engraveMinutes} min</span></p>`:''}${job.observations?`<hr><p><strong>Obs:</strong> ${job.observations}</p>`:''}<hr><div class="totals"><p class="item-line"><span>Total:</span> <span>$${finalCost.toFixed(2)}</span></p><p class="item-line"><span>Seña:</span> <span>$${deposit.toFixed(2)}</span></p><p class="item-line"><strong><span>PENDIENTE:</span> <span>$${outstanding.toFixed(2)}</span></strong></p></div><hr><p style="text-align: center; font-size: 8pt; margin-top: 5px;">¡Gracias!</p>`;
              renderArea.innerHTML=ticketHtml; const origStyle={position:renderArea.style.position,left:renderArea.style.left,top:renderArea.style.top,visibility:renderArea.style.visibility,zIndex:renderArea.style.zIndex}; renderArea.style.position='fixed'; renderArea.style.left='0px'; renderArea.style.top='0px'; renderArea.style.visibility='visible'; renderArea.style.zIndex='-1'; await new Promise(resolve => requestAnimationFrame(resolve));
              try { if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D."); const canvas=await html2canvas(renderArea,{scale:2,useCORS:true,logging:false}); const imgData=canvas.toDataURL('image/png'); const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[80,canvas.height*(80/canvas.width)+10]}); const pdfWidth=pdf.internal.pageSize.getWidth()-6; const pdfHeight=(canvas.height*pdfWidth)/canvas.width; pdf.addImage(imgData,'PNG',3,3,pdfWidth,pdfHeight); pdf.save(fileName); } catch(err){console.error("Error PDF ticket:", err); alert("Error generando PDF ticket: "+err.message);} finally { renderArea.style.position=origStyle.position; renderArea.style.left=origStyle.left; renderArea.style.top=origStyle.top; renderArea.style.visibility=origStyle.visibility; renderArea.style.zIndex=origStyle.zIndex; renderArea.innerHTML=''; showPdfLoading(false); console.log("PDF ticket finished."); }
-        }
+         }
         async function printCurrentSection() {
              console.log(`Generating PDF section: ${activeSectionId}`); if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;} const { jsPDF } = window.jspdf; const sectionToPrint=document.getElementById(activeSectionId); if(!sectionToPrint||!sectionToPrint.classList.contains('main-section')){alert("Sección N/V."); return;} if(activeSectionId==='new-job-form'||activeSectionId==='admin-materials'||activeSectionId==='admin-config'){if(!confirm("Generar PDF de formulario? (Puede no ser ideal) ¿Continuar?")) return;} else if(activeSectionId==='login'||activeSectionId==='home'){alert("Esta sección no se exporta."); return;} const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint; if (!elementToPrint) { alert("No content found."); return; } let hiddenElements = []; if (elementToPrint.tagName === 'TABLE') { elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}}); } else { elementToPrint.querySelectorAll('button, .no-print').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}}); } console.log("Element:", elementToPrint.id||elementToPrint.tagName); showPdfLoading(true); await new Promise(resolve => setTimeout(resolve, 100));
              try { if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D."); const canvas=await html2canvas(elementToPrint,{scale:1.2,useCORS:true,logging:false}); const imgData=canvas.toDataURL('image/png'); const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}); const imgProps=pdf.getImageProperties(imgData); const pdfWidth=pdf.internal.pageSize.getWidth()-20; const pdfHeight=(imgProps.height*pdfWidth)/imgProps.width; const pageHeight=pdf.internal.pageSize.getHeight()-20; let heightLeft=pdfHeight; let position=10; pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight; while(heightLeft>0){ position-=pageHeight; pdf.addPage(); pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight; } pdf.save(`seccion_${activeSectionId}.pdf`); } catch(err){console.error("Error PDF section:", err); alert("Error generando PDF sección: "+err.message);} finally{ hiddenElements.forEach(item=>{item.element.style.display=item.originalDisplay||'';}); showPdfLoading(false); console.log("PDF section finished."); }
         }
+
+        // --- Funciones de Reporte Bajo Demanda (Corregida mensual)---
         function generateDailyReport() { const o=document.getElementById('daily-report-output'); const f=document.getElementById('advanced-reports-feedback'); showFeedback(f,'','info'); if(!dataLoaded.jobs){showFeedback(f,'Datos no cargados. Recargue Trabajos.','error'); o.innerHTML='Error: Datos no disponibles.'; return;} const today=new Date().toISOString().split('T')[0]; const todaysJobs=jobsData.filter(j=>j.orderDate===today); let totalAmount=todaysJobs.reduce((s,j)=>s+(j.finalCost||0),0); const count=todaysJobs.length; if(count===0)o.innerHTML=`<p>No se ingresaron trabajos hoy (${formatDate(today)}).</p>`; else o.innerHTML=`<p><strong>Reporte del día ${formatDate(today)}:</strong></p><p> - Cantidad trabajos: <strong>${count}</strong></p><p> - Monto total presup.: <strong>$${totalAmount.toFixed(2)}</strong></p>`; showFeedback(f,'Reporte diario generado.','success'); }
-        // --- generateMonthlyReport (Corregida para incluir cantidad) ---
         function generateMonthlyReport() {
             const o=document.getElementById('monthly-report-output'); const f=document.getElementById('advanced-reports-feedback'); showFeedback(f,'','info'); if(!dataLoaded.jobs){showFeedback(f,'Datos no cargados. Recargue Trabajos.','error'); o.innerHTML='Error: Datos no disponibles.'; return;} const rd={}; const mn=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]; const t=new Date();
             for(let i=0; i<12; i++){ const d=new Date(t.getFullYear(),t.getMonth()-i,1); const y=d.getFullYear(); const m=d.getMonth(); const mk=`${y}-${(m+1).toString().padStart(2,'0')}`; rd[mk]={total:0,debt:0,count:0,monthLabel:`${mn[m]} ${y}`}; jobsData.forEach(j=>{if(j.orderDate&&j.orderDate.startsWith(mk)){const fc=j.finalCost||0; const dp=j.deposit||0; const ou=Math.max(0,fc-dp); rd[mk].count++; rd[mk].total+=fc; rd[mk].debt+=ou;}}); }
             const sk=Object.keys(rd).sort().reverse(); let th=`<table id="monthly-report-table" class="w-full text-sm border-collapse border border-gray-300"><thead><tr><th>Mes</th><th>Cant. Trab.</th><th>Total Presup. ($)</th><th>Deuda Pendiente ($)</th></tr></thead><tbody>`; if(sk.length===0)th+=`<tr><td colspan="4" class="text-center py-3">No hay datos.</td></tr>`; else sk.forEach(k=>{const d=rd[k]; th+=`<tr><td>${d.monthLabel}</td><td>${d.count}</td><td>${d.total.toFixed(2)}</td><td class="${d.debt>0.005?'text-red-600 font-semibold':''}">${d.debt.toFixed(2)}</td></tr>`;}); th+=`</tbody></table>`; o.innerHTML=th; showFeedback(f,'Reporte mensual generado.','success');
         }
-
-        // --- Funciones del Asistente ---
-        function calcularTiempoAsistente() { // Renombrada para evitar conflicto potencial
-            const tipo = document.getElementById("tipoTrabajo").value;
-            const anchoInput = document.getElementById("ancho");
-            const altoInput = document.getElementById("alto");
-            const ancho = parseFloat(anchoInput.value);
-            const alto = parseFloat(altoInput.value);
-            const resultadoDiv = document.getElementById("resultadoAsistente"); // Usar ID específico
-
-            if (isNaN(ancho) || isNaN(alto) || ancho <= 0 || alto <= 0) {
-                resultadoDiv.innerHTML = `<strong class="text-red-600">Error: Ingrese ancho y alto válidos.</strong>`;
-                resultadoDiv.style.display = "block";
-                return;
-            }
-
-            const area = (ancho / 10) * (alto / 10); // cm²
-            const perimetro = 2 * (ancho + alto) / 10; // cm
-            let tiempo = 0;
-            let detalles = [];
-
-            switch (tipo) {
-                case "corte3": tiempo = perimetro * 0.34; detalles.push(`Corte MDF 3mm: ${tiempo.toFixed(1)} seg`); break;
-                case "corte5": tiempo = perimetro * 0.51; detalles.push(`Corte MDF 5.5mm: ${tiempo.toFixed(1)} seg`); break;
-                case "grabado": tiempo = area * 0.38; detalles.push(`Grabado: ${tiempo.toFixed(1)} seg`); break;
-                case "marcado": tiempo = perimetro * 0.05; detalles.push(`Marcado: ${tiempo.toFixed(1)} seg`); break;
-                case "combinado3": let c3 = perimetro * 0.34; let g3 = area * 0.38; tiempo = c3 + g3; detalles.push(`Corte 3mm: ${c3.toFixed(1)}s`); detalles.push(`Grabado: ${g3.toFixed(1)}s`); break;
-                case "combinado5": let c5 = perimetro * 0.51; let g5 = area * 0.38; tiempo = c5 + g5; detalles.push(`Corte 5.5mm: ${c5.toFixed(1)}s`); detalles.push(`Grabado: ${g5.toFixed(1)}s`); break;
-            }
-            const tiempoMinutos = tiempo / 60;
-
-            resultadoDiv.innerHTML = `<strong>Tiempo estimado:</strong><br>${detalles.join("<br>")}<br><br><strong>Total: ${tiempo.toFixed(1)} seg (${tiempoMinutos.toFixed(1)} min)</strong>`;
-            resultadoDiv.style.display = "block";
-        }
-        function actualizarVisibilidad() { // Para el asistente
-            const resDiv = document.getElementById("resultadoAsistente");
-            if (resDiv) resDiv.style.display = "none";
-        }
+        // --- Funciones Asistente ---
+        function calcularTiempoAsistente() { const tipo=document.getElementById("tipoTrabajo").value; const an=parseFloat(document.getElementById("ancho").value); const al=parseFloat(document.getElementById("alto").value); const r=document.getElementById("resultadoAsistente"); if(isNaN(an)||isNaN(al)||an<=0||al<=0){r.innerHTML=`<strong class="text-red-600">Error: Ingrese ancho y alto válidos.</strong>`; r.style.display="block"; return;} const area=(an/10)*(al/10); const perimetro=2*(an+al)/10; let t=0; let d=[]; switch(tipo){case "corte3": t=perimetro*0.34; d.push(`Corte 3mm: ${t.toFixed(1)}s`); break; case "corte5": t=perimetro*0.51; d.push(`Corte 5.5mm: ${t.toFixed(1)}s`); break; case "grabado": t=area*0.38; d.push(`Grabado: ${t.toFixed(1)}s`); break; case "marcado": t=perimetro*0.05; d.push(`Marcado: ${t.toFixed(1)}s`); break; case "combinado3": let c3=perimetro*0.34; let g3=area*0.38; t=c3+g3; d.push(`Corte 3mm: ${c3.toFixed(1)}s`); d.push(`Grabado: ${g3.toFixed(1)}s`); break; case "combinado5": let c5=perimetro*0.51; let g5=area*0.38; t=c5+g5; d.push(`Corte 5.5mm: ${c5.toFixed(1)}s`); d.push(`Grabado: ${g5.toFixed(1)}s`); break;} const tMin=t/60; r.innerHTML=`<strong>Tiempo estimado:</strong><br>${d.join("<br>")}<br><br><strong>Total: ${t.toFixed(1)} seg (${tMin.toFixed(1)} min)</strong>`; r.style.display="block"; }
+        function actualizarVisibilidadAsistente() { const r=document.getElementById("resultadoAsistente"); if(r)r.style.display="none"; }
 
         // --- Funciones Utilitarias ---
         function showFeedback(el, msg, type='info') { if(!el)return; el.textContent=msg; el.className='mt-2 text-sm feedback'; if(msg){switch(type){case 'success': el.classList.add('feedback-success'); break; case 'error': el.classList.add('feedback-error'); break; default: el.classList.add('feedback-info'); break;}} if((type==='success'||type==='info')&&msg) setTimeout(()=>{if(el.textContent===msg){el.textContent=''; el.className='mt-2 text-sm feedback';}}, 4000); }
@@ -437,8 +421,7 @@
              else { console.error("Auth N/A. Showing login."); showLoginSection(); alert("Error: Auth service failed."); }
              document.getElementById('client-search')?.addEventListener('input', filterClients);
              document.getElementById('job-search')?.addEventListener('input', filterJobs);
-             // Activar la vista inicial (home o login via onAuthStateChanged)
-             if (!currentUser) navigateTo('home'); // Asegurar que home se muestre si no hay usuario inicial
+             if (!currentUser) navigateTo('home');
         });
 
     </script>
