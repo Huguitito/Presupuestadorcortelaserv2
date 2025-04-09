@@ -4,410 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Presupuestos Corte Laser</title>
-    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <!-- jsPDF and html2canvas Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" referrerpolicy="no-referrer"></script>
     <style>
-        /* ... Estilos generales (SIN CAMBIOS) ... */
-        body { font-family: 'Inter', sans-serif; }
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        .tab-content { display: none; } .active-tab-content { display: block; }
-        .tab-button { padding: 8px 16px; margin-bottom: -1px; cursor: pointer; border: 1px solid transparent; border-bottom: 2px solid transparent; transition: border-color 0.3s, color 0.3s; color: #6b7280; font-weight: 500; white-space: nowrap; } .tab-button.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #3b82f6; color: #2563eb; } .tab-button:hover:not(.active-tab) { border-bottom-color: #9ca3af; color: #4b5563; } .tab-button.superadmin-tab { color: #8b5cf6; } .tab-button.superadmin-tab.active-tab { border-color: #d1d5db #d1d5db #fff; border-bottom-color: #7c3aed; color: #6d28d9; } .tab-button.superadmin-tab:hover:not(.active-tab) { border-bottom-color: #a78bfa; color: #7c3aed; }
-        .admin-only, .superadmin-only { display: none; } .public-only { display: block; } body.logged-in .admin-only { display: block; } body.logged-in nav#tab-buttons { display: flex; } body.logged-in .public-only { display: none; } body.role-superadmin .superadmin-only { display: block; } body.logged-in #user-email { display: inline; } body.logged-in .generic-print-button { display: inline-block; } body.logged-in #admin-logout-button { display: inline-block; } body.role-superadmin button.superadmin-tab { display: inline-block; } body.role-superadmin #job-quote-base-result-wrapper { display: block; }
+        /* ... (Estilos generales y específicos SIN CAMBIOS) ... */
+        body { font-family: 'Inter', sans-serif; } @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        .main-section { display: none; } .main-section.active-section { display: block; }
+        .app-layout { display: flex; min-height: 100vh; } #sidebar { width: 240px; flex-shrink: 0; } #main-content { flex-grow: 1; }
+        #sidebar { background-color: #1f2937; color: #d1d5db; } #sidebar a, #sidebar button { display: flex; align-items: center; padding: 10px 16px; color: #d1d5db; text-decoration: none; transition: background-color 0.2s, color 0.2s; border-left: 3px solid transparent; } #sidebar a:hover, #sidebar button:hover { background-color: #374151; color: #fff; } #sidebar li.active > a, #sidebar li.active > button { background-color: #1d4ed8; color: #fff; font-weight: 600; border-left-color: #60a5fa; } #sidebar .sidebar-title { padding: 16px; font-size: 1.1rem; font-weight: 600; color: #9ca3af; border-bottom: 1px solid #374151; } #sidebar .nav-icon { margin-right: 10px; width: 20px; text-align: center; } #sidebar .user-info { padding: 16px; border-top: 1px solid #374151; margin-top: auto; } #sidebar .user-info span { display: block; font-size: 0.8rem; color: #9ca3af; word-break: break-all; } #sidebar .user-info button { width: 100%; justify-content: center; margin-top: 8px; background-color: #dc2626; color: white; border-radius: 4px; border-left: none; } #sidebar .user-info button:hover { background-color: #b91c1c; }
+        #sidebar .admin-only, #sidebar .superadmin-only { display: none; } body.logged-in #sidebar .admin-only { display: block; } body.role-superadmin #sidebar .superadmin-only { display: block; } body:not(.logged-in) #sidebar { display: none; } body:not(.logged-in) #main-content { width: 100%; }
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; } .admin-table th, .admin-table td { border: 1px solid #ddd; padding: 6px; text-align: left; vertical-align: middle;} .admin-table th { background-color: #f2f2f2; font-weight: 600; } .admin-table button, .action-button { padding: 4px 8px; font-size: 0.8rem; margin-right: 4px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; border: none; } .edit-button { background-color: #facc15; color: #422006; } .edit-button:hover { background-color: #eab308; } .delete-button { background-color: #f87171; color: #450a0a; } .delete-button:hover { background-color: #ef4444; } .print-button { background-color: #60a5fa; color: #1e3a8a; } .print-button:hover { background-color: #3b82f6; } .generic-print-button { background-color: #a78bfa; color: #f5f3ff; } .generic-print-button:hover { background-color: #8b5cf6; }
         .status-encargado { background-color: #fbbf24; color: #78350f; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-procesando { background-color: #f87171; color: #7f1d1d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; } .status-terminado { background-color: #4ade80; color: #14532d; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 0.8rem; }
         .date-overdue { color: #dc2626; font-weight: bold; }
         .feedback { padding: 8px; margin-top: 8px; border-radius: 4px; font-size: 0.9rem; min-height: 2em; } .feedback-success { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; } .feedback-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } .feedback-info { background-color: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
-        #pdf-render-area {
-            position: absolute; left: -9999px; visibility: hidden; z-index: -1; width: 80mm; background-color: white;
-            padding: 3mm; font-family: 'Courier New', Courier, monospace !important; font-size: 9pt !important;
-            line-height: 1.3 !important; color: #000 !important; border: 1px solid #ccc;
-        }
-         #pdf-render-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; }
-         #pdf-render-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word !important; }
-         #pdf-render-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; }
-         #pdf-render-area strong { font-weight: bold !important; }
-         #pdf-render-area .item-line { display: flex !important; justify-content: space-between !important; }
-         #pdf-render-area .item-line span:last-child { text-align: right !important; }
-         #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; }
-         #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;}
-         #pdf-render-area .detail-value { }
-         .generating-pdf-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5);
-            color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000;
-         }
-         #monthly-report-table th, #monthly-report-table td { padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right; }
-         #monthly-report-table th { background-color: #f1f5f9; font-weight: 600; text-align: center; }
-         #monthly-report-table td:first-child { text-align: left; }
-         /* Estilos para <details> y <summary> */
-         details > summary { list-style: none; cursor: pointer; }
-         details > summary::-webkit-details-marker { display: none; } /* Chrome/Safari */
-         details > summary::marker { display: none; } /* Firefox */
-         details > summary { padding: 0.5rem; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.375rem; font-weight: 600; }
-         details[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none; }
-         details > div { border: 1px solid #e5e7eb; border-top: none; padding: 1rem; border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem; }
+        #pdf-render-area { position: absolute; left: -9999px; visibility: hidden; z-index: -1; width: 80mm; background-color: white; padding: 3mm; font-family: 'Courier New', Courier, monospace !important; font-size: 9pt !important; line-height: 1.3 !important; color: #000 !important; border: 1px solid #ccc; } #pdf-render-area h2 { font-size: 11pt !important; margin-bottom: 6px !important; text-align: center !important; font-weight: bold !important; } #pdf-render-area p { margin: 2px 0 !important; font-size: 9pt !important; word-wrap: break-word !important; } #pdf-render-area hr { border: none !important; border-top: 1px dashed #555 !important; margin: 4px 0 !important; } #pdf-render-area strong { font-weight: bold !important; } #pdf-render-area .item-line { display: flex !important; justify-content: space-between !important; } #pdf-render-area .item-line span:last-child { text-align: right !important; } #pdf-render-area .totals { margin-top: 8px !important; border-top: 1px solid #555 !important; padding-top: 4px !important; } #pdf-render-area .detail-label { font-weight: bold !important; display: inline-block !important; min-width: 75px !important;} #pdf-render-area .detail-value { }
+        .generating-pdf-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); color: white; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; z-index: 10000; }
+        #monthly-report-table th, #monthly-report-table td { padding: 4px 8px; border: 1px solid #e2e8f0; text-align: right; } #monthly-report-table th { background-color: #f1f5f9; font-weight: 600; text-align: center; } #monthly-report-table td:first-child { text-align: left; } #monthly-report-table td:nth-child(2) { text-align: center; }
+        /* Estilos Buscador */
+        .search-container { margin-bottom: 1rem; }
+        .search-input { padding: 8px 12px 8px 32px; /* Espacio para icono */ border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 400px; /* Limitar ancho */ background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23aaa"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>'); background-repeat: no-repeat; background-position: 8px center; background-size: 16px 16px; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <div class="container mx-auto p-4">
-
-        <header class="bg-white shadow-md rounded-lg p-4 mb-6 no-print">
-             <div class="flex flex-col md:flex-row justify-between items-center">
-                 <div>
-                    <h1 class="text-3xl font-bold text-blue-600 mb-2">Presupuestos Corte Laser</h1>
-                    <div class="text-sm text-gray-600">
-                        <p>Dirección: Castelli 143, Trenque Lauquen | Teléfono: 2213141765 | Email: cortelasertql@gmail.com | WEB: www.cortelasertql.com.ar</p>
-                    </div>
-                 </div>
-                 <div class="mt-4 md:mt-0 flex items-center space-x-3">
-                     <span id="user-email" class="admin-only text-sm text-gray-500 mr-3"></span>
-                     <button onclick="printCurrentSection()" title="Generar PDF de la vista actual" class="admin-only generic-print-button action-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-                          <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm0 3a1 1 0 011 1v1a1 1 0 11-2 0V8a1 1 0 011-1zm0 5a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-                        </svg>
-                        PDF
-                     </button>
-                     <button id="admin-login-button" onclick="showLoginSection()" class="public-only bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold py-1 px-3 rounded transition duration-300">
-                         Iniciar Sesión
-                     </button>
-                     <button id="admin-logout-button" onclick="logoutUser()" class="admin-only bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-1 px-3 rounded transition duration-300">
-                         Cerrar Sesión
-                     </button>
-                 </div>
+    <div class="app-layout">
+        <aside id="sidebar" class="flex flex-col h-screen sticky top-0 no-print">
+            <div class="sidebar-title">Menú</div>
+            <nav class="flex-grow overflow-y-auto">
+                <ul class="space-y-1">
+                    <li class="admin-only"><a href="#" onclick="navigateTo('jobs')" data-target="jobs"><span class="nav-icon">💼</span>Trabajos</a></li>
+                    <li class="admin-only"><a href="#" onclick="navigateTo('new-job-form'); resetJobForm();" data-target="new-job-form"><span class="nav-icon">➕</span>Nuevo Trabajo</a></li>
+                    <li class="admin-only"><a href="#" onclick="navigateTo('clients')" data-target="clients"><span class="nav-icon">👥</span>Clientes</a></li>
+                    <li class="admin-only"><a href="#" onclick="navigateTo('deadlines')" data-target="deadlines"><span class="nav-icon">🗓️</span>Plazos</a></li>
+                    <li class="admin-only"><a href="#" onclick="navigateTo('status')" data-target="status"><span class="nav-icon">📊</span>Estados</a></li>
+                    <li class="superadmin-only"><a href="#" onclick="navigateTo('reports')" data-target="reports"><span class="nav-icon">📈</span>Informes Grales.</a></li>
+                    <li class="superadmin-only"><a href="#" onclick="navigateTo('advanced-reports')" data-target="advanced-reports"><span class="nav-icon">📄</span>Reportes Det.</a></li>
+                    <li class="superadmin-only"><a href="#" onclick="navigateTo('admin-materials')" data-target="admin-materials"><span class="nav-icon">🧱</span>Materiales</a></li>
+                    <li class="superadmin-only"><a href="#" onclick="navigateTo('admin-config')" data-target="admin-config"><span class="nav-icon">⚙️</span>Configuración</a></li>
+                </ul>
+            </nav>
+            <div class="user-info admin-only">
+                <span id="user-email" class="text-center"></span>
+                <button id="admin-logout-button" onclick="logoutUser()">
+                    <span class="nav-icon">🚪</span>Cerrar Sesión
+                </button>
             </div>
-        </header>
+        </aside>
 
-        <nav id="tab-buttons" class="admin-only flex flex-wrap border-b border-gray-300 mb-6 no-print" style="display: none;">
-             <button onclick="setActiveTab(this)" data-target="jobs" class="tab-button">Trabajos</button>
-             <button onclick="setActiveTab(this)" data-target="new-job-form" class="tab-button">Nuevo Trabajo</button>
-             <button onclick="setActiveTab(this)" data-target="clients" class="tab-button">Clientes</button>
-             <button onclick="setActiveTab(this)" data-target="deadlines" class="tab-button">Plazos</button>
-             <button onclick="setActiveTab(this)" data-target="status" class="tab-button">Estados</button>
-             <button onclick="setActiveTab(this)" data-target="reports" class="tab-button superadmin-only">Informes</button>
-             <button onclick="setActiveTab(this)" data-target="advanced-reports" class="tab-button superadmin-only">Reportes Det.</button>
-             <button onclick="setActiveTab(this)" data-target="admin-materials" class="tab-button superadmin-only superadmin-tab">Materiales</button>
-             <button onclick="setActiveTab(this)" data-target="admin-config" class="tab-button superadmin-only superadmin-tab">Configuración</button>
-        </nav>
+        <div id="main-content" class="p-4 md:p-8 overflow-y-auto">
+            <div class="public-only text-right mb-4">
+                 <button id="admin-login-button-main" onclick="showLoginSection()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-300">
+                     Iniciar Sesión
+                 </button>
+            </div>
+            <header class="bg-white shadow-md rounded-lg p-4 mb-6 no-print">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                     <div>
+                        <h1 class="text-3xl font-bold text-blue-600 mb-2">Presupuestos Corte Laser</h1>
+                        <div class="text-sm text-gray-600">
+                            <p>Dirección: Castelli 143, Trenque Lauquen | Teléfono: 2213141765</p>
+                            <p>Email: cortelasertql@gmail.com | WEB: www.cortelasertql.com.ar</p>
+                        </div>
+                     </div>
+                     <div class="mt-4 md:mt-0">
+                         <button onclick="printCurrentSection()" title="Generar PDF de la vista actual" class="admin-only generic-print-button action-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm0 3a1 1 0 011 1v1a1 1 0 11-2 0V8a1 1 0 011-1zm0 5a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                            </svg>
+                            PDF Sección
+                         </button>
+                    </div>
+                </div>
+            </header>
 
-        <main id="tab-content-container">
-            <section id="home" class="tab-content bg-white p-6 rounded-lg shadow-lg">
-               <div class="p-6 rounded-lg text-center">
-                    <h2 class="text-4xl font-bold mb-4 text-blue-600">Bienvenido</h2>
-                    <p class="text-lg mb-6 text-gray-700">Gestiona tus clientes, trabajos y presupuestos de corte láser.</p>
-                    <button onclick="showLoginSection()" class="public-only bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl shadow-md transition duration-300">
-                        Iniciar Sesión
-                    </button>
-                </div>
-            </section>
-            <section id="login" class="tab-content bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Iniciar Sesión</h2>
-                 <form id="login-form" class="space-y-4">
-                     <div>
-                         <label for="login-email" class="block text-sm font-medium text-gray-700">Email:</label>
-                         <input type="email" id="login-email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                     </div>
-                     <div>
-                         <label for="login-password" class="block text-sm font-medium text-gray-700">Contraseña:</label>
-                         <input type="password" id="login-password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                     </div>
-                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                         Entrar
-                     </button>
-                     <div id="login-error" class="mt-2 text-red-600 text-sm text-center min-h-[1.25em]"></div>
-                 </form>
-            </section>
-             <!-- GESTION CLIENTES: Tabla comentada -->
-             <section id="clients" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
-                <form id="client-form" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
-                     <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3>
-                     <input type="hidden" id="client-id">
-                     <div>
-                         <label for="client-name" class="block text-sm font-medium text-gray-700">Nombre:</label>
-                         <input type="text" id="client-name" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                     </div>
-                     <div>
-                         <label for="client-phone" class="block text-sm font-medium text-gray-700">Celular:</label>
-                         <input type="tel" id="client-phone" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                     </div>
-                     <div>
-                         <label for="client-email" class="block text-sm font-medium text-gray-700">Email:</label>
-                         <input type="email" id="client-email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                     </div>
-                     <div class="flex space-x-2">
-                         <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar Cliente</button>
-                         <button type="button" onclick="resetClientForm()" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button>
-                     </div>
-                     <div id="client-form-feedback" class="mt-2 text-sm feedback"></div>
-                 </form>
-                 <!--
-                 <div class="overflow-x-auto">
-                     <table id="clients-table" class="admin-table">
-                         <thead>
-                             <tr>
-                                 <th>Nombre</th>
-                                 <th>Celular</th>
-                                 <th>Email</th>
-                                 <th class="no-print">Acciones</th>
-                             </tr>
-                         </thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-                 -->
-                 <p class="text-center text-gray-500 mt-4">(El listado completo de clientes se ha ocultado para mejorar el rendimiento)</p>
-            </section>
-            <!-- GESTION TRABAJOS: Solo Encargado y Procesando -->
-            <section id="jobs" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Trabajos Activos (Encargado/Procesando)</h2>
-                  <div class="mb-4 text-center no-print">
-                      <button onclick="setActiveTab(document.querySelector('[data-target=new-job-form]')); resetJobForm();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                          + Nuevo Trabajo
-                      </button>
-                  </div>
-                  <div class="overflow-x-auto">
-                     <table id="jobs-table" class="admin-table">
-                         <thead>
-                             <tr>
-                                 <th>Cliente</th>
-                                 <th>Detalles</th>
-                                 <th>F. Pedido</th>
-                                 <th>F. Entrega</th>
-                                 <th>Estado</th>
-                                 <th class="text-right">Total ($)</th>
-                                 <th class="text-right">Seña ($)</th>
-                                 <th class="text-right">Pendiente ($)</th>
-                                 <th class="no-print">Acciones</th>
-                             </tr>
-                         </thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <!-- NUEVO TRABAJO: Largo -> Alto -->
-            <section id="new-job-form" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                <h2 id="job-form-title" class="text-2xl font-bold mb-6 text-center text-blue-600">Nuevo Trabajo</h2>
-                <form id="job-form" class="space-y-4">
-                    <input type="hidden" id="job-id">
-                    <div>
-                        <label for="job-client" class="block text-sm font-medium text-gray-700">Cliente:</label>
-                        <select id="job-client" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                            <option value="">Selecciona un cliente...</option>
-                        </select>
-                        <p class="text-xs text-gray-500 mt-1 no-print">Añade clientes nuevos en la pestaña "Clientes".</p>
+            <div id="section-content-container">
+                <section id="home" class="main-section bg-white p-6 rounded-lg shadow-lg">
+                   <div class="p-6 rounded-lg text-center">
+                        <h2 class="text-4xl font-bold mb-4 text-blue-600">Bienvenido</h2>
+                        <p class="text-lg mb-6 text-gray-700">Sistema de Gestión de Presupuestos de Corte Láser.</p>
+                        <p class="text-gray-600">Utilice el menú lateral para navegar.</p>
                     </div>
-                    <div>
-                        <label for="job-details" class="block text-sm font-medium text-gray-700">Detalles del Trabajo:</label>
-                        <textarea id="job-details" rows="3" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
+                </section>
+                <section id="login" class="main-section bg-white p-6 rounded-lg shadow-lg max-w-md mx-auto">
+                     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Iniciar Sesión</h2>
+                     <form id="login-form" class="space-y-4">
+                         <div><label for="login-email" class="block text-sm font-medium">Email:</label><input type="email" id="login-email" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                         <div><label for="login-password" class="block text-sm font-medium">Contraseña:</label><input type="password" id="login-password" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm"></div>
+                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">Entrar</button>
+                         <div id="login-error" class="mt-2 text-red-600 text-sm text-center min-h-[1.25em]"></div>
+                     </form>
+                </section>
+                 <section id="clients" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Clientes</h2>
+                    <!-- Buscador de Clientes -->
+                    <div class="search-container no-print">
+                        <input type="search" id="client-search" placeholder="Buscar cliente por nombre, email o teléfono..." class="search-input" oninput="filterClients()">
                     </div>
-                    <div class="border p-4 rounded bg-gray-50 space-y-3">
-                         <h3 class="text-md font-semibold text-gray-800">Detalles de Cotización</h3>
-                         <div>
-                             <label for="job-material" class="block text-sm font-medium text-gray-700">Material:</label>
-                             <select id="job-material" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                                 <option value="">Selecciona material...</option>
-                             </select>
-                         </div>
-                         <div class="grid grid-cols-2 gap-4">
-                             <div>
-                                 <!-- Cambio de Texto: Largo -> Alto -->
-                                 <label for="job-length" class="block text-sm font-medium text-gray-700">Alto (mm):</label>
-                                 <input type="number" id="job-length" required min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                             </div>
-                             <div>
-                                 <label for="job-width" class="block text-sm font-medium text-gray-700">Ancho (mm):</label>
-                                 <input type="number" id="job-width" required min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                             </div>
-                         </div>
-                         <div>
-                             <label for="job-job-type" class="block text-sm font-medium text-gray-700">Tipo Trabajo:</label>
-                             <select id="job-job-type" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                                 <option value="corte">Solo Corte</option>
-                                 <option value="grabado">Solo Grabado</option>
-                                 <option value="ambos">Corte y Grabado</option>
-                             </select>
-                         </div>
-                         <div id="job-time-estimation" class="space-y-2">
-                             <p class="text-xs text-gray-600 no-print">Estimar minutos de máquina:</p>
-                             <div id="job-cut-time-field" class="grid grid-cols-2 gap-2 items-center">
-                                 <label for="job-cut-minutes" class="text-sm font-medium text-gray-700">Min. Corte:</label>
-                                 <input type="number" id="job-cut-minutes" min="0" value="0" class="block w-full p-1 border border-gray-300 rounded-md text-sm">
-                             </div>
-                             <div id="job-engrave-time-field" class="grid grid-cols-2 gap-2 items-center">
-                                 <label for="job-engrave-minutes" class="text-sm font-medium text-gray-700">Min. Grabado:</label>
-                                 <input type="number" id="job-engrave-minutes" min="0" value="0" class="block w-full p-1 border border-gray-300 rounded-md text-sm">
-                             </div>
-                         </div>
-                         <button type="button" onclick="calculateJobQuote()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-bold py-1 px-3 rounded no-print">Calcular Costo</button>
-                         <span id="job-quote-base-result-wrapper" class="superadmin-only">
-                            <div id="job-quote-base-result" class="mt-1 text-sm text-gray-600 font-medium">Costo Base Estimado: $0.00</div>
-                         </span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                         <div>
-                             <label for="job-order-date" class="block text-sm font-medium text-gray-700">Fecha Pedido:</label>
-                             <input type="date" id="job-order-date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                         </div>
-                         <div>
-                             <label for="job-delivery-date" class="block text-sm font-medium text-gray-700">Fecha Entrega:</label>
-                             <input type="date" id="job-delivery-date" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                         </div>
-                         <div>
-                             <label for="job-status" class="block text-sm font-medium text-gray-700">Estado:</label>
-                             <select id="job-status" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                                 <option value="Encargado">Encargado</option>
-                                 <option value="Procesando">Procesando</option>
-                                 <option value="Terminado">Terminado</option>
-                             </select>
-                         </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <div>
-                             <label for="job-final-cost" class="block text-sm font-medium text-gray-700">Total Trabajo ($):</label>
-                             <input type="number" id="job-final-cost" required min="0" step="0.01" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                         </div>
-                         <div>
-                             <label for="job-deposit" class="block text-sm font-medium text-gray-700">Seña ($):</label>
-                             <input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                         </div>
-                    </div>
-                    <div>
-                        <label for="job-observations" class="block text-sm font-medium text-gray-700">Observaciones:</label>
-                        <textarea id="job-observations" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
-                    </div>
-                     <div class="flex space-x-2 pt-4 no-print">
-                        <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar Trabajo</button>
-                        <button type="button" onclick="setActiveTab(document.querySelector('[data-target=jobs]')); resetJobForm();" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button>
-                    </div>
-                    <div id="job-form-feedback" class="mt-2 text-sm feedback"></div>
-                </form>
-            </section>
-             <section id="deadlines" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Plazos de Entrega Próximos (No Terminados)</h2>
-                 <div class="overflow-x-auto">
-                     <table id="deadlines-table" class="admin-table">
-                         <thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th>Días Restantes</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-             <!-- ESTADO TRABAJOS: Solo Procesando -->
-            <section id="status" class="tab-content admin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Trabajos en Proceso</h2>
-                  <div class="overflow-x-auto">
-                     <table id="status-table" class="admin-table">
-                         <thead><tr><th>Cliente</th><th>Detalles</th><th>Estado</th><th>F. Entrega</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <section id="reports" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Informes Generales (Todos los trabajos)</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
-                     <div class="bg-blue-100 p-4 rounded shadow"><h3 class="font-semibold text-blue-800">Total Facturado</h3><p id="report-total-value" class="text-2xl font-bold">$0.00</p></div>
-                     <div class="bg-green-100 p-4 rounded shadow"><h3 class="font-semibold text-green-800">Total Señado</h3><p id="report-total-deposit" class="text-2xl font-bold">$0.00</p></div>
-                     <div class="bg-red-100 p-4 rounded shadow"><h3 class="font-semibold text-red-800">Total Pendiente</h3><p id="report-total-outstanding" class="text-2xl font-bold">$0.00</p></div>
-                 </div>
-                 <h3 class="text-xl font-semibold mb-4">Detalle Pendiente por Cliente (Todos los trabajos)</h3>
-                  <div class="overflow-x-auto">
-                     <table id="outstanding-table" class="admin-table">
-                         <thead><tr><th>Cliente</th><th class="text-right">Total Trabajos ($)</th><th class="text-right">Total Señado ($)</th><th class="text-right">Pendiente ($)</th></tr></thead>
-                         <tbody></tbody>
-                     </table>
-                 </div>
-            </section>
-            <section id="advanced-reports" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg space-y-8">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Reportes Detallados (Bajo Demanda)</h2>
-                <div>
-                    <h3 class="text-xl font-semibold mb-3">Reporte Diario</h3>
-                    <button onclick="generateDailyReport()" class="action-button bg-teal-500 hover:bg-teal-600 text-white mb-4">
-                        Generar Reporte para Hoy
-                    </button>
-                    <div id="daily-report-output" class="bg-gray-50 p-4 rounded border border-gray-200 min-h-[50px]">
-                        Haga clic en el botón para generar el reporte del día.
-                    </div>
-                </div>
-                <div>
-                    <h3 class="text-xl font-semibold mb-3">Reporte Mensual (Últimos 12 Meses)</h3>
-                     <button onclick="generateMonthlyReport()" class="action-button bg-purple-500 hover:bg-purple-600 text-white mb-4">
-                        Generar Reporte Mensual
-                    </button>
-                    <div id="monthly-report-output" class="bg-gray-50 p-4 rounded border border-gray-200 min-h-[100px] overflow-x-auto">
-                         Haga clic en el botón para generar el reporte mensual.
-                    </div>
-                </div>
-                 <div id="advanced-reports-feedback" class="mt-4 text-sm feedback"></div>
-            </section>
-             <!-- GESTION MATERIALES: Tabla dentro de <details> -->
-             <section id="admin-materials" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Gestionar Materiales</h2>
-                 <form id="material-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
-                     <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir/Editar Material</h4>
-                     <input type="hidden" id="material-id-admin">
-                     <div><label for="material-name-admin" class="block text-sm font-medium text-gray-700">Nombre:</label><input type="text" id="material-name-admin" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-thickness-admin" class="block text-sm font-medium text-gray-700">Grosor(mm):</label><input type="number" id="material-thickness-admin" required min="0.1" step="0.1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-cost-admin" class="block text-sm font-medium text-gray-700">Costo/Plancha($):</label><input type="number" id="material-cost-admin" required min="0" step="0.01" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-width-admin" class="block text-sm font-medium text-gray-700">Ancho Plancha(mm):</label><input type="number" id="material-width-admin" placeholder="1300" value="1300" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label for="material-height-admin" class="block text-sm font-medium text-gray-700">Alto Plancha(mm):</label><input type="number" id="material-height-admin" placeholder="900" value="900" min="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></div>
-                     <div><label class="flex items-center"><input type="checkbox" id="material-availability-admin" checked class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50"> <span class="ml-2 text-sm text-gray-600">Disponible para cotizar</span></label></div>
-                     <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar</button><button type="button" onclick="resetMaterialFormAdmin()" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button></div>
-                     <div id="material-form-feedback-admin" class="mt-2 text-sm feedback"></div>
-                 </form>
-                 <!-- Lista desplegable -->
-                 <details class="mt-6">
-                     <summary class="hover:bg-gray-100">Ver/Ocultar Lista de Materiales</summary>
-                     <div class="overflow-x-auto mt-0 pt-4"> <!-- div interior para padding -->
-                         <table id="materials-admin-table" class="admin-table">
-                             <thead><tr><th>Nombre</th><th class="text-right">Grosor(mm)</th><th class="text-right">Costo/Plancha($)</th><th class="text-center">Dimensiones(mm)</th><th class="text-center">Disp.</th><th class="no-print">Acciones</th></tr></thead>
-                             <tbody></tbody>
-                         </table>
-                     </div>
-                 </details>
-            </section>
-            <section id="admin-config" class="tab-content superadmin-only bg-white p-6 rounded-lg shadow-lg">
-                 <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Configuración de Costos</h2>
-                 <form id="config-form-admin" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 no-print">
-                      <h4 class="text-lg font-medium">Costos Mensuales y Parámetros de Cálculo</h4>
-                      <p class="text-xs text-gray-600">Estos valores se usan para calcular el costo base por minuto de máquina.</p>
-                      <div>
-                        <label for="config-minutes-admin" class="block text-sm font-medium text-gray-700">Minutos Productivos Estimados/Mes:</label>
-                        <input type="number" id="config-minutes-admin" required min="1" value="2400" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                        <p class="text-xs text-gray-500 mt-1">Ej: 8hs/día * 20 días/mes * 60 min/hr * 25% uso = 2400 min</p>
+                    <form id="client-form" class="bg-gray-50 p-4 rounded border border-gray-200 space-y-3 mb-6 no-print">
+                         <h3 id="client-form-title" class="text-lg font-medium">Añadir Nuevo Cliente</h3>
+                         <input type="hidden" id="client-id">
+                         <div><label for="client-name" class="block text-sm font-medium">Nombre:</label><input type="text" id="client-name" required class="mt-1 block w-full p-2 border rounded"></div>
+                         <div><label for="client-phone" class="block text-sm font-medium">Celular:</label><input type="tel" id="client-phone" class="mt-1 block w-full p-2 border rounded"></div>
+                         <div><label for="client-email" class="block text-sm font-medium">Email:</label><input type="email" id="client-email" class="mt-1 block w-full p-2 border rounded"></div>
+                         <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar Cliente</button><button type="button" onclick="resetClientForm()" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button></div>
+                         <div id="client-form-feedback" class="mt-2 text-sm feedback"></div>
+                     </form>
+                     <div class="overflow-x-auto"><table id="clients-table" class="admin-table"><thead><tr><th>Nombre</th><th>Celular</th><th>Email</th><th class="no-print">Acciones</th></tr></thead><tbody></tbody></table></div>
+                </section>
+                <section id="jobs" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Gestión de Trabajos</h2>
+                      <div class="mb-4 flex justify-between items-center no-print">
+                          <!-- Buscador de Trabajos -->
+                           <div class="search-container flex-grow mr-4">
+                               <input type="search" id="job-search" placeholder="Buscar por cliente o detalles..." class="search-input" oninput="filterJobs()">
+                           </div>
+                          <button onclick="navigateTo('new-job-form'); resetJobForm();" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded whitespace-nowrap">
+                              + Nuevo Trabajo
+                          </button>
                       </div>
-                      <fieldset id="monthly-costs-fieldset-admin" class="border p-3 rounded">
-                          <legend class="text-sm font-medium px-1">Costos Fijos Mensuales ($)</legend>
-                          <div id="monthly-costs-container" class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                          </div>
-                          <button type="button" onclick="addMonthlyCostInput()" class="mt-2 text-sm text-purple-600 hover:text-purple-800">+ Añadir Otro Costo</button>
-                      </fieldset>
-                      <div class="mt-4 pt-4 border-t">
-                        <h4 class="text-md font-medium">Costo por Minuto Calculado:</h4>
-                        <p id="calculated-cost-per-minute" class="text-lg font-bold text-purple-700">$0.0000 / min</p>
-                      </div>
-                      <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white mt-4">Guardar Configuración</button>
-                      <div id="config-form-feedback-admin" class="mt-2 text-sm feedback"></div>
-                 </form>
-            </section>
-        </main>
+                      <div class="overflow-x-auto"><table id="jobs-table" class="admin-table"><thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th class="text-right">Total ($)</th><th class="text-right">Seña ($)</th><th class="text-right">Pendiente ($)</th><th class="no-print">Acciones</th></tr></thead><tbody></tbody></table></div>
+                </section>
+                <section id="new-job-form" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
+                    <h2 id="job-form-title" class="text-2xl font-bold mb-6 text-center text-blue-600">Nuevo Trabajo</h2>
+                    <form id="job-form" class="space-y-4">
+                        <input type="hidden" id="job-id">
+                        <div><label for="job-client" class="block text-sm font-medium">Cliente:</label><select id="job-client" required class="mt-1 block w-full p-2 border rounded"><option value="">Selecciona cliente...</option></select><p class="text-xs text-gray-500 mt-1 no-print">Añade clientes en "Clientes".</p></div>
+                        <div><label for="job-details" class="block text-sm font-medium">Detalles Trabajo:</label><textarea id="job-details" rows="3" required class="mt-1 block w-full p-2 border rounded"></textarea></div>
+                        <div class="border p-4 rounded bg-gray-50 space-y-3">
+                             <h3 class="text-md font-semibold">Detalles Cotización</h3>
+                             <div><label for="job-material" class="block text-sm font-medium">Material:</label><select id="job-material" required class="mt-1 block w-full p-2 border rounded"><option value="">Selecciona material...</option></select></div>
+                             <div class="grid grid-cols-2 gap-4"><div><label for="job-length" class="block text-sm font-medium">Largo (mm):</label><input type="number" id="job-length" required min="1" class="mt-1 block w-full p-2 border rounded"></div><div><label for="job-width" class="block text-sm font-medium">Ancho (mm):</label><input type="number" id="job-width" required min="1" class="mt-1 block w-full p-2 border rounded"></div></div>
+                             <div><label for="job-job-type" class="block text-sm font-medium">Tipo Trabajo:</label><select id="job-job-type" required class="mt-1 block w-full p-2 border rounded"><option value="corte">Solo Corte</option><option value="grabado">Solo Grabado</option><option value="ambos">Corte y Grabado</option></select></div>
+                             <div id="job-time-estimation" class="space-y-2"><p class="text-xs text-gray-600 no-print">Estimar minutos máquina:</p><div id="job-cut-time-field" class="grid grid-cols-2 gap-2 items-center"><label for="job-cut-minutes" class="text-sm font-medium">Min. Corte:</label><input type="number" id="job-cut-minutes" min="0" value="0" class="block w-full p-1 border rounded text-sm"></div><div id="job-engrave-time-field" class="grid grid-cols-2 gap-2 items-center"><label for="job-engrave-minutes" class="text-sm font-medium">Min. Grabado:</label><input type="number" id="job-engrave-minutes" min="0" value="0" class="block w-full p-1 border rounded text-sm"></div></div>
+                             <button type="button" onclick="calculateJobQuote()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-bold py-1 px-3 rounded no-print">Calcular Costo</button>
+                             <span id="job-quote-base-result-wrapper" class="superadmin-only block mt-1"><div id="job-quote-base-result" class="text-sm text-gray-600 font-medium">Costo Base Estimado: $0.00</div></span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="job-order-date" class="block text-sm font-medium">F. Pedido:</label><input type="date" id="job-order-date" required class="mt-1 block w-full p-2 border rounded"></div><div><label for="job-delivery-date" class="block text-sm font-medium">F. Entrega:</label><input type="date" id="job-delivery-date" required class="mt-1 block w-full p-2 border rounded"></div><div><label for="job-status" class="block text-sm font-medium">Estado:</label><select id="job-status" required class="mt-1 block w-full p-2 border rounded"><option value="Encargado">Encargado</option><option value="Procesando">Procesando</option><option value="Terminado">Terminado</option></select></div></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="job-final-cost" class="block text-sm font-medium">Total Trabajo ($):</label><input type="number" id="job-final-cost" required min="0" step="0.01" class="mt-1 block w-full p-2 border rounded"></div><div><label for="job-deposit" class="block text-sm font-medium">Seña ($):</label><input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="mt-1 block w-full p-2 border rounded"></div></div>
+                        <div><label for="job-observations" class="block text-sm font-medium">Observaciones:</label><textarea id="job-observations" rows="3" class="mt-1 block w-full p-2 border rounded"></textarea></div>
+                         <div class="flex space-x-2 pt-4 no-print"><button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar Trabajo</button><button type="button" onclick="navigateTo('jobs');" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button></div>
+                        <div id="job-form-feedback" class="mt-2 text-sm feedback"></div>
+                    </form>
+                </section>
+                 <section id="deadlines" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Plazos Próximos (No Terminados)</h2>
+                     <div class="overflow-x-auto"><table id="deadlines-table" class="admin-table"><thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th>Días Restantes</th></tr></thead><tbody></tbody></table></div>
+                </section>
+                <section id="status" class="main-section admin-only bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Estado de Trabajos</h2>
+                      <div class="overflow-x-auto"><table id="status-table" class="admin-table"><thead><tr><th>Cliente</th><th>Detalles</th><th>Estado</th><th>F. Entrega</th></tr></thead><tbody></tbody></table></div>
+                </section>
+                <section id="reports" class="main-section superadmin-only bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Informes Generales</h2>
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center"><div class="bg-blue-100 p-4 rounded shadow"><h3 class="font-semibold text-blue-800">Total Facturado</h3><p id="report-total-value" class="text-2xl font-bold">$0.00</p></div><div class="bg-green-100 p-4 rounded shadow"><h3 class="font-semibold text-green-800">Total Señado</h3><p id="report-total-deposit" class="text-2xl font-bold">$0.00</p></div><div class="bg-red-100 p-4 rounded shadow"><h3 class="font-semibold text-red-800">Total Pendiente</h3><p id="report-total-outstanding" class="text-2xl font-bold">$0.00</p></div></div>
+                     <h3 class="text-xl font-semibold mb-4">Detalle Pendiente por Cliente</h3>
+                      <div class="overflow-x-auto"><table id="outstanding-table" class="admin-table"><thead><tr><th>Cliente</th><th class="text-right">Total ($)</th><th class="text-right">Señado ($)</th><th class="text-right">Pendiente ($)</th></tr></thead><tbody></tbody></table></div>
+                </section>
+                <section id="advanced-reports" class="main-section superadmin-only bg-white p-6 rounded-lg shadow-lg space-y-8">
+                    <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Reportes Detallados (Bajo Demanda)</h2>
+                    <div><h3 class="text-xl font-semibold mb-3">Reporte Diario</h3><button onclick="generateDailyReport()" class="action-button bg-teal-500 hover:bg-teal-600 text-white mb-4">Generar Reporte Hoy</button><div id="daily-report-output" class="bg-gray-50 p-4 rounded border min-h-[50px]">Click para generar.</div></div>
+                    <div><h3 class="text-xl font-semibold mb-3">Reporte Mensual (Últimos 12 Meses)</h3><button onclick="generateMonthlyReport()" class="action-button bg-purple-500 hover:bg-purple-600 text-white mb-4">Generar Reporte Mensual</button><div id="monthly-report-output" class="bg-gray-50 p-4 rounded border min-h-[100px] overflow-x-auto">Click para generar.</div></div>
+                     <div id="advanced-reports-feedback" class="mt-4 text-sm feedback"></div>
+                </section>
+                 <section id="admin-materials" class="main-section superadmin-only bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Gestionar Materiales</h2>
+                     <form id="material-form-admin" class="bg-gray-50 p-4 rounded border space-y-3 mb-6 no-print">
+                         <h4 id="material-form-title-admin" class="text-lg font-medium">Añadir Material</h4>
+                         <input type="hidden" id="material-id-admin">
+                         <div><label for="material-name-admin" class="block text-sm font-medium">Nombre:</label><input type="text" id="material-name-admin" required class="mt-1 block w-full p-2 border rounded"></div>
+                         <div><label for="material-thickness-admin" class="block text-sm font-medium">Grosor(mm):</label><input type="number" id="material-thickness-admin" required min="0.1" step="0.1" class="mt-1 block w-full p-2 border rounded"></div>
+                         <div><label for="material-cost-admin" class="block text-sm font-medium">Costo/Plancha($):</label><input type="number" id="material-cost-admin" required min="0" step="0.01" class="mt-1 block w-full p-2 border rounded"></div>
+                         <div><label for="material-width-admin" class="block text-sm font-medium">Ancho(mm):</label><input type="number" id="material-width-admin" placeholder="1300" value="1300" min="1" class="mt-1 block w-full p-2 border rounded"></div>
+                         <div><label for="material-height-admin" class="block text-sm font-medium">Alto(mm):</label><input type="number" id="material-height-admin" placeholder="900" value="900" min="1" class="mt-1 block w-full p-2 border rounded"></div>
+                         <div><label class="flex items-center"><input type="checkbox" id="material-availability-admin" checked class="rounded border-gray-300 text-purple-600 shadow-sm"> <span class="ml-2 text-sm">Disponible</span></label></div>
+                         <div class="flex space-x-2"><button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white">Guardar</button><button type="button" onclick="resetMaterialFormAdmin()" class="action-button bg-gray-500 hover:bg-gray-600 text-white">Cancelar</button></div>
+                         <div id="material-form-feedback-admin" class="mt-2 text-sm feedback"></div>
+                     </form>
+                     <div class="overflow-x-auto"><table id="materials-admin-table" class="admin-table"><thead><tr><th>Nombre</th><th class="text-right">Grosor</th><th class="text-right">Costo/Plancha</th><th class="text-center">Dimensiones</th><th class="text-center">Disp.</th><th class="no-print">Acciones</th></tr></thead><tbody></tbody></table></div>
+                </section>
+                <section id="admin-config" class="main-section superadmin-only bg-white p-6 rounded-lg shadow-lg">
+                     <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">Configuración de Costos</h2>
+                     <form id="config-form-admin" class="bg-gray-50 p-4 rounded border space-y-3 no-print">
+                          <h4 class="text-lg font-medium">Costos Mensuales y Parámetros</h4>
+                          <div><label for="config-minutes-admin" class="block text-sm font-medium">Minutos Base/Mes:</label><input type="number" id="config-minutes-admin" required min="1" value="2400" class="mt-1 block w-full p-2 border rounded"><p class="text-xs text-gray-500 mt-1">Ej: 8hs/día*20d*60m*25% = 2400 min</p></div>
+                          <fieldset id="monthly-costs-fieldset-admin" class="border p-3 rounded"><legend class="text-sm font-medium px-1">Costos Mensuales ($)</legend><div id="monthly-costs-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div><button type="button" onclick="addMonthlyCostInput()" class="mt-2 text-sm text-purple-600 hover:text-purple-800">+ Añadir Costo</button></fieldset>
+                          <div class="mt-4 pt-4 border-t"><h4 class="text-md font-medium">Costo/Minuto Calculado:</h4><p id="calculated-cost-per-minute" class="text-lg font-bold text-purple-700">$0.0000 / min</p></div>
+                          <button type="submit" class="action-button bg-green-500 hover:bg-green-600 text-white mt-4">Guardar Configuración</button>
+                          <div id="config-form-feedback-admin" class="mt-2 text-sm feedback"></div>
+                     </form>
+                </section>
+            </div><!-- Fin #section-content-container -->
+            <div id="pdf-render-area"></div>
+             <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">Generando PDF...</div>
+        </div><!-- Fin #main-content -->
+    </div><!-- Fin .app-layout -->
 
-        <div id="pdf-render-area"></div>
-
-        <footer class="text-center text-gray-500 text-sm mt-8 no-print">
-            © 2025 Presupuestos Corte Laser. Todos los derechos reservados by Huguitito.
-        </footer>
-
-        <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">
-            Generando PDF...
-        </div>
-
-    </div>
+    <footer class="text-center text-gray-500 text-sm p-4 bg-gray-200 no-print">
+        © 2025 Presupuestos Corte Laser. Todos los derechos reservados by Huguitito.
+    </footer>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyAVBHUX8Ey9lLUCiz6mNDOemrNfrR-3Szs", authDomain: "presupuestadorcortelaser.firebaseapp.com", projectId: "presupuestadorcortelaser", storageBucket: "presupuestadorcortelaser.firebasestorage.app", messagingSenderId: "159566854109", appId: "1:159566854109:web:8d7351cef717697f3ea834" };
@@ -416,14 +214,49 @@
         const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1';
         let materialsData = {}; let configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; let clientsData = {}; let jobsData = []; let currentUser = null; let currentUserRole = null; let currentJobQuoteBaseCost = 0; let dataLoaded = { clients: false, jobs: false, materials: false, config: false }; let activeSectionId = 'home';
 
-        function setActiveTab(buttonElement) { if (!buttonElement) return; const targetId = buttonElement.getAttribute('data-target'); if (!targetId) return; console.log("Activando tab:", targetId); activeSectionId = targetId; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const sectionToShow = document.getElementById(targetId); if (sectionToShow) { sectionToShow.classList.add('active-tab-content'); buttonElement.classList.add('active-tab'); loadDataForSection(targetId); } else { console.error(`Content '${targetId}' not found.`); const defBtn = document.querySelector('#tab-buttons .tab-button[data-target="jobs"]'); if (defBtn) setActiveTab(defBtn); } }
-        function showLoginSection() { console.log("Mostrando login"); activeSectionId = 'login'; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const lSec = document.getElementById('login'); if(lSec) lSec.classList.add('active-tab-content'); const lForm = document.getElementById('login-form'); if(lForm) lForm.reset(); const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; }
-        auth?.onAuthStateChanged(user => { if (!auth) { showLoginSection(); return; } console.log("Auth state:", user ? user.uid : 'null'); currentUser = user; const uSpan = document.getElementById('user-email'); document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only'); if (user) { currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator'; console.log("Role:", currentUserRole); document.body.classList.add('logged-in', `role-${currentUserRole}`); if (uSpan) uSpan.textContent = user.email; loadInitialDataForLoggedInUser().then(() => { console.log("Initial data loaded post-login."); const defTab = 'jobs'; const tBtn = document.querySelector(`#tab-buttons .tab-button[data-target="${defTab}"]`); if (tBtn) setActiveTab(tBtn); else { console.error("Default tab btn 'jobs' not found."); const fBtn = document.querySelector('#tab-buttons .tab-button:not(.superadmin-only)') || document.querySelector('#tab-buttons .tab-button.superadmin-only'); if (fBtn) setActiveTab(fBtn); } }).catch(error => { console.error("Error initial data load:", error); alert("Error crítico cargando datos."); }); } else { console.log("Logged out."); currentUserRole = null; document.body.classList.add('public-only'); if (uSpan) uSpan.textContent = ''; materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; dataLoaded = { clients: false, jobs: false, materials: false, config: false }; document.querySelectorAll('#tab-content-container .tab-content').forEach(c => c.classList.remove('active-tab-content')); document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active-tab')); const hSec = document.getElementById('home'); if (hSec) { hSec.classList.add('active-tab-content'); activeSectionId = 'home'; } } });
-        document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) { console.error("Auth N/A for login"); return;} const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
-        function logoutUser() { if (!auth) { console.error("Auth N/A for logout"); return; } console.log("Logging out..."); auth.signOut().then(() => console.log("Logout ok.")).catch(err => { console.error("Logout err:", err); alert("Error logout: " + err.message); }); }
+        // --- Nueva Función de Navegación Sidebar ---
+        function navigateTo(targetId) {
+            console.log("Navegando a:", targetId);
+            activeSectionId = targetId; // Actualizar sección activa global
+
+            // Ocultar todas las secciones principales
+            document.querySelectorAll('#section-content-container .main-section').forEach(section => {
+                section.classList.remove('active-section');
+            });
+            // Quitar clase activa de todos los links del sidebar
+            document.querySelectorAll('#sidebar li').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Mostrar la sección correcta
+            const sectionToShow = document.getElementById(targetId);
+            if (sectionToShow) {
+                sectionToShow.classList.add('active-section');
+                const activeLink = document.querySelector(`#sidebar a[data-target='${targetId}']`)?.closest('li');
+                if(activeLink) activeLink.classList.add('active');
+                loadDataForSection(targetId);
+            } else {
+                console.error(`navigateTo: Sección '${targetId}' no encontrada.`);
+                 navigateTo('home'); // Fallback a home si no se encuentra
+            }
+        }
+
+        function showLoginSection() {
+             console.log("Mostrando login"); activeSectionId = 'login';
+             document.querySelectorAll('#section-content-container .main-section').forEach(s => s.classList.remove('active-section'));
+             document.querySelectorAll('#sidebar li').forEach(item => item.classList.remove('active'));
+             const loginSection = document.getElementById('login'); if(loginSection) loginSection.classList.add('active-section');
+             const loginForm = document.getElementById('login-form'); if(loginForm) loginForm.reset();
+             const errorDiv = document.getElementById('login-error'); if(errorDiv) errorDiv.textContent = '';
+         }
+
+        auth?.onAuthStateChanged(user => { if (!auth) { showLoginSection(); return; } console.log("Auth state:", user ? user.uid : 'null'); currentUser = user; const uSpan = document.getElementById('user-email'); document.body.classList.remove('logged-in', 'role-superadmin', 'role-operator', 'public-only'); if (user) { currentUserRole = (user.uid === SUPER_ADMIN_UID) ? 'superadmin' : 'operator'; console.log("Role:", currentUserRole); document.body.classList.add('logged-in', `role-${currentUserRole}`); if (uSpan) uSpan.textContent = user.email; loadInitialDataForLoggedInUser().then(() => { console.log("Initial data loaded post-login."); navigateTo('jobs'); }).catch(error => { console.error("Error initial data load:", error); alert("Error crítico cargando datos."); navigateTo('home'); }); } else { console.log("Logged out."); currentUserRole = null; document.body.classList.add('public-only'); if (uSpan) uSpan.textContent = ''; materialsData = {}; clientsData = {}; jobsData = []; configData = { cost_per_minute: 0, minutes_per_month: 2400, monthly_costs: {} }; dataLoaded = { clients: false, jobs: false, materials: false, config: false }; navigateTo('home'); } });
+        document.getElementById('login-form')?.addEventListener('submit', async (e) => { e.preventDefault(); if (!auth) return; const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const errDiv = document.getElementById('login-error'); if(errDiv) errDiv.textContent = ''; try { await auth.signInWithEmailAndPassword(email, pass); console.log("Login ok."); } catch (error) { console.error("Login err:", error.code); if(errDiv) { if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errDiv.textContent = 'Email o contraseña incorrectos.'; else if (error.code === 'auth/invalid-email') errDiv.textContent = 'Formato email inválido.'; else errDiv.textContent = 'Error al iniciar sesión.'; } } });
+        function logoutUser() { if (!auth) return; console.log("Logging out..."); auth.signOut().then(() => console.log("Logout ok.")).catch(err => { console.error("Logout err:", err); alert("Error logout: " + err.message); }); }
         async function loadInitialDataForLoggedInUser() { if (!db) throw new Error("DB N/A"); console.log("Loading initial data..."); await Promise.all([ loadMaterials(), loadConfig(), loadClients() ]); console.log("Initial data ok."); }
-        // --- loadDataForSection MODIFICADA (v2) ---
-        function loadDataForSection(sectionId) {
+
+        // --- loadDataForSection (Corregida para Edición y Roles) ---
+         function loadDataForSection(sectionId) {
              if (!db) { console.error(`DB N/A for ${sectionId}`); return; }
              console.log(`Loading for ${sectionId}`);
              if (!currentUser && sectionId !== 'home' && sectionId !== 'login') { console.warn(`Attempt load ${sectionId} without user.`); return; }
@@ -441,91 +274,88 @@
                  default: console.log(`No data loading for ${sectionId}`);
              }
          }
-        async function loadMaterials() { if (!db) return; console.log("Loading materials..."); try { const snap=await db.collection('materials').orderBy('name').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); materialsData=temp; console.log(`Mats loaded: ${Object.keys(materialsData).length}`); dataLoaded.materials=true; populateMaterialDropdown('job-material'); if(currentUserRole==='superadmin') populateMaterialsAdminTable(); } catch (err) { console.error("Err loading mats:", err); const f=document.getElementById('material-form-feedback-admin'); if(f) showFeedback(f,`Err loading mats: ${err.message}`,'error'); dataLoaded.materials=false; } }
-        async function loadConfig() { if (!db) return; console.log("Loading config..."); try { const doc=await db.collection('config').doc('main').get(); if(doc.exists){ const d=doc.data(); configData={minutes_per_month:d.minutes_per_month||2400,monthly_costs:d.monthly_costs||{},cost_per_minute:0}; const tm=Object.values(configData.monthly_costs).reduce((s,v)=>s+(Number(v)||0),0); if(configData.minutes_per_month>0) configData.cost_per_minute=tm/configData.minutes_per_month; else configData.cost_per_minute=0; console.log(`Config loaded. Cost/min: $${configData.cost_per_minute.toFixed(4)}`); } else { console.warn("Config 'main' N/F. Defaults used."); configData={cost_per_minute:0,minutes_per_month:2400,monthly_costs:{}}; } dataLoaded.config=true; if(currentUserRole==='superadmin') populateConfigFormAdmin(); } catch(err) { console.error("Err loading config:", err); const f=document.getElementById('config-form-feedback-admin'); if(f) showFeedback(f,`Err loading config: ${err.message}`,'error'); dataLoaded.config=false; } }
-        async function loadClients() { if(!currentUser||!db) return; console.log("Loading clients..."); const b=document.getElementById('clients-table')?.querySelector('tbody'); if(b) b.innerHTML='<tr><td colspan="4" class="text-center py-4">Cargando...</td></tr>'; try { const snap=await db.collection('clients').orderBy('name','asc').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); clientsData=temp; console.log(`Clients loaded: ${Object.keys(clientsData).length}`); dataLoaded.clients=true; populateClientsTable(); populateClientDropdown('job-client'); } catch(err) { console.error("Err loading clients:", err); if(b) b.innerHTML=`<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`; dataLoaded.clients=false; } }
-        async function loadJobs() { if(!currentUser||!db) return; console.log("Loading jobs..."); ['jobs-table','deadlines-table','status-table','outstanding-table', 'monthly-report-output', 'daily-report-output'].forEach(id=>{const el=document.getElementById(id); if(!el) return; if(el.tagName==='TBODY'){const c=el.closest('table')?.querySelector('thead th')?.length||1; el.innerHTML=`<tr><td colspan="${c}" class="text-center py-4">Cargando...</td></tr>`;} else if (el.id === 'monthly-report-output' || el.id === 'daily-report-output'){el.innerHTML='Cargando datos de trabajos...';}}); ['report-total-value','report-total-deposit','report-total-outstanding'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Calculando...';}); try { const snap=await db.collection('jobs').orderBy('orderDate','desc').get(); const temp=[]; snap.forEach(doc=>{const d=doc.data(); temp.push({...d, id:doc.id, orderDate:d.orderDate instanceof firebase.firestore.Timestamp?d.orderDate.toDate().toISOString().split('T')[0]:d.orderDate, deliveryDate:d.deliveryDate instanceof firebase.firestore.Timestamp?d.deliveryDate.toDate().toISOString().split('T')[0]:d.deliveryDate, finalCost:Number(d.finalCost||0), deposit:Number(d.deposit||0) }); }); jobsData=temp; console.log(`Jobs loaded: ${jobsData.length}`); dataLoaded.jobs=true; populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); } catch(err) { console.error("Err loading jobs:", err); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table')?.querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`;}}); dataLoaded.jobs=false; } }
+        async function loadMaterials() { if (!db) return; console.log("Loading materials..."); try { const snap=await db.collection('materials').orderBy('name').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); materialsData=temp; console.log(`Mats loaded: ${Object.keys(materialsData).length}`); dataLoaded.materials=true; populateMaterialDropdown('job-material'); if(currentUserRole==='superadmin') populateMaterialsAdminTable(); } catch (err) { console.error("Err loading mats:", err); const f=document.getElementById('material-form-feedback-admin'); if(f) showFeedback(f,`Error cargando materiales: ${err.message}`,'error'); dataLoaded.materials=false; } }
+        async function loadConfig() { if (!db) return; console.log("Loading config..."); try { const doc=await db.collection('config').doc('main').get(); if(doc.exists){ const d=doc.data(); configData={minutes_per_month:d.minutes_per_month||2400,monthly_costs:d.monthly_costs||{},cost_per_minute:0}; const tm=Object.values(configData.monthly_costs).reduce((s,v)=>s+(Number(v)||0),0); if(configData.minutes_per_month>0) configData.cost_per_minute=tm/configData.minutes_per_month; else configData.cost_per_minute=0; console.log(`Config loaded. Cost/min: $${configData.cost_per_minute.toFixed(4)}`); } else { console.warn("Config 'main' N/F. Defaults used."); configData={cost_per_minute:0,minutes_per_month:2400,monthly_costs:{}}; } dataLoaded.config=true; if(currentUserRole==='superadmin') populateConfigFormAdmin(); } catch(err) { console.error("Err loading config:", err); const f=document.getElementById('config-form-feedback-admin'); if(f) showFeedback(f,`Error cargando config: ${err.message}`,'error'); dataLoaded.config=false; } }
+        async function loadClients() { if(!currentUser||!db) return; console.log("Loading clients..."); const b=document.getElementById('clients-table')?.querySelector('tbody'); if(b) b.innerHTML='<tr><td colspan="4" class="text-center py-4">Cargando...</td></tr>'; try { const snap=await db.collection('clients').orderBy('name','asc').get(); const temp={}; snap.forEach(doc=>temp[doc.id]={...doc.data(),id:doc.id}); clientsData=temp; console.log(`Clients loaded: ${Object.keys(clientsData).length}`); dataLoaded.clients=true; populateClientsTable(); populateClientDropdown('job-client'); filterClients(); /* Aplicar filtro inicial si hay */ } catch(err) { console.error("Err loading clients:", err); if(b) b.innerHTML=`<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`; dataLoaded.clients=false; } }
+        async function loadJobs() { if(!currentUser||!db) return; console.log("Loading jobs..."); ['jobs-table','deadlines-table','status-table','outstanding-table', 'monthly-report-output', 'daily-report-output'].forEach(id=>{const el=document.getElementById(id); if(!el) return; if(el.tagName==='TBODY'){const c=el.closest('table')?.querySelector('thead th')?.length||1; el.innerHTML=`<tr><td colspan="${c}" class="text-center py-4">Cargando...</td></tr>`;} else if (el.id === 'monthly-report-output' || el.id === 'daily-report-output'){el.innerHTML='Cargando datos de trabajos...';}}); ['report-total-value','report-total-deposit','report-total-outstanding'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='Calculando...';}); try { const snap=await db.collection('jobs').orderBy('orderDate','desc').get(); const temp=[]; snap.forEach(doc=>{const d=doc.data(); temp.push({...d, id:doc.id, orderDate:d.orderDate instanceof firebase.firestore.Timestamp?d.orderDate.toDate().toISOString().split('T')[0]:d.orderDate, deliveryDate:d.deliveryDate instanceof firebase.firestore.Timestamp?d.deliveryDate.toDate().toISOString().split('T')[0]:d.deliveryDate, finalCost:Number(d.finalCost||0), deposit:Number(d.deposit||0) }); }); jobsData=temp; console.log(`Jobs loaded: ${jobsData.length}`); dataLoaded.jobs=true; populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); filterJobs(); /* Aplicar filtro inicial si hay */ } catch(err) { console.error("Err loading jobs:", err); ['jobs-table','deadlines-table','status-table','outstanding-table'].forEach(id=>{const b=document.getElementById(id)?.querySelector('tbody'); if(b){const c=b.closest('table')?.querySelector('thead th')?.length||1; b.innerHTML=`<tr><td colspan="${c}" class="text-center py-4 text-red-600">Error: ${err.message}</td></tr>`;}}); dataLoaded.jobs=false; } }
         function populateClientDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Selecciona cliente...</option>'; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{const o=document.createElement('option'); o.value=c.id; o.textContent=c.name||`ID: ${c.id}`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
         function populateMaterialDropdown(id) { const s=document.getElementById(id); if (!s) return; const v=s.value; s.innerHTML='<option value="">Selecciona material...</option>'; Object.values(materialsData).filter(m=>m.available!==false).sort((a,b)=>`${a.name||''} ${a.thickness||0}mm`.localeCompare(`${b.name||''} ${b.thickness||0}mm`)).forEach(m=>{const o=document.createElement('option'); o.value=m.id; o.textContent=`${m.name||'Sin Nombre'} - ${m.thickness||'?'}mm`; s.appendChild(o);}); if (Array.from(s.options).some(opt=>opt.value===v)) s.value=v; }
-        function populateClientsTable() { const b=document.getElementById('clients-table')?.querySelector('tbody'); if(!b)return; if(Object.keys(clientsData).length===0&&dataLoaded.clients){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No hay clientes.</td></tr>';return;} let h=''; Object.values(clientsData).sort((a,b)=>(a.name||"").localeCompare(b.name||"")).forEach(c=>{h+=`<tr data-client-id="${c.id}"><td>${c.name||'N/A'}</td><td>${c.phone||'-'}</td><td>${c.email||'-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Editar</button><button onclick="deleteClient('${c.id}')" class="delete-button">Borrar</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">Nuevo Trabajo</button></td></tr>`;}); b.innerHTML=h; }
-        // --- populateJobsTable MODIFICADA ---
+
+        // --- Ordenamiento de Estados ---
+        const statusOrderValue = { 'Encargado': 1, 'Procesando': 2, 'Terminado': 3 };
+        function sortByStatusAndDate(a, b) {
+             const statusDiff = (statusOrderValue[a.status] || 99) - (statusOrderValue[b.status] || 99);
+             if (statusDiff !== 0) return statusDiff;
+             // Si el estado es el mismo, ordenar por fecha de pedido descendente (más nuevos primero)
+             return (b.orderDate || "").localeCompare(a.orderDate || "");
+         }
+         function sortByStatusAndDelivery(a, b) {
+              const statusDiff = (statusOrderValue[a.status] || 99) - (statusOrderValue[b.status] || 99);
+              if (statusDiff !== 0) return statusDiff;
+               // Si el estado es el mismo, ordenar por fecha de entrega ascendente (más próximos primero)
+              return (a.deliveryDate || "9999-12-31").localeCompare(b.deliveryDate || "9999-12-31");
+          }
+
+         // --- Funciones de Búsqueda ---
+         function filterClients() { populateClientsTable(); } // Llama a poblar tabla, que ahora incluye el filtro
+         function filterJobs() { populateJobsTable(); } // Llama a poblar tabla, que ahora incluye el filtro
+
+        // --- Poblado de Tablas (con filtro y ordenamiento) ---
+        function populateClientsTable() {
+            const b = document.getElementById('clients-table')?.querySelector('tbody'); if (!b) return;
+            const searchTerm = document.getElementById('client-search')?.value.toLowerCase() || '';
+
+            // Filtrar datos
+            const filteredClients = Object.values(clientsData).filter(client => {
+                return (client.name?.toLowerCase().includes(searchTerm) ||
+                        client.email?.toLowerCase().includes(searchTerm) ||
+                        client.phone?.includes(searchTerm));
+            }).sort((a, b) => (a.name || "").localeCompare(b.name || "")); // Ordenar alfabéticamente
+
+            if (filteredClients.length === 0) { b.innerHTML = `<tr><td colspan="4" class="text-center py-4">No hay clientes${searchTerm ? ' que coincidan.' : '.'}</td></tr>`; return; }
+            let h = '';
+            filteredClients.forEach(c => { h += `<tr data-client-id="${c.id}"><td>${c.name || 'N/A'}</td><td>${c.phone || '-'}</td><td>${c.email || '-'}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editClient('${c.id}')" class="edit-button">Editar</button><button onclick="deleteClient('${c.id}')" class="delete-button">Borrar</button><button onclick="selectClientForNewJob('${c.id}')" class="action-button bg-blue-500 hover:bg-blue-600 text-white">Nuevo Trabajo</button></td></tr>`; });
+            b.innerHTML = h;
+        }
+
         function populateJobsTable() {
-            const tableBody = document.getElementById('jobs-table')?.querySelector('tbody');
-            if (!tableBody) return;
+             const b=document.getElementById('jobs-table')?.querySelector('tbody'); if(!b)return;
+             const searchTerm = document.getElementById('job-search')?.value.toLowerCase() || '';
 
-            // Filtrar para mostrar solo 'Encargado' y 'Procesando'
-            const activeJobs = jobsData.filter(job => job.status === 'Encargado' || job.status === 'Procesando');
+             // Filtrar y luego ordenar
+             const filteredAndSortedJobs = jobsData.filter(job => {
+                 const clientName = clientsData[job.clientId]?.name?.toLowerCase() || '';
+                 const details = job.details?.toLowerCase() || '';
+                 return clientName.includes(searchTerm) || details.includes(searchTerm);
+             }).sort(sortByStatusAndDate); // Ordenar por Estado y luego Fecha Pedido Desc
 
-            if (activeJobs.length === 0 && dataLoaded.jobs) {
-                 tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No hay trabajos activos (Encargado o Procesando).</td></tr>';
-                 return;
-            }
+             if(filteredAndSortedJobs.length === 0 && dataLoaded.jobs){b.innerHTML=`<tr><td colspan="9" class="text-center py-4">No hay trabajos${searchTerm ? ' que coincidan.' : '.'}</td></tr>`; return;}
+             if (!dataLoaded.jobs && filteredAndSortedJobs.length === 0) {b.innerHTML = '<tr><td colspan="9" class="text-center py-4">Cargando...</td></tr>'; return;} // Si aún no cargó datos
 
-            // Ordenar los activos por fecha de pedido descendente
-            const sortedJobs = activeJobs.sort((a, b) => (b.orderDate || "").localeCompare(a.orderDate || ""));
+             let h='';
+             filteredAndSortedJobs.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const fc=j.finalCost||0; const dp=j.deposit||0; const o=Math.max(0,fc-dp); const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="text-right">${fc.toFixed(2)}</td><td class="text-right">${dp.toFixed(2)}</td><td class="text-right font-semibold ${o>0.005?'text-red-600':'text-green-600'}">${o.toFixed(2)}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editJob('${j.id}')" class="edit-button">Editar</button><button onclick="deleteJob('${j.id}')" class="delete-button">Borrar</button><button onclick="printTicket('${j.id}')" class="print-button">Ticket PDF</button></td></tr>`;});
+             b.innerHTML=h;
+         }
 
-            let rowsHtml = '';
-            sortedJobs.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || 'Borrado/Desconocido';
-                 const finalCost = job.finalCost || 0;
-                 const deposit = job.deposit || 0;
-                 const outstanding = Math.max(0, finalCost - deposit);
-                 const deliveryDate = job.deliveryDate ? parseDateForComparison(job.deliveryDate) : null;
-                 const today = new Date(); today.setHours(0,0,0,0);
-                 const isOverdue = deliveryDate && deliveryDate < today && job.status !== 'Terminado';
+        function populateDeadlinesTable() {
+             const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b)return;
+             if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos.</td></tr>';return;}
+             const t=new Date(); t.setHours(0,0,0,0);
+             // Filtrar no terminados y ordenar por Estado y luego Fecha Entrega Asc
+             const u=jobsData.filter(j=>j.status!=='Terminado').sort(sortByStatusAndDelivery);
 
-                 rowsHtml += `
-                     <tr data-job-id="${job.id}">
-                         <td>${clientName}</td>
-                         <td class="max-w-xs truncate" title="${job.details||''}">${job.details||'-'}</td>
-                         <td>${formatDate(job.orderDate)}</td>
-                         <td class="${isOverdue ? 'date-overdue' : ''}">${formatDate(job.deliveryDate)}</td>
-                         <td><span class="${getStatusClass(job.status)}">${job.status||'N/A'}</span></td>
-                         <td class="text-right">${finalCost.toFixed(2)}</td>
-                         <td class="text-right">${deposit.toFixed(2)}</td>
-                         <td class="text-right font-semibold ${outstanding > 0.005 ? 'text-red-600' : 'text-green-600'}">${outstanding.toFixed(2)}</td>
-                         <td class="no-print space-x-1 whitespace-nowrap">
-                             <button onclick="editJob('${job.id}')" class="edit-button">Editar</button>
-                             <button onclick="deleteJob('${job.id}')" class="delete-button">Borrar</button>
-                             <button onclick="printTicket('${job.id}')" class="print-button">Ticket PDF</button>
-                         </td>
-                     </tr>`;
-            });
-            tableBody.innerHTML = rowsHtml;
-        }
-        function populateDeadlinesTable() { const b=document.getElementById('deadlines-table')?.querySelector('tbody'); if(!b)return; if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos.</td></tr>';return;} const t=new Date(); t.setHours(0,0,0,0); const u=jobsData.filter(j=>j.status!=='Terminado').sort((a,b)=>(a.deliveryDate||"9999-12-31").localeCompare(b.deliveryDate||"9999-12-31")); if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos pendientes.</td></tr>';return;} let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desconocido'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Vencido (${Math.abs(d)})`;rc='bg-red-100 date-overdue';} else if(d===0){dr='Hoy';rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} día(s)`;rc='bg-yellow-50';} else{dr=`${d} días`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h; }
-        // --- populateStatusTable MODIFICADA ---
+             if(u.length===0){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay trabajos pendientes.</td></tr>';return;}
+             let h=''; u.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; let dr='-'; let rc=''; if(dd){const dt=dd.getTime()-t.getTime(); const d=Math.ceil(dt/(1000*60*60*24)); dr=d; if(d<0){dr=`Vencido (${Math.abs(d)})`;rc='bg-red-100 date-overdue';} else if(d===0){dr='Hoy';rc='bg-yellow-100 font-semibold';} else if(d<=3){dr=`${d} día(s)`;rc='bg-yellow-50';} else{dr=`${d} días`;}} h+=`<tr data-job-id="${j.id}" class="${rc}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td>${formatDate(j.orderDate)}</td><td>${formatDate(j.deliveryDate)}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td>${dr}</td></tr>`;}); b.innerHTML=h;
+         }
+
         function populateStatusTable() {
-            const tableBody = document.getElementById('status-table')?.querySelector('tbody');
-            if (!tableBody) return;
+             const b=document.getElementById('status-table')?.querySelector('tbody'); if(!b)return;
+             if(jobsData.length===0&&dataLoaded.jobs){b.innerHTML='<tr><td colspan="4" class="text-center py-4">No hay trabajos.</td></tr>';return;}
+             // Ordenar por Estado y luego Fecha Entrega Asc
+             const s=[...jobsData].sort(sortByStatusAndDelivery);
 
-            // Filtrar para mostrar solo 'Procesando'
-            const processingJobs = jobsData.filter(job => job.status === 'Procesando');
-
-            if (processingJobs.length === 0 && dataLoaded.jobs) {
-                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4">No hay trabajos en proceso.</td></tr>';
-                 return;
-            }
-
-            // Ordenar los que están en proceso (opcional, p.ej. por fecha entrega)
-            const sortedJobs = processingJobs.sort((a, b) => (a.deliveryDate || "9999-12-31").localeCompare(b.deliveryDate || "9999-12-31"));
-
-            let rowsHtml = '';
-            sortedJobs.forEach(job => {
-                 const clientName = clientsData[job.clientId]?.name || 'Borrado/Desconocido';
-                 const deliveryDate = job.deliveryDate ? parseDateForComparison(job.deliveryDate) : null;
-                 const today = new Date(); today.setHours(0,0,0,0);
-                 const isOverdue = deliveryDate && deliveryDate < today && job.status !== 'Terminado'; // Mantener lógica por si acaso
-                 rowsHtml += `
-                     <tr data-job-id="${job.id}">
-                         <td>${clientName}</td>
-                         <td class="max-w-xs truncate" title="${job.details || ''}">${job.details || '-'}</td>
-                         <td><span class="${getStatusClass(job.status)}">${job.status || 'N/A'}</span></td>
-                         <td class="${isOverdue ? 'date-overdue' : ''}">${formatDate(job.deliveryDate)}</td>
-                     </tr>`;
-            });
-            tableBody.innerHTML = rowsHtml;
-        }
+             let h=''; s.forEach(j=>{const n=clientsData[j.clientId]?.name||'Borrado/Desc.'; const dd=j.deliveryDate?parseDateForComparison(j.deliveryDate):null; const t=new Date(); t.setHours(0,0,0,0); const i=dd&&dd<t&&j.status!=='Terminado'; h+=`<tr data-job-id="${j.id}"><td>${n}</td><td class="max-w-xs truncate" title="${j.details||''}">${j.details||'-'}</td><td><span class="${getStatusClass(j.status)}">${j.status||'N/A'}</span></td><td class="${i?'date-overdue':''}">${formatDate(j.deliveryDate)}</td></tr>`;}); b.innerHTML=h;
+         }
         function generateReports() { let tv=0; let td=0; let ct={}; jobsData.forEach(j=>{const fc=j.finalCost||0; const dp=j.deposit||0; tv+=fc; td+=dp; const cid=j.clientId; if(!cid) return; if(!ct[cid]) ct[cid]={name:clientsData[cid]?.name||`Desconocido (${cid})`, total:0, deposit:0, outstanding:0}; ct[cid].total+=fc; ct[cid].deposit+=dp;}); const to=tv-td; document.getElementById('report-total-value').textContent=`$${tv.toFixed(2)}`; document.getElementById('report-total-deposit').textContent=`$${td.toFixed(2)}`; document.getElementById('report-total-outstanding').textContent=`$${Math.max(0,to).toFixed(2)}`; const otb=document.getElementById('outstanding-table')?.querySelector('tbody'); if(!otb) return; const cwo=Object.values(ct).map(c=>{c.outstanding=Math.max(0,c.total-c.deposit); return c;}).filter(c=>c.outstanding>0.005).sort((a,b)=>b.outstanding-a.outstanding); if(cwo.length===0){otb.innerHTML='<tr><td colspan="4" class="text-center py-4">Ningún cliente tiene saldo pendiente.</td></tr>'; return;} let h=''; cwo.forEach(c=>{h+=`<tr><td>${c.name}</td><td class="text-right">${c.total.toFixed(2)}</td><td class="text-right">${c.deposit.toFixed(2)}</td><td class="text-right font-semibold text-red-600">${c.outstanding.toFixed(2)}</td></tr>`;}); otb.innerHTML=h; }
         function populateMaterialsAdminTable() { if(currentUserRole!=='superadmin') return; const b=document.getElementById('materials-admin-table')?.querySelector('tbody'); if(!b)return; if(Object.keys(materialsData).length===0&&dataLoaded.materials){b.innerHTML='<tr><td colspan="6" class="text-center py-4">No hay materiales.</td></tr>';return;} const s=Object.values(materialsData).sort((a,b)=>{const nc=(a.name||"").localeCompare(b.name||""); if(nc!==0) return nc; return(a.thickness||0)-(b.thickness||0);}); let h=''; s.forEach(m=>{const d=(m.width&&m.height)?`${m.width}x${m.height}`:'N/A'; const at=m.available!==false?'Sí':'No'; const ac=m.available!==false?'text-green-600':'text-red-600'; const c=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; h+=`<tr data-material-id="${m.id}"><td>${m.name||'N/A'}</td><td class="text-right">${m.thickness||'-'}</td><td class="text-right">${c.toFixed(2)}</td><td class="text-center">${d}</td><td class="text-center ${ac} font-semibold">${at}</td><td class="no-print space-x-1 whitespace-nowrap"><button onclick="editMaterialAdmin('${m.id}')" class="edit-button">Editar</button><button onclick="deleteMaterialAdmin('${m.id}')" class="delete-button">Borrar</button></td></tr>`;}); b.innerHTML=h; }
         function populateConfigFormAdmin() { if(currentUserRole!=='superadmin')return; const mi=document.getElementById('config-minutes-admin'); const cc=document.getElementById('monthly-costs-container'); const ccp=document.getElementById('calculated-cost-per-minute'); if(!mi||!cc||!ccp)return; mi.value=configData.minutes_per_month||2400; cc.innerHTML=''; const costs=configData.monthly_costs||{}; if(Object.keys(costs).length===0) addMonthlyCostInput('Ej: Alquiler',''); else Object.keys(costs).sort().forEach(key=>addMonthlyCostInput(key, costs[key])); ccp.textContent=`$${(configData.cost_per_minute||0).toFixed(4)} / min`; }
@@ -533,152 +363,65 @@
         function editClient(id) { const c=clientsData[id]; if(!c){showFeedback(document.getElementById('client-form-feedback'),`Cliente ${id} N/E.`,'error'); return;} document.getElementById('client-form-title').textContent='Editar Cliente'; document.getElementById('client-id').value=c.id; document.getElementById('client-name').value=c.name||''; document.getElementById('client-phone').value=c.phone||''; document.getElementById('client-email').value=c.email||''; document.getElementById('client-name').focus(); document.getElementById('client-form').scrollIntoView({behavior:'smooth',block:'start'}); }
         function resetClientForm() { document.getElementById('client-form-title').textContent='Añadir Cliente'; const f=document.getElementById('client-form'); if(f)f.reset(); const i=document.getElementById('client-id'); if(i)i.value=''; const fb=document.getElementById('client-form-feedback'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; }
         async function deleteClient(id) { if(!db)return; const n=clientsData[id]?.name||`ID ${id}`; const aj=jobsData.filter(j=>j.clientId===id); let m=`Borrar "${n}"?`; if(aj.length>0) m+=`\n\n¡ATENCIÓN! ${aj.length} trabajo(s) asociado(s).`; m+="\n\nNo se puede deshacer."; if(!confirm(m))return; const f=document.getElementById('client-form-feedback'); try { showFeedback(f,'Borrando...','info'); await db.collection('clients').doc(id).delete(); delete clientsData[id]; showFeedback(f,`Cliente "${n}" borrado.`,'success'); populateClientsTable(); populateClientDropdown('job-client'); if(jobsData.some(j=>j.clientId===id)){populateJobsTable();populateDeadlinesTable();populateStatusTable();generateReports();} if(document.getElementById('client-id').value===id) resetClientForm(); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} }
-        function selectClientForNewJob(id) { const n=clientsData[id]?.name; if(!n)return; console.log(`Seleccionado cliente ${n} (${id})`); setActiveTab(document.querySelector('[data-target=new-job-form]')); setTimeout(()=>{const s=document.getElementById('job-client'); if(s){resetJobForm(id); s.value=id; document.getElementById('job-details')?.focus();} else console.error("job-client N/E.");}, 150); }
+        function selectClientForNewJob(id) { const n=clientsData[id]?.name; if(!n)return; console.log(`Seleccionado cliente ${n} (${id})`); navigateTo('new-job-form'); setTimeout(()=>{const s=document.getElementById('job-client'); if(s){resetJobForm(id); s.value=id; document.getElementById('job-details')?.focus();} else console.error("job-client N/E.");}, 150); }
         document.getElementById('job-job-type')?.addEventListener('change',(e)=>{const t=e.target.value; const cf=document.getElementById('job-cut-time-field'); const ef=document.getElementById('job-engrave-time-field'); const ci=document.getElementById('job-cut-minutes'); const ei=document.getElementById('job-engrave-minutes'); if(!cf||!ef||!ci||!ei) return; cf.style.display=(t==='corte'||t==='ambos')?'grid':'none'; ef.style.display=(t==='grabado'||t==='ambos')?'grid':'none'; if(t==='grabado') ci.value=0; if(t==='corte') ei.value=0;});
-        // --- calculateJobQuote MODIFICADA ---
+
+        // --- calculateJobQuote (Corregida para redondeo y visibilidad) ---
         function calculateJobQuote() {
              console.log("Calc cost..."); const f=document.getElementById('job-form-feedback'); const r=document.getElementById('job-quote-base-result'); const fcInput=document.getElementById('job-final-cost'); currentJobQuoteBaseCost=0;
              try {
                  showFeedback(f,'','info'); const mid=document.getElementById('job-material').value; const l=parseFloat(document.getElementById('job-length').value)||0; const w=parseFloat(document.getElementById('job-width').value)||0; let mc=0;
-                 if(mid&&l>0&&w>0){ const m=materialsData[mid]; if(!m) throw new Error("Material inválido."); const sc=parseFloat((m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0); const sw=parseFloat(m.width||0); const sh=parseFloat(m.height||0); if(sw<=0||sh<=0) throw new Error(`Dim plancha inválida ${sw}x${sh} para "${m.name}".`); const sa=sw*sh; const ja=l*w; mc=(sc/sa)*ja; } else if(mid&&(l<=0||w<=0)) showFeedback(f,'Aviso: Ingrese Alto/Ancho para costo material.','info');
+                 if(mid&&l>0&&w>0){ const m=materialsData[mid]; if(!m) throw new Error("Material inválido."); const sc=parseFloat((m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0); const sw=parseFloat(m.width||0); const sh=parseFloat(m.height||0); if(sw<=0||sh<=0) throw new Error(`Dim plancha inválida ${sw}x${sh} para "${m.name}".`); const sa=sw*sh; const ja=l*w; mc=(sc/sa)*ja; } else if(mid&&(l<=0||w<=0)) showFeedback(f,'Aviso: Ingrese L/A para costo material.','info');
                  const jt=document.getElementById('job-job-type').value; const cmin=(jt==='corte'||jt==='ambos')?(parseFloat(document.getElementById('job-cut-minutes').value)||0):0; const emin=(jt==='grabado'||jt==='ambos')?(parseFloat(document.getElementById('job-engrave-minutes').value)||0):0; const tm=cmin+emin; let mac=0;
                  if(configData.cost_per_minute===undefined||configData.cost_per_minute===null) throw new Error("Costo/min N/D. Revise Config."); if(configData.cost_per_minute<=0&&tm>0) { let cf=f.textContent; showFeedback(f,(cf?cf+" ":"")+'Aviso: Costo/min es $0.','info'); } if(tm>0){mac=tm*configData.cost_per_minute;}
                  currentJobQuoteBaseCost=mc+mac; console.log(`Base Cost Calculated: ${currentJobQuoteBaseCost.toFixed(2)}`);
-                 if(currentUserRole === 'superadmin' && r) { r.textContent=`Costo Base Est: $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent = ''; }
-                 if(fcInput){ let finalCost=currentJobQuoteBaseCost*2; finalCost=Math.ceil(finalCost/10)*10; fcInput.value=finalCost.toFixed(2); console.log(`Final Cost Rounded: ${finalCost.toFixed(2)}`); let fbMsg=`Costo final (redondeado) $${finalCost.toFixed(2)}.`; if(currentUserRole==='superadmin'){fbMsg=`Base $${currentJobQuoteBaseCost.toFixed(2)}. ${fbMsg}`;} let currFb=f.textContent.includes('Aviso')?f.textContent+" // ":""; showFeedback(f,currFb+fbMsg,'success'); } else { let fbMsg=`Costo base calculado.`; if(currentUserRole==='superadmin'){fbMsg=`Base $${currentJobQuoteBaseCost.toFixed(2)}.`} showFeedback(f,fbMsg,'success'); }
+                 if(currentUserRole === 'superadmin' && r){ r.textContent=`Costo Base Est: $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent=''; }
+                 if(fcInput){ let finalCost = currentJobQuoteBaseCost * 2; finalCost = Math.ceil(finalCost / 10) * 10; fcInput.value=finalCost.toFixed(2); console.log(`Final Cost Rounded: ${finalCost.toFixed(2)}`); let fbMsg=`Costo final calculado: $${finalCost.toFixed(2)}.`; if(currentUserRole==='superadmin'){fbMsg=`Costo base $${currentJobQuoteBaseCost.toFixed(2)}. ${fbMsg}`;} let curFb=f.textContent.includes('Aviso')?f.textContent+" // ":""; showFeedback(f,curFb+fbMsg,'success'); } else { let fbMsg=`Costo calculado.`; if(currentUserRole==='superadmin'){fbMsg=`Costo base $${currentJobQuoteBaseCost.toFixed(2)}.`;} showFeedback(f,fbMsg,'success'); }
              } catch(err) { console.error("Calc cost err:", err); currentJobQuoteBaseCost=0; if(r)r.textContent='Error'; if(fcInput)fcInput.value='0.00'; showFeedback(f,`Error: ${err.message}`,'error'); }
          }
-        document.getElementById('job-form')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(!db)return; const id=document.getElementById('job-id').value; const f=document.getElementById('job-form-feedback'); showFeedback(f,'','info'); const finalCostValue=parseFloat(document.getElementById('job-final-cost').value)||0; const d={clientId:document.getElementById('job-client').value, details:document.getElementById('job-details').value.trim(), materialId:document.getElementById('job-material').value, length:parseFloat(document.getElementById('job-length').value)||null, width:parseFloat(document.getElementById('job-width').value)||null, jobType:document.getElementById('job-job-type').value, cutMinutes:parseFloat(document.getElementById('job-cut-minutes').value)||0, engraveMinutes:parseFloat(document.getElementById('job-engrave-minutes').value)||0, orderDate:document.getElementById('job-order-date').value, deliveryDate:document.getElementById('job-delivery-date').value, status:document.getElementById('job-status').value, baseCost:currentJobQuoteBaseCost, finalCost: finalCostValue, deposit:parseFloat(document.getElementById('job-deposit').value)||0, observations:document.getElementById('job-observations').value.trim()||null}; let errs=[]; if(!d.clientId)errs.push('Seleccione cliente.'); if(!d.details)errs.push('Ingrese detalles.'); if(!d.materialId)errs.push('Seleccione material.'); if(!d.length||d.length<=0)errs.push('Alto positivo.'); if(!d.width||d.width<=0)errs.push('Ancho positivo.'); if(!d.orderDate)errs.push('F.Pedido.'); if(!d.deliveryDate)errs.push('F.Entrega.'); if(d.orderDate&&d.deliveryDate&&d.deliveryDate<d.orderDate)errs.push('Entrega < Pedido.'); if(d.finalCost<0)errs.push('Costo final neg.'); if(d.deposit<0)errs.push('Seña neg.'); if(d.deposit>d.finalCost)errs.push('Seña > Total.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} if(d.finalCost<=0&&!confirm("Costo final $0 o menos. Guardar?"))return; try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('jobs').doc(id).update(d); showFeedback(f,'Trabajo actualizado.','success');} else {const r=await db.collection('jobs').add(d); d.id=r.id; showFeedback(f,'Trabajo creado.','success');} dataLoaded.jobs=false; setActiveTab(document.querySelector('[data-target=jobs]')); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
-        // --- editJob MODIFICADA ---
+        document.getElementById('job-form')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(!db)return; const id=document.getElementById('job-id').value; const f=document.getElementById('job-form-feedback'); showFeedback(f,'','info'); const d={clientId:document.getElementById('job-client').value, details:document.getElementById('job-details').value.trim(), materialId:document.getElementById('job-material').value, length:parseFloat(document.getElementById('job-length').value)||null, width:parseFloat(document.getElementById('job-width').value)||null, jobType:document.getElementById('job-job-type').value, cutMinutes:parseFloat(document.getElementById('job-cut-minutes').value)||0, engraveMinutes:parseFloat(document.getElementById('job-engrave-minutes').value)||0, orderDate:document.getElementById('job-order-date').value, deliveryDate:document.getElementById('job-delivery-date').value, status:document.getElementById('job-status').value, baseCost:currentJobQuoteBaseCost, finalCost:parseFloat(document.getElementById('job-final-cost').value)||0, deposit:parseFloat(document.getElementById('job-deposit').value)||0, observations:document.getElementById('job-observations').value.trim()||null}; let errs=[]; if(!d.clientId)errs.push('Seleccione cliente.'); if(!d.details)errs.push('Ingrese detalles.'); if(!d.materialId)errs.push('Seleccione material.'); if(!d.length||d.length<=0)errs.push('Largo positivo.'); if(!d.width||d.width<=0)errs.push('Ancho positivo.'); if(!d.orderDate)errs.push('Falta F.Pedido.'); if(!d.deliveryDate)errs.push('Falta F.Entrega.'); if(d.orderDate&&d.deliveryDate&&d.deliveryDate<d.orderDate)errs.push('Entrega < Pedido.'); if(d.finalCost<0)errs.push('Costo final neg.'); if(d.deposit<0)errs.push('Seña neg.'); if(d.deposit>d.finalCost)errs.push('Seña > Total.'); if(errs.length>0){showFeedback(f,errs.join(' '),'error'); return;} try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('jobs').doc(id).update(d); showFeedback(f,'Trabajo actualizado.','success');} else {const r=await db.collection('jobs').add(d); d.id=r.id; showFeedback(f,'Trabajo creado.','success');} dataLoaded.jobs=false; navigateTo('jobs'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
+        // --- editJob (Corregida visibilidad Costo Base) ---
         function editJob(id) {
-            const j = jobsData.find(j => j.id === id); if (!j) { alert(`Trabajo ${id} N/E.`); return; } console.log("Editando:", j);
-            document.getElementById('job-form-title').textContent = 'Editar Trabajo'; document.getElementById('job-id').value = j.id;
-            document.getElementById('job-client').value = j.clientId || ''; document.getElementById('job-details').value = j.details || '';
-            document.getElementById('job-material').value = j.materialId || ''; document.getElementById('job-length').value = j.length || '';
-            document.getElementById('job-width').value = j.width || ''; document.getElementById('job-job-type').value = j.jobType || 'corte';
-            document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value = j.cutMinutes || 0;
-            document.getElementById('job-engrave-minutes').value = j.engraveMinutes || 0; document.getElementById('job-order-date').value = j.orderDate || '';
-            document.getElementById('job-delivery-date').value = j.deliveryDate || ''; document.getElementById('job-status').value = j.status || 'Encargado';
-            document.getElementById('job-final-cost').value = (j.finalCost || 0).toFixed(2); document.getElementById('job-deposit').value = (j.deposit || 0).toFixed(2); document.getElementById('job-observations').value = j.observations || '';
-            currentJobQuoteBaseCost = j.baseCost || 0;
-            const r = document.getElementById('job-quote-base-result');
-            if (currentUserRole === 'superadmin' && r) { r.textContent = `Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent = ''; }
-            setActiveTab(document.querySelector('[data-target=new-job-form]'));
-            setTimeout(() => { document.getElementById('job-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
-        }
-        function resetJobForm(keepClientId=null) { console.log("Reseteando form trabajo..."); document.getElementById('job-form-title').textContent='Nuevo Trabajo'; const f=document.getElementById('job-form'); if(f)f.reset(); document.getElementById('job-id').value=''; currentJobQuoteBaseCost=0; document.getElementById('job-quote-base-result').textContent='Costo Base Est: $0.00'; document.getElementById('job-final-cost').value='0.00'; document.getElementById('job-order-date').value=new Date().toISOString().split('T')[0]; document.getElementById('job-job-type').dispatchEvent(new Event('change')); const fb=document.getElementById('job-form-feedback'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; if(keepClientId){const s=document.getElementById('job-client'); if(s)s.value=keepClientId;} }
+             const j = jobsData.find(j => j.id === id); if (!j) { alert(`Trabajo ${id} N/E.`); return; } console.log("Editando:", j);
+             document.getElementById('job-form-title').textContent = 'Editar Trabajo'; document.getElementById('job-id').value = j.id;
+             document.getElementById('job-client').value = j.clientId || ''; document.getElementById('job-details').value = j.details || ''; document.getElementById('job-material').value = j.materialId || ''; document.getElementById('job-length').value = j.length || ''; document.getElementById('job-width').value = j.width || ''; document.getElementById('job-job-type').value = j.jobType || 'corte'; document.getElementById('job-job-type').dispatchEvent(new Event('change')); document.getElementById('job-cut-minutes').value = j.cutMinutes || 0; document.getElementById('job-engrave-minutes').value = j.engraveMinutes || 0; document.getElementById('job-order-date').value = j.orderDate || ''; document.getElementById('job-delivery-date').value = j.deliveryDate || ''; document.getElementById('job-status').value = j.status || 'Encargado'; document.getElementById('job-final-cost').value = (j.finalCost || 0).toFixed(2); document.getElementById('job-deposit').value = (j.deposit || 0).toFixed(2); document.getElementById('job-observations').value = j.observations || '';
+             currentJobQuoteBaseCost = j.baseCost || 0;
+             const r = document.getElementById('job-quote-base-result');
+             if (currentUserRole === 'superadmin' && r) { r.textContent = `Costo Base (Guardado): $${currentJobQuoteBaseCost.toFixed(2)}`; } else if (r) { r.textContent = ''; }
+             navigateTo('new-job-form');
+             setTimeout(() => { document.getElementById('job-form').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+         }
+        function resetJobForm(keepClientId=null) { console.log("Reseteando form trabajo..."); document.getElementById('job-form-title').textContent='Nuevo Trabajo'; const f=document.getElementById('job-form'); if(f)f.reset(); document.getElementById('job-id').value=''; currentJobQuoteBaseCost=0; const r=document.getElementById('job-quote-base-result'); if(r)r.textContent='Costo Base Est: $0.00'; document.getElementById('job-final-cost').value='0.00'; document.getElementById('job-order-date').value=new Date().toISOString().split('T')[0]; document.getElementById('job-job-type').dispatchEvent(new Event('change')); const fb=document.getElementById('job-form-feedback'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; if(keepClientId){const s=document.getElementById('job-client'); if(s)s.value=keepClientId;} }
         async function deleteJob(id) { if(!db)return; const j=jobsData.find(j=>j.id===id); const n=j?(clientsData[j.clientId]?.name||'Desconocido'):'Desconocido'; const d=j?(j.details||`ID ${id}`):`ID ${id}`; if(!confirm(`Borrar trabajo "${d}" para "${n}"?`))return; try { console.log(`Borrando job ${id}...`); await db.collection('jobs').doc(id).delete(); jobsData=jobsData.filter(j=>j.id!==id); console.log(`Job ${id} borrado.`); alert(`Trabajo "${d}" borrado.`); populateJobsTable(); populateDeadlinesTable(); populateStatusTable(); generateReports(); if(document.getElementById('job-id').value===id) resetJobForm(); } catch(err){alert(`Error: ${err.message}`);} }
         document.getElementById('material-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const id=document.getElementById('material-id-admin').value; const f=document.getElementById('material-form-feedback-admin'); showFeedback(f,'','info'); const d={name:document.getElementById('material-name-admin').value.trim(), thickness:parseFloat(document.getElementById('material-thickness-admin').value)||null, costPerSheet:parseFloat(document.getElementById('material-cost-admin').value)||0, width:parseFloat(document.getElementById('material-width-admin').value)||null, height:parseFloat(document.getElementById('material-height-admin').value)||null, available:document.getElementById('material-availability-admin').checked}; let errs=[]; if(!d.name)errs.push('Nombre.'); if(!d.thickness||d.thickness<=0)errs.push('Grosor.'); if(d.costPerSheet<0)errs.push('Costo.'); if(!d.width||d.width<=0)errs.push('Ancho.'); if(!d.height||d.height<=0)errs.push('Alto.'); if(errs.length>0){showFeedback(f,errs.join(' ')+' obligatorio/positivo.','error'); return;} try { showFeedback(f,'Guardando...','info'); if(id){await db.collection('materials').doc(id).update(d); materialsData[id]={...materialsData[id],...d}; showFeedback(f,'Actualizado.','success');} else {const r=await db.collection('materials').add(d); materialsData[r.id]={...d,id:r.id}; showFeedback(f,'Añadido.','success');} resetMaterialFormAdmin(); populateMaterialsAdminTable(); populateMaterialDropdown('job-material'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
-        function editMaterialAdmin(id) { if(currentUserRole!=='superadmin')return; const m=materialsData[id]; if(!m)return; document.getElementById('material-form-title-admin').textContent='Editar Material'; document.getElementById('material-id-admin').value=m.id; document.getElementById('material-name-admin').value=m.name||''; document.getElementById('material-thickness-admin').value=m.thickness||''; document.getElementById('material-cost-admin').value=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; document.getElementById('material-width-admin').value=m.width||''; document.getElementById('material-height-admin').value=m.height||''; document.getElementById('material-availability-admin').checked=m.available!==false; document.getElementById('material-form-admin').scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('material-name-admin').focus(); }
+        function editMaterialAdmin(id) { if(currentUserRole!=='superadmin')return; const m=materialsData[id]; if(!m)return; /* No resetear */ document.getElementById('material-form-title-admin').textContent='Editar Material'; document.getElementById('material-id-admin').value=m.id; document.getElementById('material-name-admin').value=m.name||''; document.getElementById('material-thickness-admin').value=m.thickness||''; document.getElementById('material-cost-admin').value=(m.costPerSheet!==undefined?m.costPerSheet:m.cost)||0; document.getElementById('material-width-admin').value=m.width||''; document.getElementById('material-height-admin').value=m.height||''; document.getElementById('material-availability-admin').checked=m.available!==false; document.getElementById('material-form-admin').scrollIntoView({behavior:'smooth',block:'start'}); document.getElementById('material-name-admin').focus(); }
         function resetMaterialFormAdmin() { if(currentUserRole!=='superadmin')return; document.getElementById('material-form-title-admin').textContent='Añadir Material'; const f=document.getElementById('material-form-admin'); if(f)f.reset(); document.getElementById('material-id-admin').value=''; document.getElementById('material-availability-admin').checked=true; document.getElementById('material-width-admin').value='1300'; document.getElementById('material-height-admin').value='900'; const fb=document.getElementById('material-form-feedback-admin'); if(fb)fb.textContent=''; fb.className='mt-2 text-sm feedback'; }
         async function deleteMaterialAdmin(id) { if(currentUserRole!=='superadmin'||!db)return; const n=materialsData[id]?.name||`ID ${id}`; const iu=jobsData.some(j=>j.materialId===id); let cm=`Borrar "${n}"?`; if(iu)cm+=`\n\nATENCIÓN: Usado en trabajos.`; cm+="\n\nNo se puede deshacer."; if(!confirm(cm))return; const f=document.getElementById('material-form-feedback-admin'); try { showFeedback(f,'Borrando...','info'); await db.collection('materials').doc(id).delete(); delete materialsData[id]; showFeedback(f,`Material "${n}" borrado.`,'success'); populateMaterialsAdminTable(); populateMaterialDropdown('job-material'); if(document.getElementById('material-id-admin').value===id) resetMaterialFormAdmin(); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} }
-        function addMonthlyCostInput(key='',value='') { const c=document.getElementById('monthly-costs-container'); if(!c)return; const d=document.createElement('div'); d.className='flex items-center space-x-2 cost-entry'; d.innerHTML=`<input type="text" placeholder="Descripción" value="${key}" data-cost-key class="flex-grow p-1 border border-gray-300 rounded-md text-sm"> <input type="number" placeholder="0.00" value="${value}" step="0.01" min="0" data-cost-value class="w-24 p-1 border border-gray-300 rounded-md text-sm text-right"> <button type="button" onclick="removeMonthlyCostInput(this)" class="text-red-500 hover:text-red-700 text-xl font-bold leading-none px-1" title="Eliminar">&times;</button>`; c.appendChild(d); d.querySelector('[data-cost-key]').focus(); }
+        function addMonthlyCostInput(key='',value='') { const c=document.getElementById('monthly-costs-container'); if(!c)return; const d=document.createElement('div'); d.className='flex items-center space-x-2 cost-entry'; d.innerHTML=`<input type="text" placeholder="Descripción" value="${key}" data-cost-key class="flex-grow p-1 border rounded text-sm"> <input type="number" placeholder="0.00" value="${value}" step="0.01" min="0" data-cost-value class="w-24 p-1 border rounded text-sm text-right"> <button type="button" onclick="removeMonthlyCostInput(this)" class="text-red-500 hover:text-red-700 text-xl font-bold leading-none px-1" title="Eliminar">&times;</button>`; c.appendChild(d); d.querySelector('[data-cost-key]').focus(); }
         function removeMonthlyCostInput(button) { const p=button.closest('.cost-entry'); if(p)p.remove(); }
         document.getElementById('config-form-admin')?.addEventListener('submit', async(e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const f=document.getElementById('config-form-feedback-admin'); showFeedback(f,'','info'); document.querySelectorAll('#monthly-costs-container input, #config-minutes-admin').forEach(i=>i.classList.remove('border-red-500')); const min=parseInt(document.getElementById('config-minutes-admin').value,10); const ces=document.querySelectorAll('#monthly-costs-container .cost-entry'); const mc={}; let iv=true; let errs=[]; if(isNaN(min)||min<=0){errs.push('Minutos positivo.'); document.getElementById('config-minutes-admin').classList.add('border-red-500'); iv=false;} ces.forEach((div,idx)=>{const ki=div.querySelector('[data-cost-key]'); const vi=div.querySelector('[data-cost-value]'); const k=ki.value.trim(); const vs=vi.value.trim(); const v=parseFloat(vs); if(k||vs){let eiv=true; if(!k){errs.push(`Fila ${idx+1}: Descrip.`); ki.classList.add('border-red-500'); eiv=false;} if(vs===''||isNaN(v)||v<0){errs.push(`Fila ${idx+1} ('${k||'?'}'): Valor >= 0.`); vi.classList.add('border-red-500'); eiv=false;} if(eiv){if(mc.hasOwnProperty(k)){errs.push(`Fila ${idx+1}: Descrip. duplicada "${k}".`); ki.classList.add('border-red-500'); eiv=false;} else mc[k]=v;} if(!eiv)iv=false;}}); if(!iv){showFeedback(f,errs.join(' '),'error'); return;} const cu={minutes_per_month:min,monthly_costs:mc}; try { showFeedback(f,'Guardando...','info'); await db.collection('config').doc('main').set(cu,{merge:true}); const tm=Object.values(mc).reduce((s,v)=>s+v,0); configData={...configData,minutes_per_month:min,monthly_costs:mc,cost_per_minute:min>0?tm/min:0}; console.log("Config guardada. Costo/min:", configData.cost_per_minute); populateConfigFormAdmin(); showFeedback(f,'Config guardada.','success'); } catch(err){showFeedback(f,`Error: ${err.message}`,'error');} });
 
         // --- Funciones de Generación PDF ---
         function showPdfLoading(show = true) { const o=document.getElementById('pdf-loading-overlay'); if(o) o.style.display=show?'flex':'none'; }
         async function printTicket(jobId) {
-             console.log(`Generating PDF ticket: ${jobId}`);
-             if(typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;}
-             const { jsPDF } = window.jspdf;
-             const job = jobsData.find(j => j.id === jobId); if (!job) { alert(`Error: Job ${jobId} N/E.`); return; }
-             const client = clientsData[job.clientId]; const material = materialsData[job.materialId];
-             const renderArea = document.getElementById('pdf-render-area'); if (!renderArea) { alert("Error: Render area N/E."); return; }
-             showPdfLoading(true);
-             const finalCost = job.finalCost || 0; const deposit = job.deposit || 0; const outstanding = Math.max(0, finalCost - deposit);
-             const clientNameForFile = client?.name?.replace(/[^a-z0-9_]/gi, '_').replace(/ /g, '_').toLowerCase() || 'cliente';
-             const fileName = `ticket_${clientNameForFile}_${jobId.substring(0,6)}.pdf`;
-
+             console.log(`Generating PDF ticket: ${jobId}`); if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;} const { jsPDF } = window.jspdf; const job=jobsData.find(j=>j.id===jobId); if (!job) { alert(`Error: Job ${jobId} N/E.`); return; } const client=clientsData[job.clientId]; const material=materialsData[job.materialId]; const renderArea=document.getElementById('pdf-render-area'); if (!renderArea) { alert("Error: Render area N/E."); return; } showPdfLoading(true); const finalCost=job.finalCost||0; const deposit=job.deposit||0; const outstanding=Math.max(0,finalCost-deposit); const clientNameForFile=client?.name?.replace(/[^a-z0-9_]/gi, '_').replace(/ /g, '_').toLowerCase()||'cliente'; const fileName=`ticket_${clientNameForFile}_${jobId.substring(0,6)}.pdf`;
              let ticketHtml = `<h2>** TICKET TRABAJO **</h2><p><span class="detail-label">ID Trabajo:</span><span class="detail-value">${job.id.substring(0, 6)}</span></p><p><span class="detail-label">Pedido:</span><span class="detail-value">${formatDate(job.orderDate)}</span></p><p><span class="detail-label">Entrega:</span><span class="detail-value">${formatDate(job.deliveryDate)}</span></p><hr><p><strong>CLIENTE:</strong></p><p><span class="detail-label">Nombre:</span><span class="detail-value">${client?.name||'N/A'}</span></p>${client?.phone?`<p><span class="detail-label">Tel:</span><span class="detail-value">${client.phone}</span></p>`:''}<hr><p><strong>DETALLES TRABAJO:</strong></p><p>${job.details||'-'}</p><p><span class="detail-label">Material:</span> <span class="detail-value">${material?.name||'?'} ${material?.thickness||'?'}mm</span></p>${(job.length&&job.width)?`<p><span class="detail-label">Medidas:</span> <span class="detail-value">${job.length}x${job.width}mm</span></p>`:''}<p><span class="detail-label">Tipo:</span> <span class="detail-value">${job.jobType||'N/A'}</span></p>${(job.cutMinutes>0)?`<p><span class="detail-label">T. Corte:</span> <span class="detail-value">${job.cutMinutes} min</span></p>`:''}${(job.engraveMinutes>0)?`<p><span class="detail-label">T. Grabado:</span> <span class="detail-value">${job.engraveMinutes} min</span></p>`:''}${job.observations?`<hr><p><strong>Obs:</strong> ${job.observations}</p>`:''}<hr><div class="totals"><p class="item-line"><span>Total:</span> <span>$${finalCost.toFixed(2)}</span></p><p class="item-line"><span>Seña:</span> <span>$${deposit.toFixed(2)}</span></p><p class="item-line"><strong><span>PENDIENTE:</span> <span>$${outstanding.toFixed(2)}</span></strong></p></div><hr><p style="text-align: center; font-size: 8pt; margin-top: 5px;">¡Gracias!</p>`;
-
-             renderArea.innerHTML=ticketHtml;
-             const origStyle={position:renderArea.style.position,left:renderArea.style.left,top:renderArea.style.top,visibility:renderArea.style.visibility,zIndex:renderArea.style.zIndex};
-             renderArea.style.position='fixed'; renderArea.style.left='0px'; renderArea.style.top='0px'; renderArea.style.visibility='visible'; renderArea.style.zIndex='-1';
-             await new Promise(resolve => requestAnimationFrame(resolve));
-
-             try {
-                 if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D.");
-                 const canvas=await html2canvas(renderArea,{scale:2,useCORS:true,logging:false});
-                 const imgData=canvas.toDataURL('image/png');
-                 const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[80,canvas.height*(80/canvas.width)+10]});
-                 const pdfWidth=pdf.internal.pageSize.getWidth()-6; const pdfHeight=(canvas.height*pdfWidth)/canvas.width;
-                 pdf.addImage(imgData,'PNG',3,3,pdfWidth,pdfHeight);
-                 pdf.save(fileName);
-             } catch(err){console.error("Error PDF ticket:", err); alert("Error generando PDF ticket: "+err.message);}
-             finally {
-                 renderArea.style.position=origStyle.position; renderArea.style.left=origStyle.left; renderArea.style.top=origStyle.top; renderArea.style.visibility=origStyle.visibility; renderArea.style.zIndex=origStyle.zIndex;
-                 renderArea.innerHTML=''; showPdfLoading(false); console.log("PDF ticket finished.");
-             }
+             renderArea.innerHTML=ticketHtml; const origStyle={position:renderArea.style.position,left:renderArea.style.left,top:renderArea.style.top,visibility:renderArea.style.visibility,zIndex:renderArea.style.zIndex}; renderArea.style.position='fixed'; renderArea.style.left='0px'; renderArea.style.top='0px'; renderArea.style.visibility='visible'; renderArea.style.zIndex='-1'; await new Promise(resolve => requestAnimationFrame(resolve));
+             try { if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D."); const canvas=await html2canvas(renderArea,{scale:2,useCORS:true,logging:false}); const imgData=canvas.toDataURL('image/png'); const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[80,canvas.height*(80/canvas.width)+10]}); const pdfWidth=pdf.internal.pageSize.getWidth()-6; const pdfHeight=(canvas.height*pdfWidth)/canvas.width; pdf.addImage(imgData,'PNG',3,3,pdfWidth,pdfHeight); pdf.save(fileName); } catch(err){console.error("Error PDF ticket:", err); alert("Error generando PDF ticket: "+err.message);} finally { renderArea.style.position=origStyle.position; renderArea.style.left=origStyle.left; renderArea.style.top=origStyle.top; renderArea.style.visibility=origStyle.visibility; renderArea.style.zIndex=origStyle.zIndex; renderArea.innerHTML=''; showPdfLoading(false); console.log("PDF ticket finished."); }
          }
         async function printCurrentSection() {
-             console.log(`Generating PDF section: ${activeSectionId}`);
-             if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;}
-             const { jsPDF } = window.jspdf;
-             const sectionToPrint=document.getElementById(activeSectionId);
-             if(!sectionToPrint||!sectionToPrint.classList.contains('tab-content')){alert("Sección N/V."); return;}
-             if(activeSectionId==='new-job-form'||activeSectionId==='admin-materials'||activeSectionId==='admin-config'){if(!confirm("Generar PDF de formulario? (Puede no ser ideal) ¿Continuar?")) return;}
-             else if(activeSectionId==='login'||activeSectionId==='home'){alert("Esta sección no se exporta."); return;}
-
-             const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint;
-             if (!elementToPrint) { alert("No content found."); return; }
-
-             let hiddenElements = [];
-             if (elementToPrint.tagName === 'TABLE') {
-                 elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}});
-             } else {
-                  elementToPrint.querySelectorAll('button, .no-print').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}});
-             }
-
-             console.log("Element:", elementToPrint.id||elementToPrint.tagName); showPdfLoading(true);
-             await new Promise(resolve => setTimeout(resolve, 100));
-
-             try {
-                  if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D.");
-                  const canvas=await html2canvas(elementToPrint,{scale:1.2,useCORS:true,logging:false});
-                  const imgData=canvas.toDataURL('image/png');
-                  const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-                  const imgProps=pdf.getImageProperties(imgData);
-                  const pdfWidth=pdf.internal.pageSize.getWidth()-20; const pdfHeight=(imgProps.height*pdfWidth)/imgProps.width;
-                  const pageHeight=pdf.internal.pageSize.getHeight()-20; let heightLeft=pdfHeight; let position=10;
-                  pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight;
-                  while(heightLeft>0){ position-=pageHeight; pdf.addPage(); pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight; }
-                  pdf.save(`seccion_${activeSectionId}.pdf`);
-             } catch(err){console.error("Error PDF section:", err); alert("Error generando PDF sección: "+err.message);}
-             finally{ hiddenElements.forEach(item=>{item.element.style.display=item.originalDisplay||'';}); showPdfLoading(false); console.log("PDF section finished."); }
+             console.log(`Generating PDF section: ${activeSectionId}`); if(typeof window.jspdf==='undefined'||typeof window.html2canvas==='undefined'){alert("Error: Librerías PDF no cargadas. Reintente."); console.error("PDF libs N/A"); return;} const { jsPDF } = window.jspdf; const sectionToPrint=document.getElementById(activeSectionId); if(!sectionToPrint||!sectionToPrint.classList.contains('main-section')){alert("Sección N/V."); return;} if(activeSectionId==='new-job-form'||activeSectionId==='admin-materials'||activeSectionId==='admin-config'){if(!confirm("Generar PDF de formulario? (Puede no ser ideal) ¿Continuar?")) return;} else if(activeSectionId==='login'||activeSectionId==='home'){alert("Esta sección no se exporta."); return;} const elementToPrint = sectionToPrint.querySelector('.admin-table') || sectionToPrint; if (!elementToPrint) { alert("No content found."); return; } let hiddenElements = []; if (elementToPrint.tagName === 'TABLE') { elementToPrint.querySelectorAll('thead th:last-child, tbody td:last-child, tbody button').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}}); } else { elementToPrint.querySelectorAll('button, .no-print').forEach(el => { if(el.style.display !== 'none'){hiddenElements.push({element:el, originalDisplay:el.style.display}); el.style.display='none';}}); } console.log("Element:", elementToPrint.id||elementToPrint.tagName); showPdfLoading(true); await new Promise(resolve => setTimeout(resolve, 100));
+             try { if(typeof window.html2canvas==='undefined') throw new Error("html2canvas N/D."); const canvas=await html2canvas(elementToPrint,{scale:1.2,useCORS:true,logging:false}); const imgData=canvas.toDataURL('image/png'); const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}); const imgProps=pdf.getImageProperties(imgData); const pdfWidth=pdf.internal.pageSize.getWidth()-20; const pdfHeight=(imgProps.height*pdfWidth)/imgProps.width; const pageHeight=pdf.internal.pageSize.getHeight()-20; let heightLeft=pdfHeight; let position=10; pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight; while(heightLeft>0){ position-=pageHeight; pdf.addPage(); pdf.addImage(imgData,'PNG',10,position,pdfWidth,pdfHeight); heightLeft-=pageHeight; } pdf.save(`seccion_${activeSectionId}.pdf`); } catch(err){console.error("Error PDF section:", err); alert("Error generando PDF sección: "+err.message);} finally{ hiddenElements.forEach(item=>{item.element.style.display=item.originalDisplay||'';}); showPdfLoading(false); console.log("PDF section finished."); }
         }
-        // --- Funciones de Reporte Bajo Demanda ---
-        function generateDailyReport() {
-            const outputDiv = document.getElementById('daily-report-output');
-            const feedbackDiv = document.getElementById('advanced-reports-feedback');
-            showFeedback(feedbackDiv, '', 'info');
-            if (!dataLoaded.jobs) { showFeedback(feedbackDiv, 'Datos no cargados. Recargue Trabajos.', 'error'); outputDiv.innerHTML = 'Error: Datos no disponibles.'; return; }
-            const today = new Date().toISOString().split('T')[0];
-            const todaysJobs = jobsData.filter(job => job.orderDate === today);
-            let totalAmount = todaysJobs.reduce((sum, job) => sum + (job.finalCost || 0), 0);
-            const count = todaysJobs.length;
-            if (count === 0) outputDiv.innerHTML = `<p>No se ingresaron trabajos hoy (${formatDate(today)}).</p>`;
-            else outputDiv.innerHTML = `<p><strong>Reporte del día ${formatDate(today)}:</strong></p><p> - Cantidad trabajos: <strong>${count}</strong></p><p> - Monto total presup.: <strong>$${totalAmount.toFixed(2)}</strong></p>`;
-            showFeedback(feedbackDiv, 'Reporte diario generado.', 'success');
-        }
+
+        // --- Funciones de Reporte Bajo Demanda (Corregida mensual) ---
+        function generateDailyReport() { const o=document.getElementById('daily-report-output'); const f=document.getElementById('advanced-reports-feedback'); showFeedback(f,'','info'); if(!dataLoaded.jobs){showFeedback(f,'Datos no cargados. Recargue Trabajos.','error'); o.innerHTML='Error: Datos no disponibles.'; return;} const today=new Date().toISOString().split('T')[0]; const todaysJobs=jobsData.filter(j=>j.orderDate===today); let totalAmount=todaysJobs.reduce((s,j)=>s+(j.finalCost||0),0); const count=todaysJobs.length; if(count===0)o.innerHTML=`<p>No se ingresaron trabajos hoy (${formatDate(today)}).</p>`; else o.innerHTML=`<p><strong>Reporte del día ${formatDate(today)}:</strong></p><p> - Cantidad trabajos: <strong>${count}</strong></p><p> - Monto total presup.: <strong>$${totalAmount.toFixed(2)}</strong></p>`; showFeedback(f,'Reporte diario generado.','success'); }
         function generateMonthlyReport() {
-            const outputDiv = document.getElementById('monthly-report-output');
-            const feedbackDiv = document.getElementById('advanced-reports-feedback');
-            showFeedback(feedbackDiv, '', 'info');
-            if (!dataLoaded.jobs) { showFeedback(feedbackDiv, 'Datos no cargados. Recargue Trabajos.', 'error'); outputDiv.innerHTML = 'Error: Datos no disponibles.'; return; }
-            const reportData = {}; const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]; const today = new Date();
-            for (let i = 0; i < 12; i++) {
-                const date = new Date(today.getFullYear(), today.getMonth() - i, 1); const year = date.getFullYear(); const month = date.getMonth(); const monthKey = `${year}-${(month + 1).toString().padStart(2, '0')}`;
-                reportData[monthKey] = { total: 0, debt: 0, monthLabel: `${monthNames[month]} ${year}` };
-                jobsData.forEach(job => { if (job.orderDate && job.orderDate.startsWith(monthKey)) { const finalCost = job.finalCost || 0; const deposit = job.deposit || 0; const outstanding = Math.max(0, finalCost - deposit); reportData[monthKey].total += finalCost; reportData[monthKey].debt += outstanding; } });
-            }
-            const sortedKeys = Object.keys(reportData).sort().reverse();
-            let tableHtml = `<table id="monthly-report-table" class="w-full text-sm border-collapse border border-gray-300"><thead><tr><th>Mes</th><th>Total Presup. ($)</th><th>Deuda Pendiente ($)</th></tr></thead><tbody>`;
-            if (sortedKeys.length === 0) tableHtml += `<tr><td colspan="3" class="text-center py-3">No hay datos.</td></tr>`;
-            else sortedKeys.forEach(key => { const d = reportData[key]; tableHtml += `<tr><td>${d.monthLabel}</td><td>${d.total.toFixed(2)}</td><td class="${d.debt > 0.005 ? 'text-red-600 font-semibold' : ''}">${d.debt.toFixed(2)}</td></tr>`; });
-            tableHtml += `</tbody></table>`; outputDiv.innerHTML = tableHtml;
-            showFeedback(feedbackDiv, 'Reporte mensual generado.', 'success');
+            const o=document.getElementById('monthly-report-output'); const f=document.getElementById('advanced-reports-feedback'); showFeedback(f,'','info'); if(!dataLoaded.jobs){showFeedback(f,'Datos no cargados. Recargue Trabajos.','error'); o.innerHTML='Error: Datos no disponibles.'; return;} const rd={}; const mn=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]; const t=new Date();
+            for(let i=0; i<12; i++){ const d=new Date(t.getFullYear(),t.getMonth()-i,1); const y=d.getFullYear(); const m=d.getMonth(); const mk=`${y}-${(m+1).toString().padStart(2,'0')}`; rd[mk]={total:0,debt:0,count:0,monthLabel:`${mn[m]} ${y}`}; jobsData.forEach(j=>{if(j.orderDate&&j.orderDate.startsWith(mk)){const fc=j.finalCost||0; const dp=j.deposit||0; const ou=Math.max(0,fc-dp); rd[mk].count++; rd[mk].total+=fc; rd[mk].debt+=ou;}}); }
+            const sk=Object.keys(rd).sort().reverse(); let th=`<table id="monthly-report-table" class="w-full text-sm border-collapse border border-gray-300"><thead><tr><th>Mes</th><th>Cant. Trab.</th><th>Total Presup. ($)</th><th>Deuda Pendiente ($)</th></tr></thead><tbody>`; if(sk.length===0)th+=`<tr><td colspan="4" class="text-center py-3">No hay datos.</td></tr>`; else sk.forEach(k=>{const d=rd[k]; th+=`<tr><td>${d.monthLabel}</td><td>${d.count}</td><td>${d.total.toFixed(2)}</td><td class="${d.debt>0.005?'text-red-600 font-semibold':''}">${d.debt.toFixed(2)}</td></tr>`;}); th+=`</tbody></table>`; o.innerHTML=th; showFeedback(f,'Reporte mensual generado.','success');
         }
+
         // --- Funciones Utilitarias ---
         function showFeedback(el, msg, type='info') { if(!el)return; el.textContent=msg; el.className='mt-2 text-sm feedback'; if(msg){switch(type){case 'success': el.classList.add('feedback-success'); break; case 'error': el.classList.add('feedback-error'); break; default: el.classList.add('feedback-info'); break;}} if((type==='success'||type==='info')&&msg) setTimeout(()=>{if(el.textContent===msg){el.textContent=''; el.className='mt-2 text-sm feedback';}}, 4000); }
         function formatDate(dStr) { if(!dStr||dStr.length<10)return '-'; try {const [y,m,d]=dStr.substring(0,10).split('-'); if(!y||!m||!d||y.length!==4)return dStr; return`${d}/${m}/${y}`; } catch(e){return dStr;} }
@@ -686,9 +429,12 @@
         function getStatusClass(s) { switch(s){case 'Encargado': return 'status-encargado'; case 'Procesando': return 'status-procesando'; case 'Terminado': return 'status-terminado'; default: return 'bg-gray-400 text-gray-800 px-2 py-0.5 rounded text-xs font-medium';} }
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM loaded."); const y=document.getElementById('current-year'); if(y)y.textContent= '2025'; const j=document.getElementById('job-job-type'); if(j)j.dispatchEvent(new Event('change'));
+            console.log("DOM loaded."); const y=document.getElementById('current-year'); if(y)y.textContent= 2025; const j=document.getElementById('job-job-type'); if(j)j.dispatchEvent(new Event('change'));
              if(typeof auth!=='undefined') console.log("Waiting for auth state...");
              else { console.error("Auth N/A. Showing login."); showLoginSection(); alert("Error: Auth service failed."); }
+             // Añadir listeners para búsqueda después de que el DOM cargue
+             document.getElementById('client-search')?.addEventListener('input', filterClients);
+             document.getElementById('job-search')?.addEventListener('input', filterJobs);
         });
 
     </script>
