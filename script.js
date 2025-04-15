@@ -1,4 +1,5 @@
-// script.js (Versión completa - 2024-07-24 v8 - Corregido configSnapshot.exists)
+// script.js (Versión completa - 2024-07-24 v8 - Dividido en Partes)
+// PARTE 1: Config, Globales, Init Firebase, Auth, Nav
 
 // --- Variables Globales y Configuración ---
 const firebaseConfig = {
@@ -10,7 +11,7 @@ const firebaseConfig = {
     appId: "1:159566854109:web:8d7351cef717697f3ea834"
 };
 const SUPER_ADMIN_UID = 'WirMlSEvm5UdlAkns4KNr7ND0wr1'; // UID Super Admin del usuario
-// TIMEZONE ya no se usa activamente con el manejo de fechas revertido
+const TIMEZONE = 'America/Argentina/Buenos_Aires'; // Zona horaria de Argentina (REINTRODUCIDA)
 
 // Variables de estado y datos globales
 let db;
@@ -24,6 +25,7 @@ let currentUserRole = null;
 let currentJobQuoteBaseCost = 0;
 let dataLoaded = { clients: false, jobs: false, materials: false, config: false };
 let activeSectionId = 'home';
+let dateTimeInterval = null; // Variable para el intervalo de actualización de hora
 
 // --- Inicialización de Firebase ---
 try {
@@ -105,7 +107,10 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
 
 function logoutUser() { if (!auth) { console.error("Logout: Auth N/D."); return; } auth.signOut().then(() => console.log("Logout OK.")).catch(e => { console.error("Error logout:", e); alert("Error logout: " + e.message); }); }
 
+// --- FIN PARTE 1 ---
+// script.js PARTE 2
 // --- Funciones: Carga de Datos (Firestore) ---
+
 async function loadInitialDataForLoggedInUser() { if (!db) throw new Error("DB N/D carga inicial."); console.log("Cargando datos iniciales..."); try { await Promise.all([loadConfig(), loadMaterials(), loadClients()]); console.log("Datos iniciales OK."); } catch (e) { console.error("Fallo carga inicial:", e); throw e; } }
 
 function loadDataForSection(sectionId) {
@@ -135,9 +140,9 @@ async function loadConfig() {
     dataLoaded.config = false;
     try {
         const configSnapshot = await db.collection('config').doc('main').get();
-        // ***** LÍNEA CORREGIDA: usa .exists como propiedad, no función *****
-        if (configSnapshot.exists) { // <--- CORRECCIÓN AQUÍ
-            const d = configSnapshot.data(); // Obtiene los datos
+        // ***** USA .exists (propiedad) *****
+        if (configSnapshot.exists) { // <--- CORRECCIÓN APLICADA
+            const d = configSnapshot.data();
             configData.minutes_per_month = d.minutes_per_month || 2400;
             configData.monthly_costs = d.monthly_costs || {};
             const tMC = Object.values(configData.monthly_costs).reduce((s, v) => s + (Number(v) || 0), 0);
@@ -155,117 +160,52 @@ async function loadConfig() {
         console.error("Error cargar config:", e);
         const fE = document.getElementById('config-form-feedback-admin');
         if (fE && activeSectionId === 'admin-config') showFeedback(fE, `Error config: ${e.message}`, 'error');
-        dataLoaded.config = false; // Asegúrate de marcar como no cargado en caso de error
-        throw e; // Relanza el error
+        dataLoaded.config = false;
+        throw e;
     }
 }
 
 async function loadClients() { if (!currentUser || !db) throw new Error("User/DB N/D loadClients"); console.log("Cargando clientes..."); dataLoaded.clients = false; const tB = document.getElementById('clients-table')?.querySelector('tbody'); if (tB && activeSectionId === 'clients') tB.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">Cargando...</td></tr>`; try { const snap = await db.collection('clients').orderBy('name', 'asc').get(); const temp = {}; snap.forEach(doc => temp[doc.id] = { ...doc.data(), id: doc.id }); clientsData = temp; dataLoaded.clients = true; console.log(`Clientes cargados: ${Object.keys(clientsData).length}`); if (activeSectionId === 'clients') populateClientsTable(); populateClientDropdown('job-client'); if (activeSectionId === 'clients') filterClients(); } catch (e) { console.error("Error cargar clientes:", e); if (tB && activeSectionId === 'clients') tB.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-600">Error: ${e.message}</td></tr>`; throw e; } }
 
-// ***** loadJobs CON normalizeDate SIMPLIFICADO (v2) *****
+// ***** loadJobs (Con normalizeDate simplificado v2 y catch corregido) *****
 async function loadJobs() {
-    if (!currentUser || !db) {
-        console.error("loadJobs: No hay usuario o DB");
-        throw new Error("Usuario o DB no disponible en loadJobs");
-    }
-    console.log("Cargando trabajos (v6 - reescrito)...");
-    dataLoaded.jobs = false;
-
-    // Indicadores de carga
+    if (!currentUser || !db) { console.error("loadJobs: No hay usuario o DB"); throw new Error("Usuario o DB no disponible en loadJobs"); }
+    console.log("Cargando trabajos (v7 - catch revisado)..."); dataLoaded.jobs = false;
     const loadingHtml = (cols) => `<tr><td colspan="${cols}" class="text-center py-4 text-gray-500">Cargando trabajos...</td></tr>`;
-    ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => {
-        const tbody = document.getElementById(id)?.querySelector('tbody');
-        if (tbody) {
-            const colCount = tbody.closest('table')?.querySelector('thead th')?.length || 1;
-            tbody.innerHTML = loadingHtml(colCount);
-        }
-    });
-    ['report-total-value', 'report-total-deposit', 'report-total-outstanding']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Calculando...'; });
-    ['monthly-report-output', 'daily-report-output'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el && !el.querySelector('table') && !el.querySelector('ul')) {
-            el.innerHTML = 'Cargando datos...';
-        }
-    });
+    ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => { const tbody = document.getElementById(id)?.querySelector('tbody'); if (tbody) { const colCount = tbody.closest('table')?.querySelector('thead th')?.length || 1; tbody.innerHTML = loadingHtml(colCount); } });
+    ['report-total-value', 'report-total-deposit', 'report-total-outstanding'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = 'Calculando...'; });
+    ['monthly-report-output', 'daily-report-output'].forEach(id => { const el = document.getElementById(id); if (el && !el.querySelector('table') && !el.querySelector('ul')) el.innerHTML = 'Cargando datos...'; });
 
     try {
         const snapshot = await db.collection('jobs').orderBy('orderDate', 'desc').get();
         const tempJobs = [];
-
         snapshot.forEach(doc => {
             const data = doc.data();
-
-            // Función interna para normalizar fechas (reescrita y simplificada)
             const normalizeDate = (dateFieldValue) => {
-                if (!dateFieldValue) {
-                    return null;
-                }
+                if (!dateFieldValue) { return null; }
                 let dateString = null;
-                // Caso 1: Timestamp de Firebase
-                if (dateFieldValue instanceof firebase.firestore.Timestamp) {
-                    try {
-                        dateString = dateFieldValue.toDate().toISOString();
-                    } catch (tsError) {
-                        console.error(`Error convirtiendo Timestamp en doc ${doc.id}:`, tsError);
-                        return null;
-                    }
-                // Caso 2: String
-                } else if (typeof dateFieldValue === 'string') {
-                    dateString = dateFieldValue;
-                // Caso 3: Otros tipos no soportados
-                } else {
-                     console.warn(`Tipo de fecha inesperado ${doc.id}:`, typeof dateFieldValue);
-                     return null;
-                }
-
-                // Extraer YYYY-MM-DD del string (si es válido)
-                if (dateString && dateString.length >= 10) {
-                    const potentialDate = dateString.substring(0, 10);
-                    // Validación simple de formato
-                    if (/^\d{4}-\d{2}-\d{2}$/.test(potentialDate)) {
-                        return potentialDate;
-                    } else {
-                         console.warn(`Formato de fecha string inválido ${doc.id}:`, potentialDate);
-                         return null;
-                    }
-                } else {
-                    console.warn(`Fecha string inválida o corta ${doc.id}:`, dateString);
-                    return null;
-                }
-            }; // Fin de normalizeDate
-
-            tempJobs.push({
-                ...data, id: doc.id,
-                orderDate: normalizeDate(data.orderDate),
-                deliveryDate: normalizeDate(data.deliveryDate),
-                finalCost: Number(data.finalCost || 0),
-                deposit: Number(data.deposit || 0)
-            });
+                if (dateFieldValue instanceof firebase.firestore.Timestamp) { try { dateString = dateFieldValue.toDate().toISOString(); } catch (e) { console.error(`Error TS ${doc.id}:`, e); return null; } }
+                else if (typeof dateFieldValue === 'string') { dateString = dateFieldValue; }
+                else { console.warn(`Tipo fecha ${doc.id}:`, typeof dateFieldValue); return null; }
+                if (dateString && dateString.length >= 10) { const formattedDate = dateString.substring(0, 10); if (/^\d{4}-\d{2}-\d{2}$/.test(formattedDate)) return formattedDate; else { console.warn(`Formato inv ${doc.id}:`, formattedDate); return null; } }
+                else { console.warn(`Fecha str inv ${doc.id}:`, dateString); return null; }
+            };
+            tempJobs.push({ ...data, id: doc.id, orderDate: normalizeDate(data.orderDate), deliveryDate: normalizeDate(data.deliveryDate), finalCost: Number(data.finalCost || 0), deposit: Number(data.deposit || 0) });
         }); // Fin forEach
-
         jobsData = tempJobs; dataLoaded.jobs = true; console.log(`Trabajos cargados: ${jobsData.length}`);
         if (activeSectionId === 'jobs') populateJobsTable(); if (activeSectionId === 'deadlines') populateDeadlinesTable(); if (activeSectionId === 'status') populateStatusTable();
         if (activeSectionId === 'reports' && currentUserRole === 'superadmin') generateReports();
         if (activeSectionId === 'advanced-reports' && currentUserRole === 'superadmin') { document.getElementById('daily-report-output').innerHTML = 'Click.'; document.getElementById('monthly-report-output').innerHTML = 'Click.'; }
         if (activeSectionId === 'jobs') filterJobs();
-
-    } catch (error) { // Catch revisado sin referencia a 'dS'
-        console.error("Error crítico al cargar trabajos:", error);
-        const errorHtml = (cols) => `<tr><td colspan="${cols}" class="text-center py-4 text-red-600">Error al cargar trabajos: ${error.message}</td></tr>`;
-        ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => {
-            const tbody = document.getElementById(id)?.querySelector('tbody');
-            if (tbody) {
-                const colCount = tbody.closest('table')?.querySelector('thead th')?.length || 1;
-                tbody.innerHTML = errorHtml(colCount);
-            }
-        });
-        throw error;
+    } catch (error) {
+        console.error("Error crítico al cargar trabajos:", error); const errorHtml = (cols) => `<tr><td colspan="${cols}" class="text-center py-4 text-red-600">Error: ${error.message}</td></tr>`;
+        ['jobs-table', 'deadlines-table', 'status-table', 'outstanding-table'].forEach(id => { const tbody = document.getElementById(id)?.querySelector('tbody'); if (tbody) { const colCount = tbody.closest('table')?.querySelector('thead th')?.length || 1; tbody.innerHTML = errorHtml(colCount); } }); throw e;
     }
 }
-
-
+// --- FIN PARTE 2 ---
+// script.js PARTE 3
 // --- Funciones: Población de Elementos UI ---
+
 function populateClientDropdown(id) { const s=document.getElementById(id); if(!s){console.warn(`Dropdown ${id} N/E.`);return;} const v=s.value; s.innerHTML='<option value="">Selecciona cliente...</option>'; const sorted=Object.values(clientsData).sort((a,b)=>(a.name||"S/N").localeCompare(b.name||"S/N")); sorted.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.name||`S/N (ID:${c.id.substring(0,6)})`;s.appendChild(o);}); if(Array.from(s.options).some(opt=>opt.value===v))s.value=v;}
 function populateMaterialDropdown(id) { const s=document.getElementById(id); if(!s){console.warn(`Dropdown ${id} N/E.`);return;} const v=s.value; s.innerHTML='<option value="">Selecciona material...</option>'; const avail=Object.values(materialsData).filter(m=>m.available!==false).sort((a,b)=>{const nA=`${a.name||'S/N'} ${a.thickness||0}mm`;const nB=`${b.name||'S/N'} ${b.thickness||0}mm`;return nA.localeCompare(nB);}); avail.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=`${m.name||'S/N'} - ${m.thickness||'?'}mm`;s.appendChild(o);}); if(Array.from(s.options).some(opt=>opt.value===v))s.value=v;}
 function filterClients(){populateClientsTable();} function filterJobs(){populateJobsTable();}
@@ -369,7 +309,7 @@ function resetMaterialFormAdmin(){if(currentUserRole!=='superadmin')return;docum
 async function deleteMaterialAdmin(mId){if(currentUserRole!=='superadmin'||!db)return;const mN=materialsData[mId]?.name||`ID ${mId}`;const iU=jobsData.some(j=>j.materialId===mId);let cM=`¿Borrar material "${mN}"?`;if(iU)cM+=`\n\n¡ATN! Usado en trabajos.`;cM+="\n\nIrreversible.";if(!confirm(cM))return; const fb=document.getElementById('material-form-feedback-admin'); try{showFeedback(fb,`Borrando "${mN}"...`,'info');await db.collection('materials').doc(mId).delete();delete materialsData[mId];showFeedback(fb,`"${mN}" borrado.`,'success');populateMaterialsAdminTable();populateMaterialDropdown('job-material');if(document.getElementById('material-id-admin').value===mId)resetMaterialFormAdmin();}catch(e){console.error("Error borrar mat:",e);showFeedback(fb,`Error:${e.message}`,'error');}}
 
 // --- Funciones: Configuración Admin ---
-function addMonthlyCostInput(k='',v=''){const c=document.getElementById('monthly-costs-container');if(!c)return; const d=document.createElement('div');d.className='flex items-center space-x-2 cost-entry mb-2'; d.innerHTML=`<input type="text" placeholder="Descripción" value="${k}" data-cost-key required class="form-input form-input-sm flex-grow"><input type="number" placeholder="0.00" value="${v}" step="0.01" min="0" data-cost-value required class="form-input form-input-sm w-28 text-right"><button type="button" onclick="removeMonthlyCostInput(this)" class="btn btn-danger action-button px-2 py-1" title="Eliminar">&times;</button>`; c.appendChild(d); d.querySelector('[data-cost-key]').focus();}
+function addMonthlyCostInput(k='',v=''){const c=document.getElementById('monthly-costs-container');if(!c)return; const d=document.createElement('div');d.className='flex items-center space-x-2 cost-entry mb-2'; d.innerHTML=`<input type="text" placeholder="Descripción" value="${k}" data-cost-key required class="form-input form-input-sm flex-grow"><input type="number" placeholder="0.00" value="${v}" step="0.01" min="0" data-cost-value required class="form-input form-input-sm w-28 text-right"><button type="button" onclick="removeMonthlyCostInput(this)" class="btn btn-danger action-button px-2 py-1" title="Eliminar">×</button>`; c.appendChild(d); d.querySelector('[data-cost-key]').focus();}
 function removeMonthlyCostInput(btn){const d=btn.closest('.cost-entry'); if(d)d.remove();}
 document.getElementById('config-form-admin')?.addEventListener('submit', async (e)=>{ e.preventDefault(); if(currentUserRole!=='superadmin'||!db)return; const fb=document.getElementById('config-form-feedback-admin'); const sb=e.target.querySelector('button[type="submit"]'); showFeedback(fb,'','info'); e.target.querySelectorAll('.border-red-500').forEach(el=>el.classList.remove('border-red-500')); const mI=document.getElementById('config-minutes-admin'); const mPM=parseInt(mI.value,10); const cE=document.querySelectorAll('#monthly-costs-container .cost-entry'); const mC={}; let iV=true; let errs=[]; if(isNaN(mPM)||mPM<=0){errs.push('Minutos>0.');mI.classList.add('border-red-500');iV=false;} cE.forEach((en,idx)=>{const kI=en.querySelector('[data-cost-key]'); const vI=en.querySelector('[data-cost-value]'); const k=kI.value.trim(); const vS=vI.value.trim(); const v=parseFloat(vS); if(k||vS){let eV=true; if(!k){errs.push(`F${idx+1}:Descrip.`);kI.classList.add('border-red-500');eV=false;} if(vS===''||isNaN(v)||v<0){errs.push(`F${idx+1}:Valor>=0.`);vI.classList.add('border-red-500');eV=false;} if(eV&&mC.hasOwnProperty(k)){errs.push(`F${idx+1}:Duplicado"${k}".`);kI.classList.add('border-red-500');eV=false;} if(eV)mC[k]=v; if(!eV)iV=false;} else { console.log(`Fila ${idx+1} ignorada por estar vacía.`); } }); if(!iV){showFeedback(fb,`Errores:${errs.join(' ')}`,'error');return;} if(sb)sb.disabled=true; const cfgUpd={minutes_per_month:mPM,monthly_costs:mC}; try{showFeedback(fb,'Guardando...','info');await db.collection('config').doc('main').set(cfgUpd,{merge:true});configData.minutes_per_month=mPM;configData.monthly_costs=mC;const tC=Object.values(mC).reduce((s,v)=>s+v,0);configData.cost_per_minute=mPM>0?tC/mPM:0; console.log("Config OK.Costo/min:",configData.cost_per_minute);populateConfigFormAdmin();showFeedback(fb,'Config guardada.','success');}catch(e){console.error("Error guardar config:",e);showFeedback(fb,`Error:${e.message}`,'error');}finally{if(sb)sb.disabled=false;}});
 
@@ -390,21 +330,33 @@ function formatDate(dStr) {
     if (!dStr || typeof dStr !== 'string' || dStr.length < 10) return '-';
     try {
         const [y, m, d] = dStr.substring(0, 10).split('-');
-        if (!y || !m || !d || y.length !== 4) return dStr; // Retorna original si formato no es YYYY-MM-DD
+        if (!y || !m || !d || y.length !== 4 || isNaN(parseInt(y)) || isNaN(parseInt(m)) || isNaN(parseInt(d))) {
+             console.warn(`Formato de fecha inválido detectado en formatDate: ${dStr}`);
+             return dStr; // Devuelve original si no es YYYY-MM-DD válido
+        }
         return `${d}/${m}/${y}`;
     } catch (e) {
         console.warn(`formatDate (simple): Error formateando '${dStr}':`, e);
-        return dStr; // Retorna original en caso de error
+        return dStr;
     }
 }
 // ***** parseDateForComparison (Revertido a Date nativo) *****
-function parseDateForComparison(dStr) {
-    if (!dStr || typeof dStr !== 'string' || dStr.length < 10) return null;
+function parseDateForComparison(dStr){
+    if (!dStr || typeof dStr !== 'string' || dStr.length < 10) {
+         return null;
+    }
     try {
-        // Crea objeto Date asumiendo YYYY-MM-DD en hora local 00:00:00
-        const d = new Date(dStr.substring(0, 10) + 'T00:00:00');
-        if (isNaN(d.getTime())) return null; // Verifica si la fecha es válida
-        d.setHours(0, 0, 0, 0); // Asegura que la hora sea 00:00:00 local
+        // Verifica explícitamente el formato YYYY-MM-DD antes de parsear
+        if (! /^\d{4}-\d{2}-\d{2}$/.test(dStr.substring(0,10))) {
+             console.warn(`parseDateForComparison: Formato inválido '${dStr}'`);
+             return null;
+        }
+        const d = new Date(dStr.substring(0, 10) + 'T00:00:00'); // Usa T00:00:00 para evitar problemas de zona horaria al parsear solo fecha
+        if (isNaN(d.getTime())) {
+            console.warn(`parseDateForComparison: Fecha inválida creada desde '${dStr}'`);
+            return null;
+        }
+        // No es necesario setHours(0,0,0,0) si usamos T00:00:00
         return d;
     } catch (e) {
         console.error(`parseDateForComparison (simple): Error parseando '${dStr}':`, e);
@@ -413,15 +365,49 @@ function parseDateForComparison(dStr) {
 }
 function getStatusClass(s){switch(s){case'Encargado':return'status-encargado';case'Procesando':return'status-procesando';case'Terminado':return'status-terminado';default:return'bg-gray-400 text-gray-800';}}
 
+// --- Nueva Función para Actualizar Fecha/Hora ---
+function updateDateTimeDisplay() {
+    if (typeof luxon === 'undefined') {
+        console.warn("Luxon no está disponible para actualizar la hora.");
+        const displayEl = document.getElementById('current-datetime');
+        if (displayEl) displayEl.textContent = 'Error hora';
+        if (dateTimeInterval) clearInterval(dateTimeInterval);
+        return;
+    }
+    try {
+        const now = luxon.DateTime.now().setZone(TIMEZONE);
+        // Formato: DD/MM/YYYY HH:MM:SS
+        const formattedDateTime = now.toFormat('dd/MM/yyyy HH:mm:ss');
+        const displayEl = document.getElementById('current-datetime');
+        if (displayEl) {
+            displayEl.textContent = `ARG: ${formattedDateTime}`;
+        }
+    } catch (e) {
+        console.error("Error actualizando fecha/hora con Luxon:", e);
+         const displayEl = document.getElementById('current-datetime');
+         if (displayEl) displayEl.textContent = 'Error hora';
+        if (dateTimeInterval) clearInterval(dateTimeInterval);
+    }
+}
+
 // --- Inicialización al Cargar el DOM ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM cargado y listo.");
-    const yS=document.getElementById('current-year'); if(yS)yS.textContent= new Date().getFullYear();
+    // El año se actualiza en la función de hora
+
     document.getElementById('job-job-type')?.dispatchEvent(new Event('change'));
     if(typeof flatpickr!=='undefined'){const fCfg={locale:"es",altInput:true,altFormat:"d/m/Y",dateFormat:"Y-m-d",allowInput:true,time_24hr:true,errorHandler:(e)=>console.error("Flatpickr Err:",e)}; try{flatpickr("#job-order-date",fCfg);flatpickr("#job-delivery-date",{...fCfg,minDate:"today"});console.log("Flatpickr OK.");}catch(e){console.error("Error Flatpickr init:",e);}}else console.warn("Flatpickr N/D.");
     document.getElementById('client-search')?.addEventListener('input',filterClients); document.getElementById('job-search')?.addEventListener('input',filterJobs);
-    // Asignación del listener al botón de login principal (Corregido)
     const loginBtnMain=document.getElementById('admin-login-button-main'); if(loginBtnMain)loginBtnMain.addEventListener('click',showLoginSection); else console.error("Botón 'admin-login-button-main' N/E.");
-    // Verificación inicial de auth
+
+    // Inicia la actualización de fecha/hora y año
+    updateDateTimeDisplay(); // Llama una vez
+    dateTimeInterval = setInterval(updateDateTimeDisplay, 1000); // Actualiza cada segundo
+    const yearSpan = document.getElementById('current-year'); // Establece el año
+     if (yearSpan && typeof luxon !== 'undefined') {
+         try { yearSpan.textContent = luxon.DateTime.now().setZone(TIMEZONE).year; }
+         catch (e) { console.error("Error año Luxon:", e); yearSpan.textContent = new Date().getFullYear(); }
+     } else if (yearSpan) { yearSpan.textContent = new Date().getFullYear(); }
+
     if(typeof auth==='undefined'){console.error("Fallo crítico:Auth N/I.");showLoginSection();document.body.className='public-only';} else console.log("Esperando estado auth...");
 });

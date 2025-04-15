@@ -25,7 +25,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
 
-    <!-- Luxon Date/Time Library (for Timezone Handling) -->
+    <!-- Luxon Date/Time Library (REINTRODUCIDO para Timezone Handling) -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
 
 </head>
@@ -36,11 +36,10 @@
         <aside id="sidebar" class="no-print">
             <div class="sidebar-header">
                 <span class="text-xl font-bold text-white">Gestión Láser</span>
-                <!-- Optional: Add a small logo here -->
             </div>
             <nav class="flex-grow overflow-y-auto">
                 <ul class="space-y-1 p-2">
-                    <!-- Sidebar links will be dynamically shown/hidden based on role -->
+                    <!-- Sidebar links -->
                     <li class="admin-only"><a href="#" onclick="navigateTo('jobs')" data-target="jobs"><span class="nav-icon">💼</span>Trabajos</a></li>
                      <li class="admin-only"><a href="#" onclick="navigateTo('new-job-form'); resetJobForm();" data-target="new-job-form"><span class="nav-icon">➕</span>Nuevo Trabajo</a></li>
                      <li class="admin-only"><a href="#" onclick="navigateTo('clients')" data-target="clients"><span class="nav-icon">👥</span>Clientes</a></li>
@@ -72,7 +71,6 @@
         <!-- Main Content Area -->
         <div id="main-content">
              <div class="public-only text-right mb-4">
-                 <!-- *** SE ELIMINÓ EL onclick DE ESTE BOTÓN *** -->
                  <button id="admin-login-button-main" class="btn btn-primary">
                      Iniciar Sesión
                  </button>
@@ -85,6 +83,8 @@
                          <div class="text-sm text-gray-600">
                              <p>Castelli 143, Trenque Lauquen | Tel: 2213141765</p>
                              <p>cortelasertql@gmail.com | www.cortelasertql.com.ar</p>
+                             <!-- Elemento para mostrar fecha y hora -->
+                             <p class="mt-1"><span id="current-datetime" class="current-datetime-display"></span></p>
                          </div>
                      </div>
                      <div class="mt-4 md:mt-0">
@@ -155,8 +155,7 @@
                             <tbody><!-- Client data here --></tbody>
                         </table>
                     </div>
-                    <!-- Feedback area for table-level messages if needed -->
-                    <div class="feedback mt-2"></div>
+                    <div class="feedback mt-2"></div> <!-- Feedback area -->
                  </section>
 
                  <!-- Jobs Section -->
@@ -176,8 +175,7 @@
                             <tbody><!-- Job data here --></tbody>
                          </table>
                      </div>
-                     <!-- Feedback area for table-level messages if needed -->
-                     <div class="feedback mt-2"></div>
+                     <div class="feedback mt-2"></div> <!-- Feedback area -->
                  </section>
 
                 <!-- New Job Form Section -->
@@ -196,87 +194,39 @@
                              <label for="job-details" class="form-label">Detalles Trabajo:</label>
                              <textarea id="job-details" rows="3" required class="form-textarea"></textarea>
                          </div>
-
                          <div class="form-subsection">
                              <h3 class="form-subsection-title">Detalles Cotización</h3>
                              <div>
                                  <label for="job-material" class="form-label">Material:</label>
-                                 <select id="job-material" required class="form-select">
-                                     <option value="">Selecciona material...</option>
-                                 </select>
+                                 <select id="job-material" required class="form-select"><option value="">Selecciona material...</option></select>
                              </div>
                              <div class="grid grid-cols-2 gap-4">
-                                 <div>
-                                     <label for="job-length" class="form-label">Alto (mm):</label>
-                                     <input type="number" id="job-length" required min="1" class="form-input">
-                                 </div>
-                                 <div>
-                                     <label for="job-width" class="form-label">Ancho (mm):</label>
-                                     <input type="number" id="job-width" required min="1" class="form-input">
-                                 </div>
+                                 <div><label for="job-length" class="form-label">Alto (mm):</label><input type="number" id="job-length" required min="1" class="form-input"></div>
+                                 <div><label for="job-width" class="form-label">Ancho (mm):</label><input type="number" id="job-width" required min="1" class="form-input"></div>
                              </div>
-                              <div>
+                             <div>
                                  <label for="job-job-type" class="form-label">Tipo Trabajo:</label>
-                                 <select id="job-job-type" required class="form-select">
-                                     <option value="corte">Solo Corte</option>
-                                     <option value="grabado">Solo Grabado</option>
-                                     <option value="ambos">Corte y Grabado</option>
-                                 </select>
+                                 <select id="job-job-type" required class="form-select"><option value="corte">Solo Corte</option><option value="grabado">Solo Grabado</option><option value="ambos">Corte y Grabado</option></select>
                              </div>
                              <div id="job-time-estimation" class="space-y-2 mt-2">
                                 <p class="form-hint no-print">Estimar minutos máquina:</p>
-                                <div id="job-cut-time-field" class="grid grid-cols-2 gap-2 items-center">
-                                    <label for="job-cut-minutes" class="form-label-sm">Min. Corte:</label>
-                                    <input type="number" id="job-cut-minutes" min="0" value="0" class="form-input form-input-sm">
-                                </div>
-                                <div id="job-engrave-time-field" class="grid grid-cols-2 gap-2 items-center">
-                                    <label for="job-engrave-minutes" class="form-label-sm">Min. Grabado:</label>
-                                    <input type="number" id="job-engrave-minutes" min="0" value="0" class="form-input form-input-sm">
-                                </div>
+                                <div id="job-cut-time-field" class="grid grid-cols-2 gap-2 items-center"><label for="job-cut-minutes" class="form-label-sm">Min. Corte:</label><input type="number" id="job-cut-minutes" min="0" value="0" class="form-input form-input-sm"></div>
+                                <div id="job-engrave-time-field" class="grid grid-cols-2 gap-2 items-center"><label for="job-engrave-minutes" class="form-label-sm">Min. Grabado:</label><input type="number" id="job-engrave-minutes" min="0" value="0" class="form-input form-input-sm"></div>
                             </div>
                             <button type="button" onclick="calculateJobQuote()" class="btn btn-secondary w-full mt-3 no-print">Calcular Costo</button>
-                            <span id="job-quote-base-result-wrapper" class="superadmin-only block mt-1">
-                                <div id="job-quote-base-result" class="text-sm text-gray-600 font-medium">Costo Base Estimado: $0.00</div>
-                            </span>
+                            <span id="job-quote-base-result-wrapper" class="superadmin-only block mt-1"><div id="job-quote-base-result" class="text-sm text-gray-600 font-medium">Costo Base Estimado: $0.00</div></span>
                          </div>
-
                          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label for="job-order-date" class="form-label">F. Pedido:</label>
-                                <input type="date" id="job-order-date" required class="form-input">
-                            </div>
-                            <div>
-                                <label for="job-delivery-date" class="form-label">F. Entrega:</label>
-                                <input type="date" id="job-delivery-date" required class="form-input">
-                            </div>
-                            <div>
-                                <label for="job-status" class="form-label">Estado:</label>
-                                <select id="job-status" required class="form-select">
-                                    <option value="Encargado">Encargado</option>
-                                    <option value="Procesando">Procesando</option>
-                                    <option value="Terminado">Terminado</option>
-                                </select>
-                            </div>
+                            <div><label for="job-order-date" class="form-label">F. Pedido:</label><input type="date" id="job-order-date" required class="form-input"></div>
+                            <div><label for="job-delivery-date" class="form-label">F. Entrega:</label><input type="date" id="job-delivery-date" required class="form-input"></div>
+                            <div><label for="job-status" class="form-label">Estado:</label><select id="job-status" required class="form-select"><option value="Encargado">Encargado</option><option value="Procesando">Procesando</option><option value="Terminado">Terminado</option></select></div>
                         </div>
-
                          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div>
-                                 <label for="job-final-cost" class="form-label">Total Trabajo ($):</label>
-                                 <input type="number" id="job-final-cost" required min="0" step="0.01" class="form-input">
-                             </div>
-                             <div>
-                                 <label for="job-deposit" class="form-label">Seña ($):</label>
-                                 <input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="form-input">
-                             </div>
+                             <div><label for="job-final-cost" class="form-label">Total Trabajo ($):</label><input type="number" id="job-final-cost" required min="0" step="0.01" class="form-input"></div>
+                             <div><label for="job-deposit" class="form-label">Seña ($):</label><input type="number" id="job-deposit" min="0" step="0.01" value="0" required class="form-input"></div>
                          </div>
-                         <div>
-                             <label for="job-observations" class="form-label">Observaciones:</label>
-                             <textarea id="job-observations" rows="3" class="form-textarea"></textarea>
-                         </div>
-                         <div class="flex space-x-2 pt-4 no-print">
-                             <button type="submit" class="btn btn-success">Guardar Trabajo</button>
-                             <button type="button" onclick="navigateTo('jobs');" class="btn btn-cancel">Cancelar</button>
-                         </div>
+                         <div><label for="job-observations" class="form-label">Observaciones:</label><textarea id="job-observations" rows="3" class="form-textarea"></textarea></div>
+                         <div class="flex space-x-2 pt-4 no-print"><button type="submit" class="btn btn-success">Guardar Trabajo</button><button type="button" onclick="navigateTo('jobs');" class="btn btn-cancel">Cancelar</button></div>
                          <div id="job-form-feedback" class="feedback mt-2"></div>
                      </form>
                  </section>
@@ -284,64 +234,32 @@
                  <!-- Deadlines Section -->
                  <section id="deadlines" class="main-section admin-only content-card">
                      <h2 class="section-title">Plazos Próximos (No Terminados)</h2>
-                     <div class="table-container">
-                         <table id="deadlines-table" class="data-table">
-                             <thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th>Días Restantes</th></tr></thead>
-                             <tbody><!-- Deadlines data here --></tbody>
-                         </table>
-                     </div>
+                     <div class="table-container"><table id="deadlines-table" class="data-table"><thead><tr><th>Cliente</th><th>Detalles</th><th>F. Pedido</th><th>F. Entrega</th><th>Estado</th><th>Días Restantes</th></tr></thead><tbody></tbody></table></div>
                  </section>
 
                  <!-- Status Section -->
                  <section id="status" class="main-section admin-only content-card">
                      <h2 class="section-title">Estado de Trabajos</h2>
-                     <div class="table-container">
-                         <table id="status-table" class="data-table">
-                             <thead><tr><th>Cliente</th><th>Detalles</th><th>Estado</th><th>F. Entrega</th></tr></thead>
-                             <tbody><!-- Status data here --></tbody>
-                         </table>
-                     </div>
+                     <div class="table-container"><table id="status-table" class="data-table"><thead><tr><th>Cliente</th><th>Detalles</th><th>Estado</th><th>F. Entrega</th></tr></thead><tbody></tbody></table></div>
                  </section>
 
                  <!-- Reports Section -->
                  <section id="reports" class="main-section superadmin-only content-card">
                      <h2 class="section-title">Informes Generales</h2>
                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
-                         <div class="report-card bg-blue-100 text-blue-800">
-                             <h3 class="report-card-title">Total Facturado</h3>
-                             <p id="report-total-value" class="report-card-value">$0.00</p>
-                         </div>
-                         <div class="report-card bg-green-100 text-green-800">
-                             <h3 class="report-card-title">Total Señado</h3>
-                             <p id="report-total-deposit" class="report-card-value">$0.00</p>
-                         </div>
-                         <div class="report-card bg-red-100 text-red-800">
-                             <h3 class="report-card-title">Total Pendiente</h3>
-                             <p id="report-total-outstanding" class="report-card-value">$0.00</p>
-                         </div>
+                         <div class="report-card bg-blue-100 text-blue-800"><h3 class="report-card-title">Total Facturado</h3><p id="report-total-value" class="report-card-value">$0.00</p></div>
+                         <div class="report-card bg-green-100 text-green-800"><h3 class="report-card-title">Total Señado</h3><p id="report-total-deposit" class="report-card-value">$0.00</p></div>
+                         <div class="report-card bg-red-100 text-red-800"><h3 class="report-card-title">Total Pendiente</h3><p id="report-total-outstanding" class="report-card-value">$0.00</p></div>
                      </div>
                      <h3 class="text-xl font-semibold mb-4">Detalle Pendiente por Cliente</h3>
-                     <div class="table-container">
-                         <table id="outstanding-table" class="data-table">
-                             <thead><tr><th>Cliente</th><th class="text-right">Total ($)</th><th class="text-right">Señado ($)</th><th class="text-right">Pendiente ($)</th></tr></thead>
-                             <tbody><!-- Outstanding data here --></tbody>
-                         </table>
-                     </div>
+                     <div class="table-container"><table id="outstanding-table" class="data-table"><thead><tr><th>Cliente</th><th class="text-right">Total ($)</th><th class="text-right">Señado ($)</th><th class="text-right">Pendiente ($)</th></tr></thead><tbody></tbody></table></div>
                  </section>
 
                  <!-- Advanced Reports Section -->
                  <section id="advanced-reports" class="main-section superadmin-only content-card space-y-8">
                      <h2 class="section-title">Reportes Detallados (Bajo Demanda)</h2>
-                     <div>
-                         <h3 class="text-xl font-semibold mb-3">Reporte Diario</h3>
-                         <button onclick="generateDailyReport()" class="btn btn-info mb-4">Generar Reporte Hoy</button>
-                         <div id="daily-report-output" class="report-output">Click para generar.</div>
-                     </div>
-                     <div>
-                         <h3 class="text-xl font-semibold mb-3">Reporte Mensual (Últimos 12 Meses)</h3>
-                         <button onclick="generateMonthlyReport()" class="btn btn-info mb-4">Generar Reporte Mensual</button>
-                         <div id="monthly-report-output" class="report-output overflow-x-auto">Click para generar.</div>
-                     </div>
+                     <div><h3 class="text-xl font-semibold mb-3">Reporte Diario</h3><button onclick="generateDailyReport()" class="btn btn-info mb-4">Generar Reporte Hoy</button><div id="daily-report-output" class="report-output">Click para generar.</div></div>
+                     <div><h3 class="text-xl font-semibold mb-3">Reporte Mensual (Últimos 12 Meses)</h3><button onclick="generateMonthlyReport()" class="btn btn-info mb-4">Generar Reporte Mensual</button><div id="monthly-report-output" class="report-output overflow-x-auto">Click para generar.</div></div>
                      <div id="advanced-reports-feedback" class="feedback mt-4"></div>
                  </section>
 
@@ -349,8 +267,7 @@
                  <section id="admin-materials" class="main-section superadmin-only content-card">
                      <h2 class="section-title text-purple-600">Gestionar Materiales</h2>
                      <form id="material-form-admin" class="form-section no-print">
-                         <h4 id="material-form-title-admin" class="form-section-title">Añadir Material</h4>
-                         <input type="hidden" id="material-id-admin">
+                         <h4 id="material-form-title-admin" class="form-section-title">Añadir Material</h4><input type="hidden" id="material-id-admin">
                          <div><label for="material-name-admin" class="form-label">Nombre:</label><input type="text" id="material-name-admin" required class="form-input"></div>
                          <div><label for="material-thickness-admin" class="form-label">Grosor(mm):</label><input type="number" id="material-thickness-admin" required min="0.1" step="0.1" class="form-input"></div>
                          <div><label for="material-cost-admin" class="form-label">Costo/Plancha($):</label><input type="number" id="material-cost-admin" required min="0" step="0.01" class="form-input"></div>
@@ -360,12 +277,7 @@
                          <div class="flex space-x-2"><button type="submit" class="btn btn-success">Guardar</button><button type="button" onclick="resetMaterialFormAdmin()" class="btn btn-cancel">Cancelar</button></div>
                          <div id="material-form-feedback-admin" class="feedback mt-2"></div>
                      </form>
-                     <div class="table-container">
-                         <table id="materials-admin-table" class="data-table">
-                             <thead><tr><th>Nombre</th><th class="text-right">Grosor</th><th class="text-right">Costo/Plancha</th><th class="text-center">Dimensiones</th><th class="text-center">Disp.</th><th class="no-print">Acciones</th></tr></thead>
-                             <tbody></tbody>
-                         </table>
-                     </div>
+                     <div class="table-container"><table id="materials-admin-table" class="data-table"><thead><tr><th>Nombre</th><th class="text-right">Grosor</th><th class="text-right">Costo/Plancha</th><th class="text-center">Dimensiones</th><th class="text-center">Disp.</th><th class="no-print">Acciones</th></tr></thead><tbody></tbody></table></div>
                  </section>
 
                  <!-- Admin Config Section -->
@@ -373,20 +285,9 @@
                      <h2 class="section-title text-purple-600">Configuración de Costos</h2>
                      <form id="config-form-admin" class="form-section no-print">
                          <h4 class="form-section-title">Costos Mensuales y Parámetros</h4>
-                         <div>
-                             <label for="config-minutes-admin" class="form-label">Minutos Base/Mes:</label>
-                             <input type="number" id="config-minutes-admin" required min="1" value="2400" class="form-input">
-                             <p class="form-hint">Ej: 8hs/día*20d*60m*25% = 2400 min</p>
-                         </div>
-                         <fieldset id="monthly-costs-fieldset-admin" class="border p-3 rounded mt-4">
-                             <legend class="text-sm font-medium px-1">Costos Mensuales ($)</legend>
-                             <div id="monthly-costs-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
-                             <button type="button" onclick="addMonthlyCostInput()" class="mt-2 text-sm text-purple-600 hover:text-purple-800">+ Añadir Costo</button>
-                         </fieldset>
-                         <div class="mt-4 pt-4 border-t">
-                             <h4 class="text-md font-medium">Costo/Minuto Calculado:</h4>
-                             <p id="calculated-cost-per-minute" class="text-lg font-bold text-purple-700">$0.0000 / min</p>
-                         </div>
+                         <div><label for="config-minutes-admin" class="form-label">Minutos Base/Mes:</label><input type="number" id="config-minutes-admin" required min="1" value="2400" class="form-input"><p class="form-hint">Ej: 8hs/día*20d*60m*25% = 2400 min</p></div>
+                         <fieldset id="monthly-costs-fieldset-admin" class="border p-3 rounded mt-4"><legend class="text-sm font-medium px-1">Costos Mensuales ($)</legend><div id="monthly-costs-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div><button type="button" onclick="addMonthlyCostInput()" class="mt-2 text-sm text-purple-600 hover:text-purple-800">+ Añadir Costo</button></fieldset>
+                         <div class="mt-4 pt-4 border-t"><h4 class="text-md font-medium">Costo/Minuto Calculado:</h4><p id="calculated-cost-per-minute" class="text-lg font-bold text-purple-700">$0.0000 / min</p></div>
                          <button type="submit" class="btn btn-success mt-4">Guardar Configuración</button>
                          <div id="config-form-feedback-admin" class="feedback mt-2"></div>
                      </form>
@@ -397,19 +298,10 @@
                      <h2 class="section-title">✨ Asistente de Tiempos</h2>
                      <div class="max-w-md mx-auto">
                          <label for="tipoTrabajo" class="form-label">Tipo de trabajo:</label>
-                         <select id="tipoTrabajo" onchange="actualizarVisibilidadAsistente()" class="form-select mb-4 max-w-xs">
-                             <option value="corte3">Corte - MDF 3mm</option>
-                             <option value="corte5">Corte - MDF 5.5mm</option>
-                             <option value="grabado">Grabado</option>
-                             <option value="marcado">Marcado</option>
-                             <option value="combinado3">Corte + Grabado - MDF 3mm</option>
-                             <option value="combinado5">Corte + Grabado - MDF 5.5mm</option>
-                         </select>
+                         <select id="tipoTrabajo" onchange="actualizarVisibilidadAsistente()" class="form-select mb-4 max-w-xs"><option value="corte3">Corte - MDF 3mm</option><option value="corte5">Corte - MDF 5.5mm</option><option value="grabado">Grabado</option><option value="marcado">Marcado</option><option value="combinado3">Corte + Grabado - MDF 3mm</option><option value="combinado5">Corte + Grabado - MDF 5.5mm</option></select>
                          <div id="dimensiones">
-                             <label for="ancho" class="form-label">Alto (mm):</label>
-                             <input type="number" id="ancho" step="0.1" class="form-input mb-3">
-                             <label for="alto" class="form-label">Ancho (mm):</label>
-                             <input type="number" id="alto" step="0.1" class="form-input mb-3">
+                             <label for="ancho" class="form-label">Alto (mm):</label><input type="number" id="ancho" step="0.1" class="form-input mb-3">
+                             <label for="alto" class="form-label">Ancho (mm):</label><input type="number" id="alto" step="0.1" class="form-input mb-3">
                          </div>
                          <button onclick="calcularTiempoAsistente()" class="btn btn-primary mt-4">Calcular Tiempo</button>
                          <div id="resultadoAsistente" class="assistant-resultado mt-5" style="display:none;"></div>
@@ -420,9 +312,7 @@
              <!-- PDF Render Area (Hidden) -->
             <div id="pdf-render-area"></div>
              <!-- PDF Loading Overlay -->
-             <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">
-                 Generando PDF...
-             </div>
+             <div id="pdf-loading-overlay" class="generating-pdf-overlay" style="display: none;">Generando PDF...</div>
         </div>
     </div>
 
